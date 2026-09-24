@@ -1,14 +1,15 @@
-import { unitHref } from '../lib/units.js';
-
-export function renderBento(container, units) {
+// src/components/bento.js
+export function renderBento(container, items, options = {}) {
+  const tiered = options.tiered !== false;
   container.innerHTML = '';
   container.className = 'bento';
-  units.forEach((unit) => {
+  items.forEach((item) => {
     const tile = document.createElement('a');
-    tile.href = unitHref(unit);
-    tile.className = `bento__tile bento__tile--${unit.tier}`;
-    const badge = unit.status === 'coming-soon' ? '<span class="bento__badge">Coming soon</span>' : '';
-    tile.innerHTML = `${badge}<h3>${unit.name}</h3>`;
+    tile.href = item.href;
+    tile.className = tiered && item.tier ? `bento__tile bento__tile--${item.tier}` : 'bento__tile';
+    const badge = item.status === 'coming-soon' ? '<span class="bento__badge">Coming soon</span>' : '';
+    const levelPill = item.level ? `<span class="level-pill">${item.level}</span>` : '';
+    tile.innerHTML = `${badge}${levelPill}<h3>${item.name}</h3>`;
     container.appendChild(tile);
   });
 }
