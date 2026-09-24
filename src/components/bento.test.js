@@ -15,7 +15,7 @@ describe('renderBento', () => {
     tiles.forEach((tile) => {
       expect(tile.tagName).toBe('A');
       const href = tile.getAttribute('href');
-      expect(href).toMatch(/^\/units\/(.*\.html|wip\.html\?unit=)/);
+      expect(href).toMatch(/^\/units\/([a-z-]+\.html|wip\.html\?unit=[a-z-]+)$/);
     });
   });
 
