@@ -14,6 +14,7 @@
   --demand:        #2a5fa8;
   --demand-fill:   rgba(42, 95, 168, 0.14);
   --demand-tick:   #cfe0f5;
+  --unit-microeconomics: var(--demand);
 
   --supply:        #c85a1e;
   --supply-fill:   rgba(200, 90, 30, 0.14);
@@ -43,6 +44,7 @@
     --demand:        #6ea3e6;
     --demand-fill:   rgba(110, 163, 230, 0.20);
     --demand-tick:   #223047;
+    --unit-microeconomics: var(--demand);
 
     --supply:        #f0925a;
     --supply-fill:   rgba(240, 146, 90, 0.20);
@@ -72,6 +74,7 @@
   --demand:        #6ea3e6;
   --demand-fill:   rgba(110, 163, 230, 0.20);
   --demand-tick:   #223047;
+  --unit-microeconomics: var(--demand);
 
   --supply:        #f0925a;
   --supply-fill:   rgba(240, 146, 90, 0.20);

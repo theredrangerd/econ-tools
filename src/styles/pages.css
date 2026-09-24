@@ -82,7 +82,7 @@
   grid-column: span 2;
   grid-row: span 2;
   background: var(--demand-fill);
-  border-color: var(--demand);
+  border-color: var(--unit-microeconomics);
 }
 
 .bento__tile--medium {
