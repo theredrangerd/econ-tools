@@ -14,13 +14,14 @@ describe('renderBento', () => {
     expect(tiles).toHaveLength(4);
     tiles.forEach((tile) => {
       expect(tile.tagName).toBe('A');
-      expect(tile.getAttribute('href')).toMatch(/^\/units\/wip\.html\?unit=/);
+      const href = tile.getAttribute('href');
+      expect(href).toMatch(/^\/units\/(.*\.html|wip\.html\?unit=)/);
     });
   });
 
   it('applies the fixed tier as a CSS class on each tile', () => {
     renderBento(container, getUnits());
-    const micro = container.querySelector('a[href="/units/wip.html?unit=microeconomics"]');
+    const micro = container.querySelector('a[href="/units/microeconomics.html"]');
     expect(micro.className).toContain('bento__tile--large');
   });
 
