@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Subsidy — Microeconomics — IB Economics Graphs</title>
+  <link rel="stylesheet" href="/src/styles/tokens.css">
+  <link rel="stylesheet" href="/src/styles/pages.css">
+</head>
+<body>
+  <main class="page">
+    <div id="mini-header"></div>
+    <header class="top">
+      <span class="eyebrow">Interactive · Microeconomics <span class="level-pill">SL</span></span>
+      <h1>Subsidy</h1>
+      <p class="lede">Pay producers extra per unit and watch output rise past the efficient quantity — and the welfare loss that overproduction creates.</p>
+    </header>
+    <div class="layout">
+      <section class="card chart-card">
+        <div class="chart-head">
+          <h2 class="chart-title">Price &amp; quantity</h2>
+          <span class="status-pill" id="status-pill">Free market</span>
+        </div>
+        <svg id="chart" class="market-chart" viewBox="0 0 780 520" role="img" aria-label="Subsidy diagram"></svg>
+        <div class="legend">
+          <span class="item"><span class="line" style="background:var(--demand)"></span>Demand</span>
+          <span class="item"><span class="line" style="background:var(--supply)"></span>Supply</span>
+          <span class="item"><span class="swatch" style="background:var(--supply-fill); border:1px solid var(--supply)"></span>Government cost</span>
+          <span class="item"><span class="swatch" style="background:var(--dwl-fill); border:1px solid var(--dwl-line)"></span>Deadweight loss</span>
+        </div>
+      </section>
+      <aside class="sidebar">
+        <section class="card panel">
+          <h2>Shift the curves</h2>
+          <div class="slider-row">
+            <div class="slider-label"><span>Demand</span><span class="val" id="demand-val">140</span></div>
+            <input type="range" id="demand-slider" min="70" max="170" step="1" value="140">
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Supply</span><span class="val" id="supply-val">20</span></div>
+            <input type="range" id="supply-slider" min="-10" max="110" step="1" value="20">
+          </div>
+          <button id="reset-btn" class="reset-btn" type="button">Reset to defaults</button>
+        </section>
+        <section class="card panel">
+          <h2>Subsidy</h2>
+          <div class="slider-row">
+            <div class="slider-label"><span>Subsidy per unit</span><span class="val" id="subsidy-val">$20</span></div>
+            <input type="range" id="subsidy-slider" min="0" max="60" step="1" value="20">
+          </div>
+        </section>
+        <section class="card panel">
+          <h2>Market outcome</h2>
+          <div class="stats-grid">
+            <div class="stat"><div class="k">Price consumers pay</div><div class="v" id="stat-price-consumer">$70.00</div></div>
+            <div class="stat"><div class="k">Price producers receive</div><div class="v" id="stat-price-producer">$90.00</div></div>
+            <div class="stat"><div class="k">Quantity traded</div><div class="v" id="stat-qty">70.0</div></div>
+            <div class="stat gov"><div class="k">Government cost</div><div class="v" id="stat-cost">$1,400</div></div>
+            <div class="stat dwl wide"><div class="k">Deadweight loss</div><div class="v" id="stat-dwl">$100</div></div>
+          </div>
+          <div class="note" id="market-note"></div>
+        </section>
+      </aside>
+    </div>
+  </main>
+  <script type="module" src="/src/pages/subsidy-entry.js"></script>
+</body>
+</html>
