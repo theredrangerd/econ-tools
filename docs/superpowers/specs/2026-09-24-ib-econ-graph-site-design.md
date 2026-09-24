@@ -68,10 +68,60 @@ Rationale: the dominant usage pattern is a single shared link to one specific sc
 - Shared rendering engine (the actual curve/shading/animation logic) is a plain JS module imported by every graph page — this part is unaffected by the static-vs-framework choice.
 - Analytics: not yet chosen (candidates discussed generically: Plausible, self-hosted Umami, GoatCounter, or GitHub Pages-compatible options) — needs a decision before launch since it's the primary success metric instrument, but doesn't block building the homepage.
 
+## Microeconomics roadmap (agreed)
+
+Scope decision: full ~40-diagram coverage is the long-term goal, not the launch bar. Ship a curated subset first, sequenced to match the user's actual G11 teaching calendar, with the full diagram list mapped out now so later releases have a clear slot to land in.
+
+### Unit page structure
+
+Rejected a single flat/sectioned Microeconomics page (too much content at ~40 diagrams) in favor of **nested family sub-pages**: `units/microeconomics.html` (unit page, one tile per topic family) → `units/microeconomics/<family>.html` (family page, one tile per diagram) → `units/microeconomics/<family>/<diagram>.html` (the actual interactive graph — the deep-link target). This adds a navigation layer versus a flat page, accepted because the homepage search already covers the "I don't want to click through three levels" case — search resolves straight to the diagram page regardless of nesting depth, and a teacher's shared link always points directly at a diagram page, never through the family/unit layers.
+
+**Three-tier WIP fallback**, extending the homepage's existing stub pattern: an unbuilt family's tile on the unit page links to the generic WIP stub, same as today's unbuilt units. An unbuilt diagram's tile within an already-built family page follows the same rule — link to the WIP stub, not a dead link or silent omission.
+
+**Per-unit color identity**: the homepage's blue Microeconomics tile is currently incidental (blue comes from the `--demand` token via `tier: 'large'` styling, not from the unit itself). Formalizing this: add a unit-specific accent token (e.g. `--unit-microeconomics: var(--demand)`) used on the homepage tile regardless of tier, and carried through as the accent color (header underline, hairlines, hover/active states — not a full background wash) on the Microeconomics unit page and all its family sub-pages, establishing blue as that unit's visual identity going forward.
+
+### Topic families (syllabus/teaching order)
+
+1. **Demand & Supply** — already taught; lowest build priority, backfilled later.
+2. **Elasticity** — already taught; backfilled alongside Demand & Supply.
+3. **Government Intervention** — **current class topic, top build priority.**
+4. **Market Failure** — next family after Government Intervention, per syllabus order.
+5. **Theory of the Firm (HL only)** — own visually distinct, HL-badged block on the unit page; every diagram in this family and its tile also carries an explicit SL/HL pill. Built after the SL-common families since it lands later in the school year.
+
+### Diagram inventory (locked in as working baseline; corrections happen live as each family is actually built)
+
+Cross-checked against ibonomics.org's tagged diagram gallery (confirmed it distinguishes SL/HL explicitly); theibtrainer.com's list could not be retrieved for comparison. Two items were corrected as a result: **Lorenz curve / Gini coefficient is NOT a Microeconomics diagram** (removed — it belongs to a later Macro/Development roadmap), and **Consumer & Producer Surplus** plus **Allocative Efficiency** were added as their own foundational diagrams rather than only appearing embedded in the price ceiling/floor pages.
+
+- **Demand & Supply**: demand curve (shift vs. movement along), supply curve (shift vs. movement along), market equilibrium, consumer & producer surplus, allocative efficiency.
+- **Elasticity**: PED, elasticity along a (linear) demand curve, PED & total revenue, PES, YED/Engel curve, XED (scope tentative).
+- **Government Intervention**: price ceiling ✅ *(exists today as `equilibrium-lab.html`, to be ported into the new template)*, price floor ✅ *(same)*, indirect tax (specific + ad valorem as one page, mode toggle — see rule below), subsidy, agricultural markets/buffer stock scheme (tentative, common IB topic but unconfirmed against sources).
+- **Market Failure**: negative production externality (+ Pigouvian tax correction as a toggle on the same page), negative consumption externality, positive production externality, positive consumption externality, carbon emissions trading/market for pollution permits, public goods & common resources (scope tentative — not confirmed in the fetched source list).
+- **Theory of the Firm [HL]**: short-run and long-run cost curves (incl. minimum efficient scale), revenue curves, perfect competition (short-run loss, long-run equilibrium), monopoly (profit max/welfare loss, natural monopoly), monopolistic competition (short-run loss, long-run equilibrium), oligopoly (kinked demand, game theory/prisoner's dilemma, collusion), price discrimination (scope tentative — not confirmed in the fetched source list).
+
+### Build sequence
+
+Follows the user's actual teaching calendar, not exam-weight priority: **Government Intervention now** (port price ceiling/floor into the new template; build indirect tax and subsidy pages next, since that's this week's class topic) → **Market Failure** (next, following syllabus order) → **Demand & Supply / Elasticity backfill** (already taught, lower urgency) → **Theory of the Firm [HL]** (later in the school year).
+
+`equilibrium-lab.html` is retired outright once price ceiling/floor are ported — no redirect needed.
+
+### Toggle vs. separate page (general rule)
+
+When two diagram variants share the same axes and curve shapes and differ only by a parameter (e.g. specific vs. ad valorem tax; a negative externality before/after a Pigouvian tax; a natural monopoly regulated vs. unregulated) → **one page, mode toggle**. When the curve/region shapes genuinely differ (e.g. price ceiling vs. price floor; perfect competition vs. monopoly) → **separate pages**, preserving the site's original clean-deep-link principle. Applied case-by-case as each family is actually built; not an exhaustive pre-classification.
+
+### Individual graph page template
+
+Reuse `equilibrium-lab.html`'s existing structure (hero/eyebrow header, a controls panel of scenario-specific sliders/toggles, graph canvas) as a shared page shell that every graph page uses, importing the same shared rendering engine module (curves, shading, labels, animation) already planned in the Technical stack section above. Only the controls and parameters differ per page — this makes the "one shared engine, focused pages" decision concrete as a reusable template rather than a one-off file.
+
+### Definition of "done" for a graph page
+
+- Interactivity matches the price-ceiling/DWL quality bar: moving a control live-updates the relevant regions (surplus, DWL, tax revenue, etc.) in distinct colors, not a static annotated image.
+- SL/HL tag visible on both the page and its tile.
+- Linked from its family page and indexed by the homepage search.
+- Feedback form accessible per the existing site-wide pattern.
+
 ## Open / not yet designed
 
-- **Unit subpage structure** — especially Microeconomics, which needs its own internal browsing/grouping for ~40 diagrams rather than a flat list (likely reuses the topic-family grouping concept). Next design step after the homepage is built.
-- Individual graph page template/layout (beyond the existing Equilibrium Lab page as a starting reference).
-- First-release graph list (which specific pages ship at launch) — deliberately deferred; not needed to design the homepage itself.
-- Analytics tool choice.
+- Individual graph page template's exact layout details (beyond the structural approach above) — reasonable to finalize while building the first tax page rather than in the abstract.
+- Analytics tool choice — needed before real launch, not before building.
 - GitHub Pages deploy workflow (base path config, GitHub Actions) — needed before the site is live, not before it's built/previewed locally.
+- Macroeconomics / International / Development roadmaps — same exercise as this one, deferred until Microeconomics is underway.
