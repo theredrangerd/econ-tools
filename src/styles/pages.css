@@ -60,6 +60,7 @@
 }
 
 .bento__tile {
+  position: relative;
   display: flex;
   align-items: flex-end;
   padding: 16px 18px;
@@ -94,6 +95,21 @@
 .bento__tile--small {
   grid-column: span 1;
   grid-row: span 1;
+}
+
+.bento__badge {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline-2);
+  border-radius: 999px;
+  padding: 3px 8px;
 }
 
 @media (max-width: 720px) {

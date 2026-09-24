@@ -11,10 +11,10 @@
   <main class="page">
     <div id="hero"></div>
     <div class="search-bar">
-      <input id="search-input" type="text" placeholder="Type any graph you want — “minimum wage”, “deadweight loss”…" autocomplete="off">
+      <input id="search-input" type="text" aria-label="Search graphs" placeholder="Type any graph you want — “minimum wage”, “deadweight loss”…" autocomplete="off">
     </div>
     <div id="bento"></div>
-    <p id="no-results" hidden>No graphs match that search yet — try a different word, or check back as more get added.</p>
+    <p id="no-results" class="no-results" role="status" aria-live="polite" hidden>No graphs match that search yet — try a different word, or check back as more get added.</p>
   </main>
   <script type="module" src="/src/pages/home-entry.js"></script>
 </body>

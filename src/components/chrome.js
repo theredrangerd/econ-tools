@@ -8,10 +8,10 @@ export function renderHero(container, { eyebrow, title, lede }) {
   `;
 }
 
-export function renderMiniHeader(container, { title }) {
+export function renderMiniHeader(container, { title, base = import.meta.env.BASE_URL }) {
   container.innerHTML = `
     <header class="mini-header">
-      <a class="mini-header__home" href="/index.html">IB Econ Graphs</a>
+      <a class="mini-header__home" href="${base}index.html">IB Econ Graphs</a>
       <span class="mini-header__title">${title}</span>
     </header>
   `;

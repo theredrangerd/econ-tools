@@ -12,6 +12,12 @@ describe('getUnits', () => {
     expect(tiers.development).toBe('small');
   });
 
+  it('marks every unit as coming-soon, since no real subpage exists yet', () => {
+    getUnits().forEach((unit) => {
+      expect(unit.status).toBe('coming-soon');
+    });
+  });
+
   it('gives every unit a name and at least one search tag', () => {
     getUnits().forEach((unit) => {
       expect(typeof unit.name).toBe('string');
@@ -25,5 +31,11 @@ describe('getUnits', () => {
 describe('unitHref', () => {
   it('points to the generic work-in-progress stub with the unit slug as a query param', () => {
     expect(unitHref({ slug: 'microeconomics' })).toBe('/units/wip.html?unit=microeconomics');
+  });
+
+  it('honors an explicit base path, so links still work under a GitHub Pages project subpath', () => {
+    expect(unitHref({ slug: 'microeconomics' }, '/econ-tools/')).toBe(
+      '/econ-tools/units/wip.html?unit=microeconomics'
+    );
   });
 });

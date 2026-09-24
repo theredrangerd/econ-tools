@@ -28,4 +28,16 @@ describe('renderBento', () => {
     expect(() => renderBento(container, [])).not.toThrow();
     expect(container.querySelectorAll('a.bento__tile')).toHaveLength(0);
   });
+
+  it('shows a "coming soon" badge on tiles whose unit is not built yet, so the homepage stays honest about completeness', () => {
+    renderBento(container, [{ slug: 'microeconomics', name: 'Microeconomics', tier: 'large', status: 'coming-soon' }]);
+    const badge = container.querySelector('a.bento__tile .bento__badge');
+    expect(badge).not.toBeNull();
+    expect(badge.textContent).toBe('Coming soon');
+  });
+
+  it('omits the badge for a unit with no status set', () => {
+    renderBento(container, [{ slug: 'microeconomics', name: 'Microeconomics', tier: 'large' }]);
+    expect(container.querySelector('a.bento__tile .bento__badge')).toBeNull();
+  });
 });
