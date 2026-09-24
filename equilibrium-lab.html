@@ -1,0 +1,830 @@
+<title>Equilibrium Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+  :root {
+    color-scheme: light;
+    --bg:            #eef1f4;
+    --surface:       #ffffff;
+    --surface-2:     #f5f7f9;
+    --ink:            #15191f;
+    --ink-secondary: #4b5566;
+    --ink-muted:     #838d9c;
+    --hairline:      #dde2e8;
+    --hairline-2:    #cbd2db;
+
+    --demand:        #2a5fa8;
+    --demand-fill:   rgba(42, 95, 168, 0.14);
+    --demand-tick:   #cfe0f5;
+
+    --supply:        #c85a1e;
+    --supply-fill:   rgba(200, 90, 30, 0.14);
+
+    --dwl-line:      #b33434;
+    --dwl-fill:      rgba(179, 52, 52, 0.16);
+    --dwl-hatch:     rgba(179, 52, 52, 0.55);
+
+    --accent:        #2a5fa8;
+    --good:          #157a3d;
+
+    --shadow: 0 1px 2px rgba(21,25,31,0.06), 0 8px 24px -12px rgba(21,25,31,0.18);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg:            #10131a;
+      --surface:       #171c25;
+      --surface-2:     #1d232e;
+      --ink:            #f2f4f7;
+      --ink-secondary: #b6bfcc;
+      --ink-muted:     #7c8494;
+      --hairline:      #2a3140;
+      --hairline-2:    #384056;
+
+      --demand:        #6ea3e6;
+      --demand-fill:   rgba(110, 163, 230, 0.20);
+      --demand-tick:   #223047;
+
+      --supply:        #f0925a;
+      --supply-fill:   rgba(240, 146, 90, 0.20);
+
+      --dwl-line:      #e2726f;
+      --dwl-fill:      rgba(226, 114, 111, 0.22);
+      --dwl-hatch:     rgba(226, 114, 111, 0.65);
+
+      --accent:        #6ea3e6;
+      --good:          #4fbf82;
+
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -14px rgba(0,0,0,0.6);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg:            #10131a;
+    --surface:       #171c25;
+    --surface-2:     #1d232e;
+    --ink:            #f2f4f7;
+    --ink-secondary: #b6bfcc;
+    --ink-muted:     #7c8494;
+    --hairline:      #2a3140;
+    --hairline-2:    #384056;
+
+    --demand:        #6ea3e6;
+    --demand-fill:   rgba(110, 163, 230, 0.20);
+    --demand-tick:   #223047;
+
+    --supply:        #f0925a;
+    --supply-fill:   rgba(240, 146, 90, 0.20);
+
+    --dwl-line:      #e2726f;
+    --dwl-fill:      rgba(226, 114, 111, 0.22);
+    --dwl-hatch:     rgba(226, 114, 111, 0.65);
+
+    --accent:        #6ea3e6;
+    --good:          #4fbf82;
+
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -14px rgba(0,0,0,0.6);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 40px 24px 64px;
+  }
+
+  header.top {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 28px;
+  }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  h1 {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(28px, 4vw, 38px);
+    margin: 0;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  .lede {
+    color: var(--ink-secondary);
+    font-size: 15px;
+    max-width: 62ch;
+    line-height: 1.55;
+    margin: 2px 0 0;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.95fr);
+    gap: 20px;
+    align-items: start;
+  }
+
+  @media (max-width: 880px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+  }
+
+  .chart-card {
+    padding: 20px 20px 12px;
+  }
+
+  .chart-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
+  .chart-title {
+    font-family: "Source Serif 4", serif;
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0;
+  }
+
+  .status-pill {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
+    padding: 5px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+    background: var(--surface-2);
+    color: var(--ink-secondary);
+    border: 1px solid var(--hairline);
+  }
+  .status-pill.floor { color: var(--supply); border-color: color-mix(in srgb, var(--supply) 40%, var(--hairline)); background: var(--supply-fill); }
+  .status-pill.ceiling { color: var(--dwl-line); border-color: color-mix(in srgb, var(--dwl-line) 40%, var(--hairline)); background: var(--dwl-fill); }
+  .status-pill.free { color: var(--good); }
+
+  svg#chart { width: 100%; height: auto; display: block; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 20px;
+    padding: 10px 4px 14px;
+    font-size: 12.5px;
+    color: var(--ink-secondary);
+  }
+  .legend .item { display: flex; align-items: center; gap: 7px; }
+  .legend .swatch { width: 13px; height: 13px; border-radius: 3px; flex: none; }
+  .legend .line { width: 16px; height: 2px; border-radius: 1px; flex: none; }
+
+  .sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+  .panel { padding: 18px 20px 20px; }
+  .panel h2 {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    font-weight: 500;
+    margin: 0 0 14px;
+  }
+
+  .slider-row { margin-bottom: 18px; }
+  .slider-row:last-child { margin-bottom: 0; }
+
+  .slider-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 13.5px;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+  .slider-label .val {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-secondary);
+    font-weight: 400;
+    font-size: 13px;
+  }
+  .slider-hint {
+    font-size: 11.5px;
+    color: var(--ink-muted);
+    margin: 0 0 8px;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--hairline-2);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]#demandSlider { accent-color: var(--demand); }
+  input[type="range"]#supplySlider { accent-color: var(--supply); }
+  input[type="range"]#slopeDSlider { accent-color: var(--demand); }
+  input[type="range"]#slopeSSlider { accent-color: var(--supply); }
+  input[type="range"]#floorSlider { accent-color: var(--supply); }
+  input[type="range"]#ceilSlider { accent-color: var(--dwl-line); }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: currentColor;
+    border: 2px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--hairline-2);
+    cursor: pointer;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: currentColor;
+    border: 2px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--hairline-2);
+    cursor: pointer;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .toggle-row + .toggle-row { margin-top: 16px; }
+  .toggle-row .label {
+    font-size: 13.5px;
+    font-weight: 500;
+  }
+  .toggle-row .sub {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 400;
+    color: var(--ink-muted);
+    margin-top: 1px;
+  }
+
+  .switch {
+    position: relative;
+    width: 38px; height: 22px;
+    flex: none;
+  }
+  .switch input {
+    position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; z-index: 1;
+  }
+  .switch .track {
+    position: absolute; inset: 0;
+    background: var(--hairline-2);
+    border-radius: 999px;
+    transition: background 0.15s ease;
+  }
+  .switch .thumb {
+    position: absolute; top: 2px; left: 2px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: transform 0.15s ease;
+  }
+  .switch input:checked ~ .track { background: var(--accent); }
+  .switch input:checked ~ .thumb { transform: translateX(16px); }
+  .switch input:focus-visible ~ .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .sub-slider {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.2s ease, opacity 0.2s ease;
+  }
+  .sub-slider > * { min-height: 0; overflow: hidden; }
+  .sub-slider.open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    margin-top: 12px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .stat {
+    background: var(--surface-2);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .stat .k {
+    font-size: 11px;
+    color: var(--ink-muted);
+    letter-spacing: 0.02em;
+  }
+  .stat .v {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 18px;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+  .stat.dwl .v { color: var(--dwl-line); }
+  .stat.cs .v { color: var(--demand); }
+  .stat.ps .v { color: var(--supply); }
+  .stat.wide { grid-column: 1 / -1; }
+
+  .note {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-secondary);
+    background: var(--surface-2);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-top: 12px;
+  }
+  .note strong { color: var(--ink); }
+
+  button#resetBtn {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink-secondary);
+    background: var(--surface-2);
+    border: 1px solid var(--hairline-2);
+    border-radius: 8px;
+    padding: 7px 12px;
+    cursor: pointer;
+  }
+  button#resetBtn:hover { color: var(--ink); border-color: var(--ink-muted); }
+  button#resetBtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  text { font-family: "IBM Plex Sans", sans-serif; }
+  .axis-label { fill: var(--ink-muted); font-size: 12px; }
+  .tick-label { fill: var(--ink-muted); font-size: 10.5px; font-family: "IBM Plex Mono", monospace; }
+  .curve-label { font-size: 12.5px; font-weight: 600; font-family: "IBM Plex Sans", sans-serif; }
+</style>
+
+<div class="page">
+  <header class="top">
+    <span class="eyebrow">Interactive · Microeconomics</span>
+    <h1>Equilibrium Lab</h1>
+    <p class="lede">Drag the demand and supply curves to see how markets clear — then switch on a price floor or ceiling to watch consumer surplus, producer surplus, and deadweight loss respond in real time.</p>
+  </header>
+
+  <div class="layout">
+    <section class="card chart-card">
+      <div class="chart-head">
+        <h2 class="chart-title">Price &amp; quantity</h2>
+        <span class="status-pill" id="statusPill">Free market</span>
+      </div>
+      <svg id="chart" viewBox="0 0 780 520" role="img" aria-label="Supply and demand diagram"></svg>
+      <div class="legend">
+        <span class="item"><span class="line" style="background:var(--demand)"></span>Demand</span>
+        <span class="item"><span class="line" style="background:var(--supply)"></span>Supply</span>
+        <span class="item"><span class="swatch" style="background:var(--demand-fill); border:1px solid var(--demand)"></span>Consumer surplus</span>
+        <span class="item"><span class="swatch" style="background:var(--supply-fill); border:1px solid var(--supply)"></span>Producer surplus</span>
+        <span class="item"><span class="swatch" style="background:var(--dwl-fill); border:1px solid var(--dwl-line)"></span>Deadweight loss</span>
+      </div>
+    </section>
+
+    <aside class="sidebar">
+      <section class="card panel">
+        <h2>Shift the curves</h2>
+        <div class="slider-row">
+          <div class="slider-label"><span>Demand</span><span class="val" id="demandVal">140</span></div>
+          <input type="range" id="demandSlider" min="70" max="170" step="1" value="140">
+          <p class="slider-hint">Drag right for a demand boom, left for a slump.</p>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>Supply</span><span class="val" id="supplyVal">20</span></div>
+          <input type="range" id="supplySlider" min="-10" max="110" step="1" value="20">
+          <p class="slider-hint">Drag right for costlier production, left for cheaper.</p>
+        </div>
+        <button id="resetBtn" type="button">Reset to defaults</button>
+      </section>
+
+      <section class="card panel">
+        <h2>Elasticity</h2>
+        <div class="slider-row">
+          <div class="slider-label"><span>Demand elasticity</span><span class="val" id="slopeDVal">1.0 · unit elastic</span></div>
+          <input type="range" id="slopeDSlider" min="0.3" max="3" step="0.1" value="1">
+          <p class="slider-hint">Flatter (left) = buyers react strongly to price. Steeper (right) = they barely react.</p>
+        </div>
+        <div class="slider-row">
+          <div class="slider-label"><span>Supply elasticity</span><span class="val" id="slopeSVal">1.0 · unit elastic</span></div>
+          <input type="range" id="slopeSSlider" min="0.3" max="3" step="0.1" value="1">
+          <p class="slider-hint">Flatter (left) = sellers react strongly to price. Steeper (right) = they barely react.</p>
+        </div>
+      </section>
+
+      <section class="card panel">
+        <h2>Price controls</h2>
+        <div class="toggle-row">
+          <span class="label">Price floor (minimum)<span class="sub">e.g. minimum wage</span></span>
+          <label class="switch">
+            <input type="checkbox" id="floorToggle">
+            <span class="track"></span><span class="thumb"></span>
+          </label>
+        </div>
+        <div class="sub-slider" id="floorSliderWrap">
+          <div class="slider-label"><span>Floor price</span><span class="val" id="floorVal">$110</span></div>
+          <input type="range" id="floorSlider" min="0" max="180" step="1" value="110">
+        </div>
+
+        <div class="toggle-row">
+          <span class="label">Price ceiling (maximum)<span class="sub">e.g. rent control</span></span>
+          <label class="switch">
+            <input type="checkbox" id="ceilToggle">
+            <span class="track"></span><span class="thumb"></span>
+          </label>
+        </div>
+        <div class="sub-slider" id="ceilSliderWrap">
+          <div class="slider-label"><span>Ceiling price</span><span class="val" id="ceilVal">$50</span></div>
+          <input type="range" id="ceilSlider" min="0" max="180" step="1" value="50">
+        </div>
+      </section>
+
+      <section class="card panel">
+        <h2>Market outcome</h2>
+        <div class="stats-grid">
+          <div class="stat"><div class="k">Price</div><div class="v" id="statPrice">$80.00</div></div>
+          <div class="stat"><div class="k">Quantity traded</div><div class="v" id="statQty">60.0</div></div>
+          <div class="stat cs"><div class="k">Consumer surplus</div><div class="v" id="statCS">$1,800</div></div>
+          <div class="stat ps"><div class="k">Producer surplus</div><div class="v" id="statPS">$1,800</div></div>
+          <div class="stat dwl wide"><div class="k">Deadweight loss</div><div class="v" id="statDWL">$0</div></div>
+        </div>
+        <div class="note" id="marketNote">Equilibrium price and quantity — every mutually beneficial trade happens.</div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- model constants ----
+  var QMAX = 100, PMAX = 180;
+
+  var state = {
+    demand: 140,
+    supply: 20,
+    slopeD: 1,
+    slopeS: 1,
+    floorOn: false,
+    floorP: 110,
+    ceilOn: false,
+    ceilP: 50
+  };
+
+  function elasticityLabel(slope) {
+    if (slope < 0.5) return "very elastic";
+    if (slope < 0.85) return "elastic";
+    if (slope <= 1.15) return "unit elastic";
+    if (slope < 2) return "inelastic";
+    return "very inelastic";
+  }
+
+  // ---- chart geometry ----
+  var M = { left: 64, right: 24, top: 24, bottom: 56 };
+  var VBW = 780, VBH = 520;
+  var plotW = VBW - M.left - M.right;
+  var plotH = VBH - M.top - M.bottom;
+
+  function sx(q) { return M.left + (q / QMAX) * plotW; }
+  function sy(p) { return M.top + plotH - (clampN(p, -20, PMAX + 40) / PMAX) * plotH; }
+  function clampN(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  var svgns = "http://www.w3.org/2000/svg";
+  function el(tag, attrs) {
+    var e = document.createElementNS(svgns, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function pts(arr) {
+    return arr.map(function (p) { return sx(p[0]) + "," + sy(p[1]); }).join(" ");
+  }
+  function shoelaceArea(points) {
+    var n = points.length, sum = 0;
+    for (var i = 0; i < n; i++) {
+      var a = points[i], b = points[(i + 1) % n];
+      sum += a[0] * b[1] - b[0] * a[1];
+    }
+    return Math.abs(sum) / 2;
+  }
+
+  function fmtMoney(v) {
+    return "$" + v.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+  function fmtPrice(v) { return "$" + v.toFixed(2); }
+  function fmtQty(v) { return v.toFixed(1); }
+
+  // ---- economics ----
+  function compute(s) {
+    var Dmax = s.demand, Smin = s.supply;
+    var slopeD = s.slopeD, slopeS = s.slopeS;
+    var noTrade = Dmax <= Smin;
+    var Qstar = noTrade ? 0 : clampN((Dmax - Smin) / (slopeD + slopeS), 0, QMAX);
+    var Pstar = Dmax - slopeD * Qstar;
+
+    var conflict = s.floorOn && s.ceilOn && s.floorP >= s.ceilP;
+
+    var bindingFloor = !noTrade && !conflict && s.floorOn && s.floorP > Pstar;
+    var bindingCeil = !noTrade && !conflict && s.ceilOn && s.ceilP < Pstar;
+
+    var effP = Pstar, Qt = Qstar, mode = "free";
+    var gap = 0; // unsold surplus units or shortage units
+
+    if (!noTrade && !conflict) {
+      if (bindingFloor) {
+        var qd = clampN(Dmax - s.floorP, 0, QMAX);
+        var qs = clampN(s.floorP - Smin, 0, QMAX);
+        Qt = Math.min(qd, qs);
+        effP = s.floorP;
+        gap = qs - qd;
+        mode = "floor";
+      } else if (bindingCeil) {
+        var qd2 = clampN(Dmax - s.ceilP, 0, QMAX);
+        var qs2 = clampN(s.ceilP - Smin, 0, QMAX);
+        Qt = Math.min(qd2, qs2);
+        effP = s.ceilP;
+        gap = qd2 - qs2;
+        mode = "ceiling";
+      }
+    }
+
+    function Pd(q) { return Dmax - slopeD * q; }
+    function Ps(q) { return Smin + slopeS * q; }
+
+    var CS = 0, PS = 0, DWL = 0, csPoly = [], psPoly = [], dwlPoly = null;
+
+    if (!noTrade && !conflict) {
+      csPoly = [[0, Dmax], [Qt, Pd(Qt)], [Qt, effP], [0, effP]];
+      psPoly = [[0, Smin], [Qt, Ps(Qt)], [Qt, effP], [0, effP]];
+      CS = shoelaceArea(csPoly);
+      PS = shoelaceArea(psPoly);
+      if (Math.abs(Qt - Qstar) > 0.001) {
+        dwlPoly = [[Qt, Pd(Qt)], [Qt, Ps(Qt)], [Qstar, Pstar]];
+        DWL = shoelaceArea(dwlPoly);
+      }
+    }
+
+    return {
+      Dmax: Dmax, Smin: Smin, Qstar: Qstar, Pstar: Pstar,
+      noTrade: noTrade, conflict: conflict,
+      mode: mode, effP: effP, Qt: Qt, gap: gap,
+      CS: CS, PS: PS, DWL: DWL,
+      csPoly: csPoly, psPoly: psPoly, dwlPoly: dwlPoly,
+      Pd: Pd, Ps: Ps
+    };
+  }
+
+  // ---- rendering ----
+  var chart = document.getElementById("chart");
+
+  function clipDemand(Dmax, slopeD) {
+    var qAtPmax = (Dmax - PMAX) / slopeD, qAtP0 = Dmax / slopeD;
+    var q0 = clampN(qAtPmax, 0, QMAX), q1 = clampN(qAtP0, 0, QMAX);
+    return [[q0, Dmax - slopeD * q0], [q1, Dmax - slopeD * q1]];
+  }
+  function clipSupply(Smin, slopeS) {
+    var qAtP0 = -Smin / slopeS, qAtPmax = (PMAX - Smin) / slopeS;
+    var q0 = clampN(qAtP0, 0, QMAX), q1 = clampN(qAtPmax, 0, QMAX);
+    return [[q0, Smin + slopeS * q0], [q1, Smin + slopeS * q1]];
+  }
+
+  function render() {
+    var r = compute(state);
+    while (chart.firstChild) chart.removeChild(chart.firstChild);
+
+    // defs: hatch pattern for DWL
+    var defs = el("defs", {});
+    var pattern = el("pattern", { id: "dwlHatch", width: 6, height: 6, patternTransform: "rotate(45)", patternUnits: "userSpaceOnUse" });
+    pattern.appendChild(el("rect", { width: 6, height: 6, fill: "var(--dwl-fill)" }));
+    pattern.appendChild(el("line", { x1: 0, y1: 0, x2: 0, y2: 6, stroke: "var(--dwl-hatch)", "stroke-width": 1.4 }));
+    defs.appendChild(pattern);
+    chart.appendChild(defs);
+
+    // plot background
+    chart.appendChild(el("rect", {
+      x: M.left, y: M.top, width: plotW, height: plotH,
+      fill: "var(--surface)", stroke: "none"
+    }));
+
+    // gridlines
+    var g = el("g", {});
+    for (var qq = 0; qq <= QMAX; qq += 20) {
+      g.appendChild(el("line", { x1: sx(qq), y1: M.top, x2: sx(qq), y2: M.top + plotH, stroke: "var(--hairline)", "stroke-width": 1 }));
+      var lbl = el("text", { x: sx(qq), y: M.top + plotH + 20, class: "tick-label", "text-anchor": "middle" });
+      lbl.textContent = qq;
+      g.appendChild(lbl);
+    }
+    for (var pp = 0; pp <= PMAX; pp += 20) {
+      g.appendChild(el("line", { x1: M.left, y1: sy(pp), x2: M.left + plotW, y2: sy(pp), stroke: "var(--hairline)", "stroke-width": 1 }));
+      var plbl = el("text", { x: M.left - 10, y: sy(pp) + 4, class: "tick-label", "text-anchor": "end" });
+      plbl.textContent = pp;
+      g.appendChild(plbl);
+    }
+    chart.appendChild(g);
+
+    // axis frame
+    chart.appendChild(el("line", { x1: M.left, y1: M.top, x2: M.left, y2: M.top + plotH, stroke: "var(--hairline-2)", "stroke-width": 1.5 }));
+    chart.appendChild(el("line", { x1: M.left, y1: M.top + plotH, x2: M.left + plotW, y2: M.top + plotH, stroke: "var(--hairline-2)", "stroke-width": 1.5 }));
+
+    // axis labels
+    var xl = el("text", { x: M.left + plotW / 2, y: VBH - 10, class: "axis-label", "text-anchor": "middle" });
+    xl.textContent = "Quantity (units)";
+    chart.appendChild(xl);
+    var yl = el("text", {
+      x: 16, y: M.top + plotH / 2, class: "axis-label", "text-anchor": "middle",
+      transform: "rotate(-90 16 " + (M.top + plotH / 2) + ")"
+    });
+    yl.textContent = "Price ($ / unit)";
+    chart.appendChild(yl);
+
+    if (!r.noTrade && !r.conflict) {
+      // CS / PS fills
+      chart.appendChild(el("polygon", { points: pts(r.csPoly), fill: "var(--demand-fill)" }));
+      chart.appendChild(el("polygon", { points: pts(r.psPoly), fill: "var(--supply-fill)" }));
+
+      // DWL fill
+      if (r.dwlPoly) {
+        chart.appendChild(el("polygon", { points: pts(r.dwlPoly), fill: "url(#dwlHatch)" }));
+        chart.appendChild(el("polygon", { points: pts(r.dwlPoly), fill: "none", stroke: "var(--dwl-line)", "stroke-width": 1.3, "stroke-dasharray": "3,2" }));
+      }
+    }
+
+    // demand & supply curves (full extent, always visible)
+    var dSeg = clipDemand(r.Dmax, state.slopeD), sSeg = clipSupply(r.Smin, state.slopeS);
+    chart.appendChild(el("line", {
+      x1: sx(dSeg[0][0]), y1: sy(dSeg[0][1]), x2: sx(dSeg[1][0]), y2: sy(dSeg[1][1]),
+      stroke: "var(--demand)", "stroke-width": 2.5, "stroke-linecap": "round"
+    }));
+    chart.appendChild(el("line", {
+      x1: sx(sSeg[0][0]), y1: sy(sSeg[0][1]), x2: sx(sSeg[1][0]), y2: sy(sSeg[1][1]),
+      stroke: "var(--supply)", "stroke-width": 2.5, "stroke-linecap": "round"
+    }));
+
+    // curve end labels
+    var dLbl = el("text", { x: sx(dSeg[0][0]) + 8, y: sy(dSeg[0][1]) - 6, class: "curve-label", fill: "var(--demand)" });
+    dLbl.textContent = "Demand";
+    chart.appendChild(dLbl);
+    var sLbl = el("text", { x: sx(sSeg[1][0]) - 8, y: sy(sSeg[1][1]) - 8, class: "curve-label", fill: "var(--supply)", "text-anchor": "end" });
+    sLbl.textContent = "Supply";
+    chart.appendChild(sLbl);
+
+    if (!r.noTrade && !r.conflict) {
+      // equilibrium dashed guides + point
+      chart.appendChild(el("line", { x1: sx(r.Qstar), y1: sy(r.Pstar), x2: sx(r.Qstar), y2: M.top + plotH, stroke: "var(--ink-muted)", "stroke-width": 1, "stroke-dasharray": "3,3" }));
+      chart.appendChild(el("line", { x1: M.left, y1: sy(r.Pstar), x2: sx(r.Qstar), y2: sy(r.Pstar), stroke: "var(--ink-muted)", "stroke-width": 1, "stroke-dasharray": "3,3" }));
+      chart.appendChild(el("circle", { cx: sx(r.Qstar), cy: sy(r.Pstar), r: 4.5, fill: "var(--ink)" }));
+
+      // floor / ceiling reference lines
+      if (r.mode === "floor" || (state.floorOn && !r.conflict)) {
+        var fy = sy(state.floorP);
+        chart.appendChild(el("line", { x1: M.left, y1: fy, x2: M.left + plotW, y2: fy, stroke: "var(--supply)", "stroke-width": 1.6, "stroke-dasharray": "6,3" }));
+        var fLbl = el("text", { x: M.left + plotW - 6, y: fy - 6, class: "tick-label", "text-anchor": "end", fill: "var(--supply)" });
+        fLbl.textContent = "Price floor";
+        chart.appendChild(fLbl);
+      }
+      if (r.mode === "ceiling" || (state.ceilOn && !r.conflict)) {
+        var cy_ = sy(state.ceilP);
+        chart.appendChild(el("line", { x1: M.left, y1: cy_, x2: M.left + plotW, y2: cy_, stroke: "var(--dwl-line)", "stroke-width": 1.6, "stroke-dasharray": "6,3" }));
+        var cLbl = el("text", { x: M.left + plotW - 6, y: cy_ - 6, class: "tick-label", "text-anchor": "end", fill: "var(--dwl-line)" });
+        cLbl.textContent = "Price ceiling";
+        chart.appendChild(cLbl);
+      }
+
+      // transacted-quantity guide when a control binds
+      if (r.mode !== "free") {
+        chart.appendChild(el("line", { x1: sx(r.Qt), y1: sy(r.effP), x2: sx(r.Qt), y2: M.top + plotH, stroke: "var(--ink-muted)", "stroke-width": 1, "stroke-dasharray": "1,3" }));
+        chart.appendChild(el("circle", { cx: sx(r.Qt), cy: sy(r.effP), r: 4, fill: "var(--surface)", stroke: "var(--ink)", "stroke-width": 1.8 }));
+      }
+    }
+
+    // ---- side panel updates ----
+    var pill = document.getElementById("statusPill");
+    pill.className = "status-pill";
+    if (r.noTrade) {
+      pill.textContent = "No gains from trade";
+    } else if (r.conflict) {
+      pill.textContent = "Floor above ceiling";
+    } else if (r.mode === "floor") {
+      pill.textContent = "Price floor binding";
+      pill.classList.add("floor");
+    } else if (r.mode === "ceiling") {
+      pill.textContent = "Price ceiling binding";
+      pill.classList.add("ceiling");
+    } else {
+      pill.textContent = "Free market";
+      pill.classList.add("free");
+    }
+
+    document.getElementById("statPrice").textContent = (r.noTrade || r.conflict) ? "—" : fmtPrice(r.effP);
+    document.getElementById("statQty").textContent = (r.noTrade || r.conflict) ? "0.0" : fmtQty(r.Qt);
+    document.getElementById("statCS").textContent = (r.noTrade || r.conflict) ? "$0" : fmtMoney(r.CS);
+    document.getElementById("statPS").textContent = (r.noTrade || r.conflict) ? "$0" : fmtMoney(r.PS);
+    document.getElementById("statDWL").textContent = (r.noTrade || r.conflict) ? "$0" : fmtMoney(r.DWL);
+
+    var note = document.getElementById("marketNote");
+    if (r.noTrade) {
+      note.innerHTML = "<strong>No trade occurs.</strong> The cheapest unit costs more to produce than any buyer will pay — shift the sliders so demand sits above supply.";
+    } else if (r.conflict) {
+      note.innerHTML = "<strong>Invalid combination.</strong> The price floor is set above the price ceiling, so no legal price exists. Lower the floor or raise the ceiling.";
+    } else if (r.mode === "floor") {
+      note.innerHTML = "<strong>" + fmtQty(r.gap) + " units go unsold.</strong> At the floor price, sellers want to supply more than buyers demand — the surplus goods represent capacity nobody wants at that price.";
+    } else if (r.mode === "ceiling") {
+      note.innerHTML = "<strong>" + fmtQty(r.gap) + " units of shortage.</strong> At the ceiling price, buyers want more than sellers are willing to provide — expect queues or rationing.";
+    } else {
+      note.innerHTML = "Equilibrium price and quantity — every mutually beneficial trade happens, and total surplus is maximized.";
+    }
+  }
+
+  // ---- wiring ----
+  var demandSlider = document.getElementById("demandSlider");
+  var supplySlider = document.getElementById("supplySlider");
+  var slopeDSlider = document.getElementById("slopeDSlider");
+  var slopeSSlider = document.getElementById("slopeSSlider");
+  var floorToggle = document.getElementById("floorToggle");
+  var floorSlider = document.getElementById("floorSlider");
+  var floorWrap = document.getElementById("floorSliderWrap");
+  var ceilToggle = document.getElementById("ceilToggle");
+  var ceilSlider = document.getElementById("ceilSlider");
+  var ceilWrap = document.getElementById("ceilSliderWrap");
+
+  function syncAndRender() {
+    state.demand = +demandSlider.value;
+    state.supply = +supplySlider.value;
+    state.slopeD = +slopeDSlider.value;
+    state.slopeS = +slopeSSlider.value;
+    state.floorOn = floorToggle.checked;
+    state.floorP = +floorSlider.value;
+    state.ceilOn = ceilToggle.checked;
+    state.ceilP = +ceilSlider.value;
+
+    document.getElementById("demandVal").textContent = state.demand;
+    document.getElementById("supplyVal").textContent = state.supply;
+    document.getElementById("slopeDVal").textContent = state.slopeD.toFixed(1) + " · " + elasticityLabel(state.slopeD);
+    document.getElementById("slopeSVal").textContent = state.slopeS.toFixed(1) + " · " + elasticityLabel(state.slopeS);
+    document.getElementById("floorVal").textContent = "$" + state.floorP;
+    document.getElementById("ceilVal").textContent = "$" + state.ceilP;
+
+    floorWrap.classList.toggle("open", state.floorOn);
+    ceilWrap.classList.toggle("open", state.ceilOn);
+
+    render();
+  }
+
+  [demandSlider, supplySlider, slopeDSlider, slopeSSlider, floorSlider, ceilSlider].forEach(function (input) {
+    input.addEventListener("input", syncAndRender);
+  });
+  [floorToggle, ceilToggle].forEach(function (input) {
+    input.addEventListener("change", syncAndRender);
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", function () {
+    demandSlider.value = 140;
+    supplySlider.value = 20;
+    slopeDSlider.value = 1;
+    slopeSSlider.value = 1;
+    floorToggle.checked = false;
+    ceilToggle.checked = false;
+    floorSlider.value = 110;
+    ceilSlider.value = 50;
+    syncAndRender();
+  });
+
+  syncAndRender();
+})();
+</script>
