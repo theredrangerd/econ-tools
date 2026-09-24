@@ -1,6 +1,6 @@
 # IB Economics Interactive Graph Site — Design
 
-Status: in progress (homepage direction agreed; unit subpage structure and individual graph page specs not yet designed)
+Status: homepage fully specified, ready to build. Unit subpage structure and individual graph page specs not yet designed.
 
 ## Mission
 
@@ -49,27 +49,29 @@ Rationale: the dominant usage pattern is a single shared link to one specific sc
 - **Hero**: centered, similar visual treatment to Equilibrium Lab's current header (eyebrow tag, serif h1, muted lede) but larger, since this page introduces the whole site rather than one tool.
 - **Search bar**: directly below the hero, prominent, with placeholder copy communicating "type any graph you want" (e.g. "minimum wage," "deadweight loss").
 - **Unit browsing**: a **bento-style grid** of four tiles (Micro / Macro / International / Development), asymmetric sizing to reflect real content volume differences — this was chosen over a uniform grid and an editorial table-of-contents list after visual comparison.
-  - **Sizing approach**: **tiered, not literally proportional.** Three fixed size bands (large / medium / small), assigned once based on the real diagram-count distribution above (Micro = large, Macro = medium, International = small, Development = small), and only bumped up a tier when a unit crosses a meaningful threshold (e.g. "small → medium" after some number of live graphs) — not recalculated on every single graph shipped.
+  - **Sizing approach**: **tiered, fixed, not computed from live count.** Three size bands, assigned once as a config value based on known syllabus scale: **Microeconomics = large, Macroeconomics = medium, International = small, Development = small.** This is a static setting (not recalculated from how many graphs happen to be live), so there's no threshold logic to build and no reflow risk as graphs are added — if the assumed distribution ever proves wrong, it's a one-line config change.
   - Rejected literal proportional-to-live-count sizing: at real syllabus scale it makes International/Development shrink to near-unclickable slivers that stay that small even once those units are "complete" (they just have few distinct diagrams by nature), and it would cause the whole grid to visually reflow on every single graph release.
-- **Clicking a unit tile navigates** to a per-unit subpage (not an in-place expand). Not yet designed in detail — flagged below as the next design step.
+- **Clicking a unit tile navigates** to a per-unit subpage (not an in-place expand). Until each unit's real subpage is built, its tile links to a shared **generic "Work in Progress" stub page** containing the embedded feedback form (see Feedback mechanism below) — all four units start on this stub and get swapped to a real subpage one at a time as they're built.
 - **"Coming soon" units** (International, Development at launch) are visible on the homepage, not hidden or omitted, consistent with the general principle that the homepage should be honest about current completeness rather than overpromising.
 
 ## Feedback mechanism (agreed)
 
 - Every unit subpage — not just "coming soon" ones — embeds a **Google Form** for feedback / requests (new graphs, features). Barrier to giving feedback should be as low as possible (embedded inline, not a separate off-site link/click-through).
-- User will create the Google Form(s) themselves and hand off the embed link/code.
+- Form (user-created): `https://docs.google.com/forms/d/e/1FAIpQLSc4hUwcytl1QE3H1Iod7Ag8SRmmgDdEAPJED37kbj-ZB2O7yQ/viewform?usp=publish-editor` — embedded via `<iframe>` on the generic Work-in-Progress stub page (see Homepage design above) and, later, on every real unit subpage.
 
 ## Technical stack (agreed)
 
 - **Vite + vanilla JS/TS, no UI framework** (not React/Vue/Svelte/etc.) — chosen over pure static HTML/CSS/JS for component reuse (shared nav/header/layout across many pages, avoiding copy-paste drift) and a build-time-generated search index, while staying close to static output performance/simplicity (no virtual DOM, no hydration cost).
+- **Multi-page mode**: each page is a real `.html` file (`index.html`, `units/microeconomics.html`, etc. — no client-side router), which suits GitHub Pages and keeps deep-linking trivial.
+- **Shared chrome**: a small JS module (`src/components/chrome.js`) injects header/nav/hero markup into each page at load time, plus one shared stylesheet holding the design tokens (colors/fonts, carried over from Equilibrium Lab's `:root` variables) so every page stays visually consistent without copy-pasting CSS/HTML across files.
 - **Hosting: GitHub Pages**, self-hosted independently of the school (not on school infrastructure/domain), with informal teacher coordination for link-sharing.
 - Shared rendering engine (the actual curve/shading/animation logic) is a plain JS module imported by every graph page — this part is unaffected by the static-vs-framework choice.
-- Analytics: not yet chosen (candidates discussed generically: Plausible, self-hosted Umami, GoatCounter, or GitHub Pages-compatible options) — needs a decision before launch since it's the primary success metric instrument.
+- Analytics: not yet chosen (candidates discussed generically: Plausible, self-hosted Umami, GoatCounter, or GitHub Pages-compatible options) — needs a decision before launch since it's the primary success metric instrument, but doesn't block building the homepage.
 
 ## Open / not yet designed
 
-- **Unit subpage structure** — especially Microeconomics, which needs its own internal browsing/grouping for ~40 diagrams rather than a flat list (likely reuses the topic-family grouping concept). Next design step.
+- **Unit subpage structure** — especially Microeconomics, which needs its own internal browsing/grouping for ~40 diagrams rather than a flat list (likely reuses the topic-family grouping concept). Next design step after the homepage is built.
 - Individual graph page template/layout (beyond the existing Equilibrium Lab page as a starting reference).
 - First-release graph list (which specific pages ship at launch) — deliberately deferred; not needed to design the homepage itself.
 - Analytics tool choice.
-- Exact tiering thresholds for bento tile size bumps.
+- GitHub Pages deploy workflow (base path config, GitHub Actions) — needed before the site is live, not before it's built/previewed locally.
