@@ -12,10 +12,14 @@ function buildDom() {
     <span id="supply-val"></span>
     <input type="radio" name="tax-mode" id="tax-mode-specific" value="specific" checked>
     <input type="radio" name="tax-mode" id="tax-mode-advalorem" value="advalorem">
-    <input id="specific-slider" type="range" min="0" max="60" step="1" value="20">
-    <span id="specific-val"></span>
-    <input id="advalorem-slider" type="range" min="0" max="100" step="1" value="50">
-    <span id="advalorem-val"></span>
+    <div class="sub-slider open" id="specific-slider-wrap">
+      <input id="specific-slider" type="range" min="0" max="60" step="1" value="20">
+      <span id="specific-val"></span>
+    </div>
+    <div class="sub-slider" id="advalorem-slider-wrap">
+      <input id="advalorem-slider" type="range" min="0" max="100" step="1" value="50">
+      <span id="advalorem-val"></span>
+    </div>
     <button id="reset-btn" type="button"></button>
     <span id="stat-price-consumer"></span>
     <span id="stat-price-producer"></span>
@@ -50,5 +54,16 @@ describe('initIndirectTaxPage', () => {
 
   it('draws two wedge reference lines on the chart', () => {
     expect(document.querySelectorAll('#chart line.wedge-line')).toHaveLength(2);
+  });
+
+  it('toggles slider visibility based on tax mode', () => {
+    expect(document.querySelector('#specific-slider-wrap').classList.contains('open')).toBe(true);
+    expect(document.querySelector('#advalorem-slider-wrap').classList.contains('open')).toBe(false);
+
+    document.querySelector('#tax-mode-advalorem').checked = true;
+    document.querySelector('#tax-mode-advalorem').dispatchEvent(new Event('change'));
+
+    expect(document.querySelector('#specific-slider-wrap').classList.contains('open')).toBe(false);
+    expect(document.querySelector('#advalorem-slider-wrap').classList.contains('open')).toBe(true);
   });
 });

@@ -47,16 +47,20 @@
           <div class="toggle-row">
             <label class="label"><input type="radio" name="tax-mode" id="tax-mode-specific" value="specific" checked> Specific (per-unit)</label>
           </div>
-          <div class="slider-row" style="margin-top:12px">
-            <div class="slider-label"><span>Tax amount</span><span class="val" id="specific-val">$20</span></div>
-            <input type="range" id="specific-slider" min="0" max="60" step="1" value="20">
+          <div class="sub-slider open" id="specific-slider-wrap">
+            <div class="slider-row">
+              <div class="slider-label"><span>Tax amount</span><span class="val" id="specific-val">$20</span></div>
+              <input type="range" id="specific-slider" min="0" max="60" step="1" value="20">
+            </div>
           </div>
           <div class="toggle-row" style="margin-top:16px">
             <label class="label"><input type="radio" name="tax-mode" id="tax-mode-advalorem" value="advalorem"> Ad valorem (%)</label>
           </div>
-          <div class="slider-row" style="margin-top:12px">
-            <div class="slider-label"><span>Tax rate</span><span class="val" id="advalorem-val">50%</span></div>
-            <input type="range" id="advalorem-slider" min="0" max="100" step="1" value="50">
+          <div class="sub-slider" id="advalorem-slider-wrap">
+            <div class="slider-row">
+              <div class="slider-label"><span>Tax rate</span><span class="val" id="advalorem-val">50%</span></div>
+              <input type="range" id="advalorem-slider" min="0" max="100" step="1" value="50">
+            </div>
           </div>
         </section>
         <section class="card panel">

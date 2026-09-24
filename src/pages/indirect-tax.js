@@ -15,11 +15,16 @@ export function initIndirectTaxPage(doc) {
   const modeAdvalorem = doc.querySelector('#tax-mode-advalorem');
   const specificSlider = doc.querySelector('#specific-slider');
   const advaloremSlider = doc.querySelector('#advalorem-slider');
+  const specificSliderWrap = doc.querySelector('#specific-slider-wrap');
+  const advaloremSliderWrap = doc.querySelector('#advalorem-slider-wrap');
 
   function render() {
     const demand = +demandSlider.value;
     const supply = +supplySlider.value;
     const mode = modeAdvalorem.checked ? 'advalorem' : 'specific';
+
+    specificSliderWrap.classList.toggle('open', mode === 'specific');
+    advaloremSliderWrap.classList.toggle('open', mode === 'advalorem');
 
     doc.querySelector('#demand-val').textContent = demand;
     doc.querySelector('#supply-val').textContent = supply;
