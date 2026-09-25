@@ -1,8 +1,6 @@
 import { renderMiniHeader } from '../components/chrome.js';
 import { getUnits } from '../lib/units.js';
-
-const FEEDBACK_FORM_URL =
-  'https://docs.google.com/forms/d/e/1FAIpQLSc4hUwcytl1QE3H1Iod7Ag8SRmmgDdEAPJED37kbj-ZB2O7yQ/viewform?usp=publish-editor&embedded=true';
+import { FEEDBACK_FORM_URL } from '../lib/feedback.js';
 
 export function resolveUnitName(search, units) {
   const params = new URLSearchParams(search);

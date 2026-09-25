@@ -20,4 +20,9 @@ describe('design tokens stylesheet', () => {
     const css = readTokensCss();
     expect(css).toContain('prefers-color-scheme: dark');
   });
+
+  it('defines a microeconomics unit accent token, independent of tile tier', () => {
+    const css = readTokensCss();
+    expect(css).toContain('--unit-microeconomics:');
+  });
 });
