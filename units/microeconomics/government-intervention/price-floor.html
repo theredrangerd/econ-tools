@@ -10,6 +10,7 @@
 <body>
   <main class="page">
     <div id="mini-header"></div>
+    <div id="family-nav"></div>
     <header class="top">
       <span class="eyebrow">Interactive · Microeconomics <span class="level-pill">SL</span></span>
       <h1>Price floor</h1>
@@ -42,6 +43,19 @@
             <input type="range" id="supply-slider" min="-10" max="110" step="1" value="20">
           </div>
           <button id="reset-btn" class="reset-btn" type="button">Reset to defaults</button>
+        </section>
+        <section class="card panel">
+          <h2>Elasticity</h2>
+          <div class="slider-row">
+            <div class="slider-label"><span>Demand elasticity</span><span class="val" id="slope-d-val">1.0 · unit elastic</span></div>
+            <input type="range" id="slope-d-slider" min="0.3" max="3" step="0.1" value="1">
+            <p class="slider-hint">Flatter (left) = buyers react strongly to price. Steeper (right) = they barely react.</p>
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Supply elasticity</span><span class="val" id="slope-s-val">1.0 · unit elastic</span></div>
+            <input type="range" id="slope-s-slider" min="0.3" max="3" step="0.1" value="1">
+            <p class="slider-hint">Flatter (left) = sellers react strongly to price. Steeper (right) = they barely react.</p>
+          </div>
         </section>
         <section class="card panel">
           <h2>Price floor</h2>

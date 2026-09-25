@@ -19,4 +19,11 @@ describe('initSubsidyPage against the real page markup', () => {
     expect(() => initSubsidyPage(document)).not.toThrow();
     expect(document.querySelector('#stat-cost').textContent).toBe('$1,400');
   });
+
+  it('renders a family nav back link to the Government Intervention family page', () => {
+    initSubsidyPage(document);
+    const back = document.querySelector('#family-nav a.family-nav__back');
+    expect(back).not.toBeNull();
+    expect(back.getAttribute('href')).toBe('/units/microeconomics/government-intervention.html');
+  });
 });

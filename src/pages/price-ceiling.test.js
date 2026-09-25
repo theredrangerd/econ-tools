@@ -4,12 +4,17 @@ import { initPriceCeilingPage } from './price-ceiling.js';
 function buildDom() {
   document.body.innerHTML = `
     <div id="mini-header"></div>
+    <div id="family-nav"></div>
     <svg id="chart" class="market-chart"></svg>
     <span id="status-pill"></span>
     <input id="demand-slider" type="range" min="70" max="170" step="1" value="140">
     <span id="demand-val"></span>
     <input id="supply-slider" type="range" min="-10" max="110" step="1" value="20">
     <span id="supply-val"></span>
+    <input id="slope-d-slider" type="range" min="0.3" max="3" step="0.1" value="1">
+    <span id="slope-d-val"></span>
+    <input id="slope-s-slider" type="range" min="0.3" max="3" step="0.1" value="1">
+    <span id="slope-s-val"></span>
     <input id="ceiling-toggle" type="checkbox">
     <input id="ceiling-slider" type="range" min="0" max="180" step="1" value="50">
     <span id="ceiling-val"></span>
@@ -54,5 +59,24 @@ describe('initPriceCeilingPage', () => {
     document.querySelector('#reset-btn').click();
     expect(document.querySelector('#ceiling-toggle').checked).toBe(false);
     expect(document.querySelector('#stat-price').textContent).toBe('$80.00');
+  });
+
+  it('changes the computed outcome when demand elasticity is adjusted away from 1', () => {
+    document.querySelector('#slope-d-slider').value = '2';
+    document.querySelector('#slope-d-slider').dispatchEvent(new Event('input'));
+    expect(document.querySelector('#stat-price').textContent).not.toBe('$80.00');
+  });
+
+  it('shows a non-binding note when the ceiling toggle is on but set above equilibrium', () => {
+    document.querySelector('#ceiling-slider').value = '170';
+    document.querySelector('#ceiling-toggle').checked = true;
+    document.querySelector('#ceiling-toggle').dispatchEvent(new Event('change'));
+    expect(document.querySelector('#market-note').innerHTML).toContain('Not binding');
+  });
+
+  it('renders a family nav back link to the Government Intervention family page', () => {
+    const back = document.querySelector('#family-nav a.family-nav__back');
+    expect(back).not.toBeNull();
+    expect(back.getAttribute('href')).toBe('/units/microeconomics/government-intervention.html');
   });
 });
