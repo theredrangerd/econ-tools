@@ -39,6 +39,7 @@ function freeMarketResult(base) {
     CS: shoelaceArea(csPoly), PS: shoelaceArea(psPoly), DWL: 0,
     govRevenue: 0, govCost: 0,
     csPoly, psPoly, dwlPoly: null, wedgePoly: null,
+    requestedControl: null,
   };
 }
 
@@ -47,12 +48,16 @@ function rationingResult(base, intervention) {
   const isFloor = intervention.type === 'floor';
   const controlPrice = intervention.price;
   const binding = isFloor ? controlPrice > Pstar : controlPrice < Pstar;
-  if (!binding) return freeMarketResult(base);
+  if (!binding) {
+    return { ...freeMarketResult(base), requestedControl: { type: intervention.type, price: controlPrice } };
+  }
 
-  const qd = clampN(Dmax - controlPrice, 0, QMAX);
-  const qs = clampN(controlPrice - Smin, 0, QMAX);
+  const qdRaw = Dmax - controlPrice;
+  const qsRaw = controlPrice - Smin;
+  const qd = clampN(qdRaw, 0, QMAX);
+  const qs = clampN(qsRaw, 0, QMAX);
   const Q = Math.min(qd, qs);
-  const gap = isFloor ? qs - qd : qd - qs;
+  const gap = isFloor ? qsRaw - qdRaw : qdRaw - qsRaw;
 
   const csPoly = csPolyFor(Dmax, Pd, Q, controlPrice);
   const psPoly = psPolyFor(Smin, Ps, Q, controlPrice);
@@ -66,6 +71,7 @@ function rationingResult(base, intervention) {
     DWL: dwlPoly ? shoelaceArea(dwlPoly) : 0,
     govRevenue: 0, govCost: 0,
     csPoly, psPoly, dwlPoly, wedgePoly: null,
+    requestedControl: { type: intervention.type, price: controlPrice },
   };
 }
 
@@ -99,6 +105,7 @@ function taxResult(base, intervention) {
     DWL: dwlPoly ? shoelaceArea(dwlPoly) : 0,
     govRevenue: wedge * Q, govCost: 0,
     csPoly, psPoly, dwlPoly, wedgePoly,
+    requestedControl: null,
   };
 }
 
@@ -122,6 +129,7 @@ function subsidyResult(base, intervention) {
     DWL: dwlPoly ? shoelaceArea(dwlPoly) : 0,
     govRevenue: 0, govCost: amount * Q,
     csPoly, psPoly, dwlPoly, wedgePoly,
+    requestedControl: null,
   };
 }
 
@@ -141,6 +149,7 @@ export function computeMarket({ demand, supply, slopeD, slopeS, intervention = {
       ...base, mode: 'free', Q: 0, Pc: 0, Pp: 0, gap: 0,
       CS: 0, PS: 0, DWL: 0, govRevenue: 0, govCost: 0,
       csPoly: [], psPoly: [], dwlPoly: null, wedgePoly: null,
+      requestedControl: null,
     };
   }
 

@@ -49,6 +49,22 @@ describe('computeMarket — price ceiling', () => {
     expect(r.noTrade).toBe(true);
     expect(r.DWL).toBe(0);
   });
+
+  it('reports the true shortage even when demanded quantity would exceed QMAX at an extreme ceiling price', () => {
+    const r = computeMarket({ ...base, intervention: { type: 'ceiling', price: 30 } });
+    expect(r.gap).toBe(100);
+  });
+
+  it('carries the requested control price through even when the ceiling does not bind, so the UI can still show a reference line', () => {
+    const r = computeMarket({ ...base, intervention: { type: 'ceiling', price: 100 } });
+    expect(r.mode).toBe('free');
+    expect(r.requestedControl).toEqual({ type: 'ceiling', price: 100 });
+  });
+
+  it('has no requestedControl when no intervention is requested', () => {
+    const r = computeMarket({ ...base, intervention: { type: 'none' } });
+    expect(r.requestedControl).toBeNull();
+  });
 });
 
 describe('computeMarket — price floor', () => {

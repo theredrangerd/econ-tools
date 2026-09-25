@@ -28,4 +28,10 @@ describe('shared pages stylesheet', () => {
   it('defines a gov stat variant for tax revenue / subsidy cost figures', () => {
     expect(readPagesCss()).toContain('.stat.gov');
   });
+
+  it('defines styles for the diagram page header (header.top)', () => {
+    const css = readPagesCss();
+    expect(css).toContain('header.top');
+    expect(css).toContain('header.top .eyebrow');
+  });
 });

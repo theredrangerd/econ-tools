@@ -78,7 +78,7 @@ function drawWedgeLines(svg, result) {
     lbl.textContent = MODE_LABELS[result.mode];
     svg.appendChild(lbl);
   } else if (result.mode === 'tax' || result.mode === 'subsidy') {
-    svg.appendChild(el('polygon', { points: pts(result.wedgePoly), fill: 'var(--supply-fill)' }, 'wedge-fill'));
+    svg.appendChild(el('polygon', { points: pts(result.wedgePoly), fill: 'var(--gov-fill)' }, 'wedge-fill'));
     const yc = sy(result.Pc), yp = sy(result.Pp);
     svg.appendChild(el('line', { x1: M.left, y1: yc, x2: M.left + plotW, y2: yc, stroke: 'var(--demand)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'));
     svg.appendChild(el('line', { x1: M.left, y1: yp, x2: M.left + plotW, y2: yp, stroke: 'var(--supply)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'));
@@ -88,6 +88,13 @@ function drawWedgeLines(svg, result) {
     const pLbl = el('text', { x: M.left + plotW - 6, y: yp + 14, 'text-anchor': 'end', fill: 'var(--supply)' }, 'tick-label');
     pLbl.textContent = 'Price producers receive';
     svg.appendChild(pLbl);
+  } else if (result.requestedControl) {
+    const { type, price } = result.requestedControl;
+    const y = sy(price);
+    svg.appendChild(el('line', { x1: M.left, y1: y, x2: M.left + plotW, y2: y, stroke: 'var(--ink-muted)', 'stroke-width': 1.4, 'stroke-dasharray': '4,4' }, 'wedge-line'));
+    const lbl = el('text', { x: M.left + plotW - 6, y: y - 6, 'text-anchor': 'end', fill: 'var(--ink-muted)' }, 'tick-label');
+    lbl.textContent = (type === 'floor' ? 'Price floor' : 'Price ceiling') + ' (not binding)';
+    svg.appendChild(lbl);
   }
 }
 

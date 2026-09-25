@@ -61,4 +61,20 @@ describe('renderMarketChart', () => {
     renderMarketChart(svg, result);
     expect(svg.querySelectorAll('line.demand-curve')).toHaveLength(1);
   });
+
+  it('uses a distinct gov color token for the tax/subsidy wedge fill, not the producer-surplus color', () => {
+    const result = computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 20 } });
+    renderMarketChart(svg, result);
+    const wedgeFill = svg.querySelector('polygon.wedge-fill').getAttribute('fill');
+    const psFill = svg.querySelector('polygon.ps-fill').getAttribute('fill');
+    expect(wedgeFill).toBe('var(--gov-fill)');
+    expect(psFill).toBe('var(--supply-fill)');
+    expect(wedgeFill).not.toBe(psFill);
+  });
+
+  it('draws a faint non-binding reference line when a ceiling is toggled on but set above equilibrium', () => {
+    const result = computeMarket({ ...base, intervention: { type: 'ceiling', price: 100 } });
+    renderMarketChart(svg, result);
+    expect(svg.querySelectorAll('line.wedge-line')).toHaveLength(1);
+  });
 });

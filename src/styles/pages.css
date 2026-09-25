@@ -4,6 +4,84 @@
   margin: 0 auto 28px;
 }
 
+header.top {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 28px;
+}
+
+header.top .eyebrow {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+header.top h1 {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(28px, 4vw, 38px);
+  margin: 0;
+  text-wrap: balance;
+  letter-spacing: -0.01em;
+}
+
+header.top .lede {
+  color: var(--ink-secondary);
+  font-size: 15px;
+  max-width: 62ch;
+  line-height: 1.55;
+  margin: 2px 0 0;
+}
+
+.family-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  font-size: 12.5px;
+  color: var(--ink-secondary);
+  margin-bottom: 20px;
+}
+.family-nav__back {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  text-decoration: none;
+}
+.family-nav__siblings { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.family-nav__siblings a { color: var(--ink-secondary); text-decoration: none; }
+.family-nav__siblings a:hover { color: var(--ink); text-decoration: underline; }
+.family-nav__siblings a[aria-current="page"] { color: var(--ink); font-weight: 600; text-decoration: underline; }
+
+.feedback-section {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--hairline);
+}
+.feedback-section h2 {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 20px;
+  margin: 0 0 6px;
+}
+.feedback-section p {
+  color: var(--ink-secondary);
+  font-size: 13.5px;
+  margin: 0;
+}
+.feedback-section iframe {
+  width: 100%;
+  height: 640px;
+  border: 1px solid var(--hairline-2);
+  border-radius: 10px;
+  margin-top: 16px;
+}
+
 .hero .eyebrow {
   font-family: "IBM Plex Mono", monospace;
   font-size: 12px;
@@ -346,7 +424,7 @@ input[type="range"]::-moz-range-thumb {
 .stat.dwl .v { color: var(--dwl-line); }
 .stat.cs .v { color: var(--demand); }
 .stat.ps .v { color: var(--supply); }
-.stat.gov .v { color: var(--accent); }
+.stat.gov .v { color: var(--gov); }
 .stat.wide { grid-column: 1 / -1; }
 
 .note {
