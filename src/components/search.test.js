@@ -24,4 +24,33 @@ describe('filterGraphs', () => {
   it('returns an empty array when nothing matches', () => {
     expect(filterGraphs('nonexistent topic', fixture)).toEqual([]);
   });
+
+  it('matches a tag nested under a unit\'s families/diagrams, not just top-level tags', () => {
+    const nested = [
+      {
+        name: 'Microeconomics',
+        tags: ['supply', 'demand'],
+        families: [
+          {
+            name: 'Government Intervention',
+            diagrams: [
+              { name: 'Subsidy', tags: ['subsidy', 'government spending'] },
+              { name: 'Indirect tax', tags: ['deadweight loss'] },
+            ],
+          },
+        ],
+      },
+      { name: 'Macroeconomics', tags: ['aggregate demand', 'aggregate supply', 'business cycle'] },
+    ];
+    expect(filterGraphs('subsidy', nested)).toEqual([nested[0]]);
+    expect(filterGraphs('deadweight loss', nested)).toEqual([nested[0]]);
+  });
+
+  it('does not crash on a unit with no families property', () => {
+    const nested = [
+      { name: 'Macroeconomics', tags: ['aggregate demand', 'aggregate supply', 'business cycle'] },
+    ];
+    expect(filterGraphs('aggregate demand', nested)).toEqual(nested);
+    expect(filterGraphs('nothing-matches-here', nested)).toEqual([]);
+  });
 });
