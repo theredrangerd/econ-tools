@@ -19,4 +19,8 @@ describe('initMicroeconomicsPage against the real units/microeconomics.html mark
   it('wires up against the real ids without throwing, and renders all 5 family tiles', () => {
     expect(document.querySelectorAll('#family-bento a.bento__tile')).toHaveLength(5);
   });
+
+  it('embeds the feedback form', () => {
+    expect(document.querySelector('#feedback-form').src).toContain('docs.google.com/forms');
+  });
 });

@@ -7,8 +7,15 @@ describe('initMicroeconomicsPage', () => {
       <div id="mini-header"></div>
       <div id="hero"></div>
       <div id="family-bento"></div>
+      <iframe id="feedback-form"></iframe>
     `;
     initMicroeconomicsPage(document);
+  });
+
+  it('embeds the feedback form', () => {
+    expect(document.querySelector('#feedback-form').src).toContain(
+      'docs.google.com/forms/d/e/1FAIpQLSc4hUwcytl1QE3H1Iod7Ag8SRmmgDdEAPJED37kbj-ZB2O7yQ'
+    );
   });
 
   it('renders one tile per topic family', () => {

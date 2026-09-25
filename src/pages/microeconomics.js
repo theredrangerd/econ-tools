@@ -1,6 +1,7 @@
 import { renderMiniHeader, renderHero } from '../components/chrome.js';
 import { renderBento } from '../components/bento.js';
 import { getUnits, familyHref } from '../lib/units.js';
+import { FEEDBACK_FORM_URL } from '../lib/feedback.js';
 
 export function initMicroeconomicsPage(doc) {
   const unit = getUnits().find((u) => u.slug === 'microeconomics');
@@ -19,4 +20,6 @@ export function initMicroeconomicsPage(doc) {
     href: familyHref(unit, family),
   }));
   renderBento(doc.querySelector('#family-bento'), families, { tiered: false });
+
+  doc.querySelector('#feedback-form').src = FEEDBACK_FORM_URL;
 }
