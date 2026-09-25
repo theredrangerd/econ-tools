@@ -86,6 +86,23 @@ describe('computeMarket — price floor', () => {
     expect(r.Q).toBe(60);
     expect(r.DWL).toBe(0);
   });
+
+  it('correctly divides by slopeD/slopeS when computing shortage under a binding ceiling with non-unit elasticity', () => {
+    const r = computeMarket({ demand: 140, supply: 20, slopeD: 1, slopeS: 2, intervention: { type: 'ceiling', price: 50 } });
+    expect(r.Q).toBe(15);
+    expect(r.gap).toBe(75);
+  });
+
+  it('correctly divides by slopeD/slopeS when computing surplus under a binding floor with non-unit elasticity', () => {
+    const r = computeMarket({ demand: 140, supply: 20, slopeD: 2, slopeS: 1, intervention: { type: 'floor', price: 80 } });
+    expect(r.Q).toBe(30);
+    expect(r.gap).toBe(30);
+  });
+
+  it('does not overstate the gap when the control price falls below the supply intercept', () => {
+    const r = computeMarket({ demand: 140, supply: 50, slopeD: 1, slopeS: 1, intervention: { type: 'ceiling', price: 40 } });
+    expect(r.gap).toBe(100);
+  });
 });
 
 describe('computeMarket — specific (per-unit) tax', () => {

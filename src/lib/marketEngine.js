@@ -44,7 +44,7 @@ function freeMarketResult(base) {
 }
 
 function rationingResult(base, intervention) {
-  const { Dmax, Smin, Qstar, Pstar, Pd, Ps } = base;
+  const { Dmax, Smin, slopeD, slopeS, Qstar, Pstar, Pd, Ps } = base;
   const isFloor = intervention.type === 'floor';
   const controlPrice = intervention.price;
   const binding = isFloor ? controlPrice > Pstar : controlPrice < Pstar;
@@ -52,8 +52,8 @@ function rationingResult(base, intervention) {
     return { ...freeMarketResult(base), requestedControl: { type: intervention.type, price: controlPrice } };
   }
 
-  const qdRaw = Dmax - controlPrice;
-  const qsRaw = controlPrice - Smin;
+  const qdRaw = Math.max(0, (Dmax - controlPrice) / slopeD);
+  const qsRaw = Math.max(0, (controlPrice - Smin) / slopeS);
   const qd = clampN(qdRaw, 0, QMAX);
   const qs = clampN(qsRaw, 0, QMAX);
   const Q = Math.min(qd, qs);
