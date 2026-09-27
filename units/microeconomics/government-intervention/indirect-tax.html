@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Indirect Tax — Microeconomics — IB Economics Graphs</title>
+  <link rel="stylesheet" href="/src/styles/tokens.css">
+  <link rel="stylesheet" href="/src/styles/pages.css">
+</head>
+<body>
+  <main class="page">
+    <div id="mini-header"></div>
+    <div id="family-nav"></div>
+    <header class="top">
+      <span class="eyebrow">Interactive · Microeconomics <span class="level-pill">SL</span></span>
+      <h1>Indirect tax</h1>
+      <p class="lede">Compare a specific (per-unit) tax with an ad valorem (percentage) tax — see how each opens a wedge between what consumers pay and what producers receive.</p>
+    </header>
+    <div class="layout">
+      <section class="card chart-card">
+        <div class="chart-head">
+          <h2 class="chart-title">Price &amp; quantity</h2>
+          <span class="status-pill" id="status-pill">Tax applied</span>
+        </div>
+        <svg id="chart" class="market-chart" viewBox="0 0 780 520" role="img" aria-label="Indirect tax diagram"></svg>
+        <div class="legend">
+          <span class="item"><span class="line" style="background:var(--demand)"></span>Demand</span>
+          <span class="item"><span class="line" style="background:var(--supply)"></span>Supply</span>
+          <span class="item"><span class="swatch" style="background:var(--demand-fill); border:1px solid var(--demand)"></span>Consumer surplus</span>
+          <span class="item"><span class="swatch" style="background:var(--supply-fill); border:1px solid var(--supply)"></span>Producer surplus</span>
+          <span class="item"><span class="swatch" style="background:var(--gov-fill); border:1px solid var(--gov)"></span>Tax revenue</span>
+          <span class="item"><span class="swatch" style="background:var(--dwl-fill); border:1px solid var(--dwl-line)"></span>Deadweight loss</span>
+        </div>
+      </section>
+      <aside class="sidebar">
+        <section class="card panel">
+          <h2>Shift the curves</h2>
+          <div class="slider-row">
+            <div class="slider-label"><span>Demand</span><span class="val" id="demand-val">140</span></div>
+            <input type="range" id="demand-slider" min="70" max="170" step="1" value="140">
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Supply</span><span class="val" id="supply-val">20</span></div>
+            <input type="range" id="supply-slider" min="-10" max="110" step="1" value="20">
+          </div>
+          <button id="reset-btn" class="reset-btn" type="button">Reset to defaults</button>
+        </section>
+        <section class="card panel">
+          <h2>Elasticity</h2>
+          <div class="slider-row">
+            <div class="slider-label"><span>Demand elasticity</span><span class="val" id="slope-d-val">1.0 · unit elastic</span></div>
+            <input type="range" id="slope-d-slider" min="0.3" max="3" step="0.1" value="1">
+            <p class="slider-hint">Flatter (left) = buyers react strongly to price. Steeper (right) = they barely react.</p>
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Supply elasticity</span><span class="val" id="slope-s-val">1.0 · unit elastic</span></div>
+            <input type="range" id="slope-s-slider" min="0.3" max="3" step="0.1" value="1">
+            <p class="slider-hint">Flatter (left) = sellers react strongly to price. Steeper (right) = they barely react.</p>
+          </div>
+        </section>
+        <section class="card panel">
+          <h2>Tax type</h2>
+          <div class="toggle-row">
+            <label class="label"><input type="radio" name="tax-mode" id="tax-mode-specific" value="specific" checked> Specific (per-unit)</label>
+          </div>
+          <div class="sub-slider open" id="specific-slider-wrap">
+            <div class="slider-row">
+              <div class="slider-label"><span>Tax amount</span><span class="val" id="specific-val">$20</span></div>
+              <input type="range" id="specific-slider" min="0" max="60" step="1" value="20">
+            </div>
+          </div>
+          <div class="toggle-row" style="margin-top:16px">
+            <label class="label"><input type="radio" name="tax-mode" id="tax-mode-advalorem" value="advalorem"> Ad valorem (%)</label>
+          </div>
+          <div class="sub-slider" id="advalorem-slider-wrap">
+            <div class="slider-row">
+              <div class="slider-label"><span>Tax rate</span><span class="val" id="advalorem-val">50%</span></div>
+              <input type="range" id="advalorem-slider" min="0" max="100" step="1" value="50">
+            </div>
+          </div>
+        </section>
+        <section class="card panel">
+          <h2>Market outcome</h2>
+          <div class="stats-grid">
+            <div class="stat"><div class="k">Price consumers pay</div><div class="v" id="stat-price-consumer">$90.00</div></div>
+            <div class="stat"><div class="k">Price producers receive</div><div class="v" id="stat-price-producer">$70.00</div></div>
+            <div class="stat"><div class="k">Quantity traded</div><div class="v" id="stat-qty">50.0</div></div>
+            <div class="stat cs"><div class="k">Consumer surplus</div><div class="v" id="stat-cs">$1,225</div></div>
+            <div class="stat ps"><div class="k">Producer surplus</div><div class="v" id="stat-ps">$1,225</div></div>
+            <div class="stat gov"><div class="k">Tax revenue</div><div class="v" id="stat-revenue">$1,000</div></div>
+            <div class="stat dwl wide"><div class="k">Deadweight loss</div><div class="v" id="stat-dwl">$500</div></div>
+          </div>
+          <div class="note" id="market-note"></div>
+        </section>
+      </aside>
+    </div>
+  </main>
+  <script type="module" src="/src/pages/indirect-tax-entry.js"></script>
+</body>
+</html>

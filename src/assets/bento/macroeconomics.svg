@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120" preserveAspectRatio="xMidYMid meet">
+  <g fill="none" stroke="#22303f" stroke-linecap="round" stroke-linejoin="round">
+    <!-- axes -->
+    <line x1="28" y1="10" x2="28" y2="108" stroke-width="2.5" stroke-opacity="0.35" />
+    <line x1="28" y1="108" x2="460" y2="108" stroke-width="2.5" stroke-opacity="0.35" />
+    <!-- long-run growth trend -->
+    <line x1="38" y1="95" x2="450" y2="20" stroke-width="2.5" stroke-dasharray="8,7" stroke-opacity="0.4" />
+    <!-- business cycle wave around the trend -->
+    <path d="M38,90 C75,58 95,100 130,72 C165,44 185,92 225,68 C265,44 285,85 325,58 C360,34 380,55 410,34 C425,24 435,26 450,20"
+          stroke-width="5.5" stroke-opacity="0.68" />
+  </g>
+  <circle cx="130" cy="72" r="6.5" fill="#22303f" fill-opacity="0.6" />
+  <circle cx="325" cy="58" r="6.5" fill="#22303f" fill-opacity="0.6" />
+</svg>

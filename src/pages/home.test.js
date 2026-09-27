@@ -20,6 +20,11 @@ describe('initHomePage', () => {
     expect(document.querySelectorAll('#bento a.bento__tile')).toHaveLength(4);
   });
 
+  it('links the Microeconomics tile to its real unit page, not the WIP stub', () => {
+    const link = document.querySelector('a[href="/units/microeconomics.html"]');
+    expect(link).not.toBeNull();
+  });
+
   it('filters tiles as the user types and hides the no-results message when matches exist', () => {
     const input = document.querySelector('#search-input');
     input.value = 'micro';

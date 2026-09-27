@@ -14,13 +14,25 @@
   --demand:        #2a5fa8;
   --demand-fill:   rgba(42, 95, 168, 0.14);
   --demand-tick:   #cfe0f5;
+  --unit-microeconomics:      var(--demand);
+  --unit-microeconomics-fill: var(--demand-fill);
 
   --supply:        #c85a1e;
   --supply-fill:   rgba(200, 90, 30, 0.14);
+  --unit-macroeconomics:      var(--supply);
+  --unit-macroeconomics-fill: var(--supply-fill);
+
+  --unit-international:      #0f8b8d;
+  --unit-international-fill: rgba(15, 139, 141, 0.16);
+
+  --unit-development:         #3f8f4f;
+  --unit-development-fill:    rgba(63, 143, 79, 0.16);
 
   --dwl-line:      #b33434;
   --dwl-fill:      rgba(179, 52, 52, 0.16);
   --dwl-hatch:     rgba(179, 52, 52, 0.55);
+  --gov:           #7c3aed;
+  --gov-fill:      rgba(124, 58, 237, 0.14);
 
   --accent:        #2a5fa8;
   --good:          #157a3d;
@@ -43,13 +55,25 @@
     --demand:        #6ea3e6;
     --demand-fill:   rgba(110, 163, 230, 0.20);
     --demand-tick:   #223047;
+    --unit-microeconomics:      var(--demand);
+    --unit-microeconomics-fill: var(--demand-fill);
 
     --supply:        #f0925a;
     --supply-fill:   rgba(240, 146, 90, 0.20);
+    --unit-macroeconomics:      var(--supply);
+    --unit-macroeconomics-fill: var(--supply-fill);
+
+    --unit-international:      #3fb8b8;
+    --unit-international-fill: rgba(63, 184, 184, 0.20);
+
+    --unit-development:        #6fc27f;
+    --unit-development-fill:   rgba(111, 194, 127, 0.20);
 
     --dwl-line:      #e2726f;
     --dwl-fill:      rgba(226, 114, 111, 0.22);
     --dwl-hatch:     rgba(226, 114, 111, 0.65);
+    --gov:           #b794f4;
+    --gov-fill:      rgba(183, 148, 244, 0.20);
 
     --accent:        #6ea3e6;
     --good:          #4fbf82;
@@ -72,13 +96,25 @@
   --demand:        #6ea3e6;
   --demand-fill:   rgba(110, 163, 230, 0.20);
   --demand-tick:   #223047;
+  --unit-microeconomics:      var(--demand);
+  --unit-microeconomics-fill: var(--demand-fill);
 
   --supply:        #f0925a;
   --supply-fill:   rgba(240, 146, 90, 0.20);
+  --unit-macroeconomics:      var(--supply);
+  --unit-macroeconomics-fill: var(--supply-fill);
+
+  --unit-international:      #3fb8b8;
+  --unit-international-fill: rgba(63, 184, 184, 0.20);
+
+  --unit-development:        #6fc27f;
+  --unit-development-fill:   rgba(111, 194, 127, 0.20);
 
   --dwl-line:      #e2726f;
   --dwl-fill:      rgba(226, 114, 111, 0.22);
   --dwl-hatch:     rgba(226, 114, 111, 0.65);
+  --gov:           #b794f4;
+  --gov-fill:      rgba(183, 148, 244, 0.20);
 
   --accent:        #6ea3e6;
   --good:          #4fbf82;

@@ -1,7 +1,12 @@
+// src/pages/home.js
 import { renderHero } from '../components/chrome.js';
 import { renderBento } from '../components/bento.js';
 import { filterGraphs } from '../components/search.js';
-import { getUnits } from '../lib/units.js';
+import { getUnits, unitHref } from '../lib/units.js';
+
+function withHrefs(units) {
+  return units.map((unit) => ({ ...unit, href: unitHref(unit) }));
+}
 
 export function initHomePage(doc) {
   const heroEl = doc.querySelector('#hero');
@@ -16,11 +21,11 @@ export function initHomePage(doc) {
   });
 
   const units = getUnits();
-  renderBento(bentoEl, units);
+  renderBento(bentoEl, withHrefs(units));
 
   searchInput.addEventListener('input', () => {
     const results = filterGraphs(searchInput.value, units);
-    renderBento(bentoEl, results);
+    renderBento(bentoEl, withHrefs(results));
     noResultsEl.hidden = results.length !== 0;
   });
 }
