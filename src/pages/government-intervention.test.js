@@ -12,7 +12,7 @@ describe('initGovernmentInterventionPage', () => {
   });
 
   it('renders one tile per diagram in the family', () => {
-    expect(document.querySelectorAll('#diagram-bento a.bento__tile')).toHaveLength(5);
+    expect(document.querySelectorAll('#diagram-bento a.bento__tile')).toHaveLength(4);
   });
 
   it('links the four built diagrams to their real pages with an SL pill', () => {
@@ -20,11 +20,5 @@ describe('initGovernmentInterventionPage', () => {
     expect(link).not.toBeNull();
     expect(link.querySelector('.level-pill').textContent).toBe('SL');
     expect(link.querySelector('.bento__badge')).toBeNull();
-  });
-
-  it('links the not-yet-built agricultural markets diagram to the WIP stub', () => {
-    const link = document.querySelector('a[href="/units/wip.html?unit=agricultural-markets"]');
-    expect(link).not.toBeNull();
-    expect(link.querySelector('.bento__badge')).not.toBeNull();
   });
 });

@@ -55,7 +55,7 @@ Follows the user's actual teaching calendar, not exam weighting — do not reseq
 
 `equilibrium-lab.html` is retired outright (no redirect) once price ceiling/floor are ported to the new template.
 
-**Full diagram inventory per family** (working baseline, corrected against ibonomics.org — theibtrainer.com's list could not be retrieved for cross-check) is in the spec doc's "Diagram inventory" section — check there before assuming a diagram belongs to a given family, since one correction already happened (Lorenz curve/Gini moved out of Microeconomics to a later Macro/Development roadmap; Consumer & Producer Surplus and Allocative Efficiency were added as standalone diagrams).
+**Full diagram inventory per family** (working baseline, cross-checked against the official IB Economics guide, ibonomics.org, and theibtrainer.com) is in the spec doc's "Diagram inventory" section — check there before assuming a diagram belongs to a given family. Corrections so far: Lorenz curve/Gini moved out of Microeconomics to a later Macro/Development roadmap; Consumer & Producer Surplus and Allocative Efficiency were added as standalone diagrams; agricultural markets/buffer stock scheme was cut (not in the current syllabus at all); "Theory of the Firm" maps to the actual syllabus topic **2.11 "Market failure — market power"**, which does *not* include cost curves, revenue curves, price discrimination, or a kinked demand curve — those are cut too, while game theory payoff matrix and LRAC/minimum efficient scale are kept.
 
 ## Definition of "done" for a new graph page
 

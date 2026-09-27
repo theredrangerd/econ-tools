@@ -16,7 +16,7 @@ describe('initGovernmentInterventionPage against the real family page markup', (
     initGovernmentInterventionPage(document);
   });
 
-  it('wires up against the real ids without throwing, and renders all 5 diagram tiles', () => {
-    expect(document.querySelectorAll('#diagram-bento a.bento__tile')).toHaveLength(5);
+  it('wires up against the real ids without throwing, and renders all 4 diagram tiles', () => {
+    expect(document.querySelectorAll('#diagram-bento a.bento__tile')).toHaveLength(4);
   });
 });

@@ -38,7 +38,6 @@ const UNITS = [
           { slug: 'price-floor', name: 'Price floor', level: 'SL', status: 'built', tags: ['price floor', 'minimum wage', 'surplus', 'deadweight loss'] },
           { slug: 'indirect-tax', name: 'Indirect tax', level: 'SL', status: 'built', tags: ['indirect tax', 'specific tax', 'ad valorem tax', 'tax incidence', 'tax revenue'] },
           { slug: 'subsidy', name: 'Subsidy', level: 'SL', status: 'built', tags: ['subsidy', 'government spending'] },
-          { slug: 'agricultural-markets', name: 'Agricultural markets', level: 'SL', status: 'coming-soon', tags: ['buffer stock', 'price support'] },
         ],
       },
       {
@@ -60,13 +59,11 @@ const UNITS = [
         level: 'HL',
         status: 'coming-soon',
         diagrams: [
-          { slug: 'cost-curves', name: 'Short-run & long-run cost curves', level: 'HL', status: 'coming-soon', tags: ['economies of scale', 'minimum efficient scale'] },
-          { slug: 'revenue-curves', name: 'Revenue curves', level: 'HL', status: 'coming-soon', tags: ['ar', 'mr'] },
           { slug: 'perfect-competition', name: 'Perfect competition', level: 'HL', status: 'coming-soon', tags: ['normal profit', 'abnormal profit', 'loss'] },
           { slug: 'monopoly', name: 'Monopoly', level: 'HL', status: 'coming-soon', tags: ['welfare loss', 'natural monopoly'] },
           { slug: 'monopolistic-competition', name: 'Monopolistic competition', level: 'HL', status: 'coming-soon', tags: [] },
-          { slug: 'oligopoly', name: 'Oligopoly', level: 'HL', status: 'coming-soon', tags: ['kinked demand', 'game theory', 'collusion'] },
-          { slug: 'price-discrimination', name: 'Price discrimination', level: 'HL', status: 'coming-soon', tags: ['first degree', 'third degree'] },
+          { slug: 'oligopoly', name: 'Oligopoly', level: 'HL', status: 'coming-soon', tags: ['collusion', 'game theory', 'prisoner\'s dilemma', 'payoff matrix'] },
+          { slug: 'lrac-minimum-efficient-scale', name: 'LRAC & minimum efficient scale', level: 'HL', status: 'coming-soon', tags: ['long-run average cost', 'economies of scale', 'minimum efficient scale'] },
         ],
       },
     ],

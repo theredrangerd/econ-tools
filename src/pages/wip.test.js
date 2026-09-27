@@ -20,7 +20,7 @@ describe('resolveUnitName', () => {
   });
 
   it('resolves a not-yet-built diagram slug nested under a family', () => {
-    expect(resolveUnitName('?unit=agricultural-markets', getUnits())).toBe('Agricultural markets');
+    expect(resolveUnitName('?unit=perfect-competition', getUnits())).toBe('Perfect competition');
   });
 });
 
