@@ -1,34 +1,15 @@
 import { renderMiniHeader } from '../components/chrome.js';
 import { computeMarket } from '../lib/marketEngine.js';
 import { renderMarketChart } from '../lib/marketChart.js';
-import { fmtMoney, fmtPrice, fmtQty } from '../lib/format.js';
-import { getUnits, familyHref, diagramHref } from '../lib/units.js';
-import { renderFamilyNav } from '../components/familyNav.js';
-
-function elasticityLabel(slope) {
-  if (slope < 0.5) return 'very elastic';
-  if (slope < 0.85) return 'elastic';
-  if (slope <= 1.15) return 'unit elastic';
-  if (slope < 2) return 'inelastic';
-  return 'very inelastic';
-}
+import { fmtMoney, fmtPrice, fmtQty, elasticityLabel, setStatusPill } from '../lib/format.js';
+import { initFamilyNav } from '../components/familyNav.js';
 
 const DEFAULTS = { demand: 140, supply: 20, slopeD: 1, slopeS: 1, ceilingOn: false, ceilingPrice: 50 };
 
 export function initPriceCeilingPage(doc) {
   renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Price ceiling' });
 
-  const unit = getUnits().find((u) => u.slug === 'microeconomics');
-  const family = unit.families.find((f) => f.slug === 'government-intervention');
-  renderFamilyNav(doc.querySelector('#family-nav'), {
-    familyName: family.name,
-    familyHref: familyHref(unit, family),
-    siblings: family.diagrams.map((d) => ({
-      name: d.name,
-      href: diagramHref(unit, family, d),
-      current: d.slug === 'price-ceiling',
-    })),
-  });
+  initFamilyNav(doc.querySelector('#family-nav'), 'price-ceiling');
 
   const chart = doc.querySelector('#chart');
   const demandSlider = doc.querySelector('#demand-slider');
@@ -57,8 +38,7 @@ export function initPriceCeilingPage(doc) {
 
     renderMarketChart(chart, result);
 
-    const pill = doc.querySelector('#status-pill');
-    pill.textContent = result.mode === 'ceiling' ? 'Price ceiling binding' : 'Free market';
+    setStatusPill(doc.querySelector('#status-pill'), result.mode === 'ceiling' ? 'Price ceiling binding' : 'Free market', result.mode);
 
     doc.querySelector('#stat-price').textContent = result.noTrade ? '—' : fmtPrice(result.Pc);
     doc.querySelector('#stat-qty').textContent = result.noTrade ? '0.0' : fmtQty(result.Q);

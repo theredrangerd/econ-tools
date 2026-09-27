@@ -47,6 +47,7 @@ describe('initPriceCeilingPage', () => {
     expect(document.querySelector('#stat-qty').textContent).toBe('30.0');
     expect(document.querySelector('#stat-dwl').textContent).toBe('$900');
     expect(document.querySelector('#status-pill').textContent).toBe('Price ceiling binding');
+    expect(document.querySelector('#status-pill').classList.contains('ceiling')).toBe(true);
   });
 
   it('draws demand and supply curves onto the chart', () => {

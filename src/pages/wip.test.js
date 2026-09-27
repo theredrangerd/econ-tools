@@ -14,6 +14,14 @@ describe('resolveUnitName', () => {
   it('falls back to a generic label when the unit param does not match any known unit', () => {
     expect(resolveUnitName('?unit=not-a-real-unit', getUnits())).toBe('This section');
   });
+
+  it('resolves a not-yet-built family slug nested under a unit', () => {
+    expect(resolveUnitName('?unit=market-failure', getUnits())).toBe('Market Failure');
+  });
+
+  it('resolves a not-yet-built diagram slug nested under a family', () => {
+    expect(resolveUnitName('?unit=agricultural-markets', getUnits())).toBe('Agricultural markets');
+  });
 });
 
 describe('initWipPage', () => {

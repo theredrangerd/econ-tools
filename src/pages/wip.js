@@ -5,8 +5,15 @@ import { FEEDBACK_FORM_URL } from '../lib/feedback.js';
 export function resolveUnitName(search, units) {
   const params = new URLSearchParams(search);
   const slug = params.get('unit');
-  const match = units.find((u) => u.slug === slug);
-  return match ? match.name : 'This section';
+  for (const unit of units) {
+    if (unit.slug === slug) return unit.name;
+    for (const family of unit.families || []) {
+      if (family.slug === slug) return family.name;
+      const diagram = (family.diagrams || []).find((d) => d.slug === slug);
+      if (diagram) return diagram.name;
+    }
+  }
+  return 'This section';
 }
 
 export function initWipPage(doc, location) {
