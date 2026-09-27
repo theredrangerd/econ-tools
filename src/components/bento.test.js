@@ -3,8 +3,8 @@ import { renderBento } from './bento.js';
 
 function homepageUnits() {
   return [
-    { name: 'Microeconomics', tier: 'large', status: 'built', href: '/units/microeconomics.html' },
-    { name: 'Macroeconomics', tier: 'medium', status: 'coming-soon', href: '/units/wip.html?unit=macroeconomics' },
+    { name: 'Microeconomics', slug: 'microeconomics', tier: 'large', status: 'built', href: '/units/microeconomics.html' },
+    { name: 'Macroeconomics', slug: 'macroeconomics', tier: 'medium', status: 'coming-soon', href: '/units/wip.html?unit=macroeconomics' },
   ];
 }
 
@@ -58,5 +58,19 @@ describe('renderBento', () => {
   it('omits the level pill when the item has no level', () => {
     renderBento(container, homepageUnits());
     expect(container.querySelector('a.bento__tile .level-pill')).toBeNull();
+  });
+
+  it('applies a unit-slug modifier class and a background image for a known unit slug', () => {
+    renderBento(container, homepageUnits());
+    const micro = container.querySelector('a[href="/units/microeconomics.html"]');
+    expect(micro.className).toContain('bento__tile--microeconomics');
+    expect(micro.style.backgroundImage).toMatch(/^url\(.*\.svg["']?\)$/);
+  });
+
+  it('omits the slug modifier class and background image for a slug with no matching image', () => {
+    renderBento(container, [{ name: 'International Economics', slug: 'international-unknown', tier: 'small', status: 'coming-soon', href: '/units/wip.html?unit=international-unknown' }]);
+    const tile = container.querySelector('a.bento__tile');
+    expect(tile.className).not.toContain('international-unknown');
+    expect(tile.style.backgroundImage).toBe('');
   });
 });

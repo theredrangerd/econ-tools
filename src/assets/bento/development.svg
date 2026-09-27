@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 205" preserveAspectRatio="xMidYMid meet">
+  <g fill="none" stroke="#22303f" stroke-linecap="round">
+    <!-- axes -->
+    <line x1="42" y1="15" x2="42" y2="185" stroke-width="2.5" stroke-opacity="0.35" />
+    <line x1="42" y1="185" x2="358" y2="185" stroke-width="2.5" stroke-opacity="0.35" />
+    <!-- line of perfect equality -->
+    <line x1="42" y1="185" x2="358" y2="15" stroke-width="3" stroke-dasharray="8,7" stroke-opacity="0.42" />
+    <!-- Lorenz curve -->
+    <path d="M42,185 C130,178 195,145 240,100 C285,55 320,30 358,15"
+          stroke-width="5.5" stroke-opacity="0.68" />
+  </g>
+  <path d="M42,185 C130,178 195,145 240,100 C285,55 320,30 358,15 L42,15 Z"
+        fill="#22303f" fill-opacity="0.14" stroke="none" />
+</svg>
