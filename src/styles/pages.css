@@ -352,13 +352,18 @@ header.top .lede {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.95fr);
   gap: 20px;
-  align-items: start;
+  /* No align-items: both columns stretch to the row's height (the taller
+     column's natural height) so the two stacks end at the same bottom
+     edge — see the "matched column height" rule in the design spec. */
 }
 
 .main-col { display: flex; flex-direction: column; gap: 20px; }
+.main-col > *:last-child { flex: 1; }
 
 @media (max-width: 880px) {
   .layout { grid-template-columns: 1fr; }
+  .main-col > *:last-child { flex: none; }
+  .sidebar > *:last-child { flex: none; }
 }
 
 .card {
@@ -429,6 +434,7 @@ svg.market-chart { width: 100%; height: auto; display: block; }
 .legend .line { width: 16px; height: 2px; border-radius: 1px; flex: none; }
 
 .sidebar { display: flex; flex-direction: column; gap: 12px; }
+.sidebar > *:last-child { flex: 1; }
 
 .panel { padding: 18px 20px 20px; }
 .panel h2 {
