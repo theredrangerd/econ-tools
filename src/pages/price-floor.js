@@ -7,9 +7,8 @@ import { initFamilyNav } from '../components/familyNav.js';
 const DEFAULTS = { demand: 140, supply: 20, slopeD: 1, slopeS: 1, floorOn: false, floorPrice: 110 };
 
 export function initPriceFloorPage(doc) {
-  renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Price floor' });
-
-  initFamilyNav(doc.querySelector('#family-nav'), 'price-floor');
+  const { backHref, backLabel } = initFamilyNav(doc.querySelector('#family-nav'), 'price-floor');
+  renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Price floor', backHref, backLabel });
 
   const chart = doc.querySelector('#chart');
   const demandSlider = doc.querySelector('#demand-slider');

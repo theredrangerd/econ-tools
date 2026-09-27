@@ -7,9 +7,8 @@ import { initFamilyNav } from '../components/familyNav.js';
 const DEFAULTS = { demand: 140, supply: 20, slopeD: 1, slopeS: 1, mode: 'specific', specificAmount: 20, advaloremRate: 50 };
 
 export function initIndirectTaxPage(doc) {
-  renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Indirect tax' });
-
-  initFamilyNav(doc.querySelector('#family-nav'), 'indirect-tax');
+  const { backHref, backLabel } = initFamilyNav(doc.querySelector('#family-nav'), 'indirect-tax');
+  renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Indirect tax', backHref, backLabel });
 
   const chart = doc.querySelector('#chart');
   const demandSlider = doc.querySelector('#demand-slider');

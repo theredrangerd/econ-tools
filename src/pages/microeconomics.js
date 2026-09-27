@@ -6,7 +6,11 @@ import { FEEDBACK_FORM_URL } from '../lib/feedback.js';
 export function initMicroeconomicsPage(doc) {
   const unit = getUnits().find((u) => u.slug === 'microeconomics');
 
-  renderMiniHeader(doc.querySelector('#mini-header'), { title: unit.name });
+  renderMiniHeader(doc.querySelector('#mini-header'), {
+    title: unit.name,
+    backHref: `${import.meta.env.BASE_URL}index.html`,
+    backLabel: 'Home',
+  });
   renderHero(doc.querySelector('#hero'), {
     eyebrow: 'MICROECONOMICS',
     title: unit.name,

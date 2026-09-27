@@ -7,9 +7,8 @@ import { initFamilyNav } from '../components/familyNav.js';
 const DEFAULTS = { demand: 140, supply: 20, slopeD: 1, slopeS: 1, ceilingOn: false, ceilingPrice: 50 };
 
 export function initPriceCeilingPage(doc) {
-  renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Price ceiling' });
-
-  initFamilyNav(doc.querySelector('#family-nav'), 'price-ceiling');
+  const { backHref, backLabel } = initFamilyNav(doc.querySelector('#family-nav'), 'price-ceiling');
+  renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Price ceiling', backHref, backLabel });
 
   const chart = doc.querySelector('#chart');
   const demandSlider = doc.querySelector('#demand-slider');

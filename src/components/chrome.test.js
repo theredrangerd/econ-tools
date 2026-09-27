@@ -34,4 +34,22 @@ describe('renderMiniHeader', () => {
     const link = container.querySelector('.mini-header__home');
     expect(link.getAttribute('href')).toBe('/econ-tools/index.html');
   });
+
+  it('renders no back link when backHref is not given', () => {
+    const container = document.createElement('div');
+    renderMiniHeader(container, { title: 'Microeconomics' });
+    expect(container.querySelector('.mini-header__back')).toBeNull();
+  });
+
+  it('renders a back link to one level up when backHref/backLabel are given', () => {
+    const container = document.createElement('div');
+    renderMiniHeader(container, {
+      title: 'Government Intervention',
+      backHref: '/units/microeconomics.html',
+      backLabel: 'Microeconomics',
+    });
+    const back = container.querySelector('.mini-header__back');
+    expect(back.getAttribute('href')).toBe('/units/microeconomics.html');
+    expect(back.textContent).toContain('Microeconomics');
+  });
 });

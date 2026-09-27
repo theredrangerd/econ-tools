@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { renderFamilyNav } from './familyNav.js';
+import { renderFamilyNav, initFamilyNav } from './familyNav.js';
 
 describe('renderFamilyNav', () => {
   let container;
@@ -29,5 +29,16 @@ describe('renderFamilyNav', () => {
     expect(links).toHaveLength(2);
     expect(links[0].getAttribute('aria-current')).toBe('page');
     expect(links[1].hasAttribute('aria-current')).toBe(false);
+  });
+});
+
+describe('initFamilyNav', () => {
+  it('returns the family href/name so callers can wire it into a mini-header back button', () => {
+    const container = document.createElement('div');
+    const result = initFamilyNav(container, 'price-ceiling');
+    expect(result).toEqual({
+      backHref: '/units/microeconomics/government-intervention.html',
+      backLabel: 'Government Intervention',
+    });
   });
 });

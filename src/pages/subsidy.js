@@ -7,9 +7,8 @@ import { initFamilyNav } from '../components/familyNav.js';
 const DEFAULTS = { demand: 140, supply: 20, slopeD: 1, slopeS: 1, subsidyAmount: 20 };
 
 export function initSubsidyPage(doc) {
-  renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Subsidy' });
-
-  initFamilyNav(doc.querySelector('#family-nav'), 'subsidy');
+  const { backHref, backLabel } = initFamilyNav(doc.querySelector('#family-nav'), 'subsidy');
+  renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Subsidy', backHref, backLabel });
 
   const chart = doc.querySelector('#chart');
   const demandSlider = doc.querySelector('#demand-slider');
