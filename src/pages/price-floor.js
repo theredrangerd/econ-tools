@@ -4,8 +4,6 @@ import { renderMarketChart } from '../lib/marketChart.js';
 import { fmtMoney, fmtPrice, fmtQty, elasticityLabel, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
 
-const DEFAULTS = { demand: 140, supply: 20, slopeD: 1, slopeS: 1, floorOn: false, floorPrice: 110 };
-
 export function initPriceFloorPage(doc) {
   const { backHref, backLabel, siblings } = getFamilyNav('price-floor');
   renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Price floor', backHref, backLabel, siblings });
@@ -59,16 +57,6 @@ export function initPriceFloorPage(doc) {
 
   [demandSlider, supplySlider, slopeDSlider, slopeSSlider, floorSlider].forEach((input) => input.addEventListener('input', render));
   floorToggle.addEventListener('change', render);
-
-  doc.querySelector('#reset-btn').addEventListener('click', () => {
-    demandSlider.value = DEFAULTS.demand;
-    supplySlider.value = DEFAULTS.supply;
-    slopeDSlider.value = DEFAULTS.slopeD;
-    slopeSSlider.value = DEFAULTS.slopeS;
-    floorToggle.checked = DEFAULTS.floorOn;
-    floorSlider.value = DEFAULTS.floorPrice;
-    render();
-  });
 
   render();
 }

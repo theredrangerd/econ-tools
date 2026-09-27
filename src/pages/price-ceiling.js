@@ -4,8 +4,6 @@ import { renderMarketChart } from '../lib/marketChart.js';
 import { fmtMoney, fmtPrice, fmtQty, elasticityLabel, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
 
-const DEFAULTS = { demand: 140, supply: 20, slopeD: 1, slopeS: 1, ceilingOn: false, ceilingPrice: 50 };
-
 export function initPriceCeilingPage(doc) {
   const { backHref, backLabel, siblings } = getFamilyNav('price-ceiling');
   renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Price ceiling', backHref, backLabel, siblings });
@@ -59,16 +57,6 @@ export function initPriceCeilingPage(doc) {
 
   [demandSlider, supplySlider, slopeDSlider, slopeSSlider, ceilingSlider].forEach((input) => input.addEventListener('input', render));
   ceilingToggle.addEventListener('change', render);
-
-  doc.querySelector('#reset-btn').addEventListener('click', () => {
-    demandSlider.value = DEFAULTS.demand;
-    supplySlider.value = DEFAULTS.supply;
-    slopeDSlider.value = DEFAULTS.slopeD;
-    slopeSSlider.value = DEFAULTS.slopeS;
-    ceilingToggle.checked = DEFAULTS.ceilingOn;
-    ceilingSlider.value = DEFAULTS.ceilingPrice;
-    render();
-  });
 
   render();
 }

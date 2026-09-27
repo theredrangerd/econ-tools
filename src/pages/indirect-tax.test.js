@@ -25,7 +25,6 @@ function buildDom() {
       <input id="advalorem-slider" type="range" min="0" max="100" step="1" value="50">
       <span id="advalorem-val"></span>
     </div>
-    <button id="reset-btn" type="button"></button>
     <span id="stat-price-consumer"></span>
     <span id="stat-price-producer"></span>
     <span id="stat-qty"></span>
@@ -69,14 +68,6 @@ describe('initIndirectTaxPage', () => {
     expect(document.querySelector('#stat-price-consumer').textContent).toBe('$96.00');
     expect(document.querySelector('#stat-qty').textContent).toBe('44.0');
     expect(document.querySelector('#stat-revenue').textContent).toBe('$1,408');
-  });
-
-  it('resets sliders and toggle to their defaults on reset', () => {
-    document.querySelector('#tax-toggle').checked = true;
-    document.querySelector('#tax-toggle').dispatchEvent(new Event('change'));
-    document.querySelector('#reset-btn').click();
-    expect(document.querySelector('#tax-toggle').checked).toBe(false);
-    expect(document.querySelector('#stat-price-consumer').textContent).toBe('$80.00');
   });
 
   it('draws two wedge reference lines on the chart once the tax is toggled on', () => {

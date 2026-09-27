@@ -128,14 +128,23 @@ Rationale: the pedagogical point of these pages is the *before → after* contra
 
 This does not apply to mode toggles that pick between two flavors of the same intervention with no "off" state (e.g. specific vs. ad valorem tax type once the tax is on) — those remain radio-button mode switches, not on/off switches, and can default to whichever mode is more commonly taught.
 
-### Sidebar panel order and content (general rule, decided 2026-09-27)
+**The intervention toggle must look like the main event, not a settings checkbox.** It's the single most important control on the page — flipping it is *the* interaction the page exists to teach — so it gets its own visual treatment via the `.toggle-row--primary` modifier class: a larger switch (`56×32` vs. the default `38×22`), bolder/larger label text, and a tinted, bordered callout box (`background: var(--accent-fill)`, `border: 1px solid var(--accent)`) around the whole row. Every other toggle-row (mode-select radios, etc.) stays at default size. Apply `toggle-row--primary` to the "Impose ___" row on every future intervention panel — don't leave it as a plain, same-size-as-everything-else toggle.
 
-The sidebar's stacked `.card.panel` sections follow a fixed order, top to bottom, on every graph page:
+### Two-column layout: controls column vs. results column (general rule, decided 2026-09-27, revised same day)
 
-1. **The intervention panel** (whatever it's called on that page — "Price ceiling", "Indirect tax", "Subsidy", etc.) — the on/off toggle plus its own parameter slider(s)/mode controls. This is the thing the page is *about*, so it comes first, above the fold, before any curve-shifting controls.
-2. **Shift the curves** — demand/supply position sliders, plus the reset button.
-3. **Elasticity** — demand/supply slope sliders only. No explanatory hint text under the sliders (see below).
-4. **Market outcome** — the stats grid and the note.
+The `.layout` grid has two columns, and each one has a fixed job — controls belong in the right column (`.sidebar`), results belong in the left column (`.main-col`):
+
+- **Left column (`.main-col`)**: the chart card, then the **Market outcome** panel (stats grid + note) directly beneath it. Both are things the student *reads*, and stacking them together means the whole "what happened" story — graph and numbers — lives in one place, with nothing to the right competing for attention while a student is studying the result.
+- **Right column (`.sidebar`)**: every *control* panel, in this fixed order, top to bottom:
+  1. **The intervention panel** (whatever it's called on that page — "Price ceiling", "Indirect tax", "Subsidy", etc.) — the on/off toggle plus its own parameter slider(s)/mode controls. This is the thing the page is *about*, so it comes first, above the fold, before any curve-shifting controls.
+  2. **Shift the curves** — demand/supply position sliders.
+  3. **Elasticity** — demand/supply slope sliders only. No explanatory hint text under the sliders (see below).
+
+Market outcome was originally the last sidebar panel (stacked under Elasticity on the right); it was moved to the left column, under the chart, specifically so a student's eyes never have to leave the "results" side of the page to see the numeric outcome of a change, and so the controls column can be visually compact and fully visible without scrolling past a stats grid first.
+
+**No reset button.** The "Reset to defaults" button (and the JS `DEFAULTS` object that backed it) was removed from all four Government Intervention pages — it was one more reason the controls column ran long, and it wasn't something students actually needed (they can just drag sliders back). Don't re-add a reset control to new graph pages by default; only add one back if a specific future page has a concrete reason a slider can't be easily dragged back to a sensible starting point.
+
+**Compact control panels.** Because the sidebar's total height has no obligation to match anything but the chart card above it, `.sidebar .panel` uses tighter padding and `.sidebar .slider-row` uses a smaller bottom margin than the general `.panel`/`.slider-row` rules (which still apply to the wider Market outcome panel in the left column). The goal is for the three stacked control panels to come close to the chart card's height, so the whole page reads as two aligned columns rather than a short chart next to a much taller stack of controls.
 
 Earlier drafts put "Shift the curves" and "Elasticity" first and the intervention panel third, which buried the actual point of the page under generic curve controls a student has to scroll past first.
 

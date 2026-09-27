@@ -4,8 +4,6 @@ import { renderMarketChart } from '../lib/marketChart.js';
 import { fmtMoney, fmtPrice, fmtQty, elasticityLabel, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
 
-const DEFAULTS = { demand: 140, supply: 20, slopeD: 1, slopeS: 1, taxOn: false, mode: 'specific', specificAmount: 20, advaloremRate: 50 };
-
 export function initIndirectTaxPage(doc) {
   const { backHref, backLabel, siblings } = getFamilyNav('indirect-tax');
   renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Indirect tax', backHref, backLabel, siblings });
@@ -73,19 +71,6 @@ export function initIndirectTaxPage(doc) {
   [demandSlider, supplySlider, slopeDSlider, slopeSSlider, specificSlider, advaloremSlider].forEach((input) => input.addEventListener('input', render));
   [modeSpecific, modeAdvalorem].forEach((input) => input.addEventListener('change', render));
   taxToggle.addEventListener('change', render);
-
-  doc.querySelector('#reset-btn').addEventListener('click', () => {
-    demandSlider.value = DEFAULTS.demand;
-    supplySlider.value = DEFAULTS.supply;
-    slopeDSlider.value = DEFAULTS.slopeD;
-    slopeSSlider.value = DEFAULTS.slopeS;
-    taxToggle.checked = DEFAULTS.taxOn;
-    modeSpecific.checked = true;
-    modeAdvalorem.checked = false;
-    specificSlider.value = DEFAULTS.specificAmount;
-    advaloremSlider.value = DEFAULTS.advaloremRate;
-    render();
-  });
 
   render();
 }

@@ -17,7 +17,6 @@ function buildDom() {
     <input id="floor-toggle" type="checkbox">
     <input id="floor-slider" type="range" min="0" max="180" step="1" value="110">
     <span id="floor-val"></span>
-    <button id="reset-btn" type="button"></button>
     <span id="stat-price"></span>
     <span id="stat-qty"></span>
     <span id="stat-cs"></span>
@@ -45,14 +44,6 @@ describe('initPriceFloorPage', () => {
     expect(document.querySelector('#stat-qty').textContent).toBe('30.0');
     expect(document.querySelector('#stat-dwl').textContent).toBe('$900');
     expect(document.querySelector('#status-pill').textContent).toBe('Price floor binding');
-  });
-
-  it('resets sliders and toggle to their defaults on reset', () => {
-    document.querySelector('#floor-toggle').checked = true;
-    document.querySelector('#floor-toggle').dispatchEvent(new Event('change'));
-    document.querySelector('#reset-btn').click();
-    expect(document.querySelector('#floor-toggle').checked).toBe(false);
-    expect(document.querySelector('#stat-price').textContent).toBe('$80.00');
   });
 
   it('changes the computed outcome when demand elasticity is adjusted away from 1', () => {

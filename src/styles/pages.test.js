@@ -13,9 +13,9 @@ describe('shared pages stylesheet', () => {
   it('defines the graph-page layout classes ported from the Equilibrium Lab prototype', () => {
     const css = readPagesCss();
     [
-      '.layout', '.card', '.chart-card', '.chart-title', '.status-pill',
+      '.layout', '.main-col', '.card', '.chart-card', '.chart-title', '.status-pill',
       '.legend', '.sidebar', '.panel', '.slider-row', '.toggle-row',
-      '.switch', '.sub-slider', '.stats-grid', '.stat', '.note', '.reset-btn',
+      '.switch', '.sub-slider', '.stats-grid', '.stat', '.note',
     ].forEach((selector) => {
       expect(css).toContain(selector);
     });

@@ -4,8 +4,6 @@ import { renderMarketChart } from '../lib/marketChart.js';
 import { fmtMoney, fmtPrice, fmtQty, elasticityLabel, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
 
-const DEFAULTS = { demand: 140, supply: 20, slopeD: 1, slopeS: 1, subsidyOn: false, subsidyAmount: 20 };
-
 export function initSubsidyPage(doc) {
   const { backHref, backLabel, siblings } = getFamilyNav('subsidy');
   renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Subsidy', backHref, backLabel, siblings });
@@ -55,16 +53,6 @@ export function initSubsidyPage(doc) {
 
   [demandSlider, supplySlider, slopeDSlider, slopeSSlider, subsidySlider].forEach((input) => input.addEventListener('input', render));
   subsidyToggle.addEventListener('change', render);
-
-  doc.querySelector('#reset-btn').addEventListener('click', () => {
-    demandSlider.value = DEFAULTS.demand;
-    supplySlider.value = DEFAULTS.supply;
-    slopeDSlider.value = DEFAULTS.slopeD;
-    slopeSSlider.value = DEFAULTS.slopeS;
-    subsidyToggle.checked = DEFAULTS.subsidyOn;
-    subsidySlider.value = DEFAULTS.subsidyAmount;
-    render();
-  });
 
   render();
 }

@@ -17,7 +17,6 @@ function buildDom() {
     <input id="subsidy-toggle" type="checkbox">
     <input id="subsidy-slider" type="range" min="0" max="60" step="1" value="20">
     <span id="subsidy-val"></span>
-    <button id="reset-btn" type="button"></button>
     <span id="stat-price-consumer"></span>
     <span id="stat-price-producer"></span>
     <span id="stat-qty"></span>
@@ -58,14 +57,6 @@ describe('initSubsidyPage', () => {
     document.querySelector('#subsidy-slider').value = '40';
     document.querySelector('#subsidy-slider').dispatchEvent(new Event('input'));
     expect(document.querySelector('#stat-qty').textContent).not.toBe('70.0');
-  });
-
-  it('resets sliders and toggle to their defaults on reset', () => {
-    document.querySelector('#subsidy-toggle').checked = true;
-    document.querySelector('#subsidy-toggle').dispatchEvent(new Event('change'));
-    document.querySelector('#reset-btn').click();
-    expect(document.querySelector('#subsidy-toggle').checked).toBe(false);
-    expect(document.querySelector('#stat-price-consumer').textContent).toBe('$80.00');
   });
 
   it('draws a wedge fill rectangle for the government cost once toggled on', () => {

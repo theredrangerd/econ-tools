@@ -16,24 +16,37 @@
       <p class="lede">Impose a legal maximum price below equilibrium and watch the shortage — and the deadweight loss it creates — appear in real time.</p>
     </header>
     <div class="layout">
-      <section class="card chart-card">
-        <div class="chart-head">
-          <h2 class="chart-title">Price &amp; quantity</h2>
-          <span class="status-pill" id="status-pill">Free market</span>
-        </div>
-        <svg id="chart" class="market-chart" viewBox="0 0 780 520" role="img" aria-label="Price ceiling diagram"></svg>
-        <div class="legend">
-          <span class="item"><span class="line" style="background:var(--demand)"></span>Demand</span>
-          <span class="item"><span class="line" style="background:var(--supply)"></span>Supply</span>
-          <span class="item"><span class="swatch" style="background:var(--demand-fill); border:1px solid var(--demand)"></span>Consumer surplus</span>
-          <span class="item"><span class="swatch" style="background:var(--supply-fill); border:1px solid var(--supply)"></span>Producer surplus</span>
-          <span class="item"><span class="swatch" style="background:var(--dwl-fill); border:1px solid var(--dwl-line)"></span>Deadweight loss</span>
-        </div>
-      </section>
+      <div class="main-col">
+        <section class="card chart-card">
+          <div class="chart-head">
+            <h2 class="chart-title">Price &amp; quantity</h2>
+            <span class="status-pill" id="status-pill">Free market</span>
+          </div>
+          <svg id="chart" class="market-chart" viewBox="0 0 780 520" role="img" aria-label="Price ceiling diagram"></svg>
+          <div class="legend">
+            <span class="item"><span class="line" style="background:var(--demand)"></span>Demand</span>
+            <span class="item"><span class="line" style="background:var(--supply)"></span>Supply</span>
+            <span class="item"><span class="swatch" style="background:var(--demand-fill); border:1px solid var(--demand)"></span>Consumer surplus</span>
+            <span class="item"><span class="swatch" style="background:var(--supply-fill); border:1px solid var(--supply)"></span>Producer surplus</span>
+            <span class="item"><span class="swatch" style="background:var(--dwl-fill); border:1px solid var(--dwl-line)"></span>Deadweight loss</span>
+          </div>
+        </section>
+        <section class="card panel">
+          <h2>Market outcome</h2>
+          <div class="stats-grid">
+            <div class="stat"><div class="k">Price</div><div class="v" id="stat-price">$80.00</div></div>
+            <div class="stat"><div class="k">Quantity traded</div><div class="v" id="stat-qty">60.0</div></div>
+            <div class="stat cs"><div class="k">Consumer surplus</div><div class="v" id="stat-cs">$1,800</div></div>
+            <div class="stat ps"><div class="k">Producer surplus</div><div class="v" id="stat-ps">$1,800</div></div>
+            <div class="stat dwl wide"><div class="k">Deadweight loss</div><div class="v" id="stat-dwl">$0</div></div>
+          </div>
+          <div class="note" id="market-note">Equilibrium price and quantity — every mutually beneficial trade happens.</div>
+        </section>
+      </div>
       <aside class="sidebar">
         <section class="card panel">
           <h2>Price ceiling</h2>
-          <div class="toggle-row">
+          <div class="toggle-row toggle-row--primary">
             <span class="label">Impose ceiling<span class="sub">e.g. rent control</span></span>
             <label class="switch">
               <input type="checkbox" id="ceiling-toggle">
@@ -55,7 +68,6 @@
             <div class="slider-label"><span>Supply</span><span class="val" id="supply-val">20</span></div>
             <input type="range" id="supply-slider" min="-10" max="110" step="1" value="20">
           </div>
-          <button id="reset-btn" class="reset-btn" type="button">Reset to defaults</button>
         </section>
         <section class="card panel">
           <h2>Elasticity</h2>
@@ -67,17 +79,6 @@
             <div class="slider-label"><span>Supply elasticity</span><span class="val" id="slope-s-val">1.0 · unit elastic</span></div>
             <input type="range" id="slope-s-slider" min="0.3" max="3" step="0.1" value="1">
           </div>
-        </section>
-        <section class="card panel">
-          <h2>Market outcome</h2>
-          <div class="stats-grid">
-            <div class="stat"><div class="k">Price</div><div class="v" id="stat-price">$80.00</div></div>
-            <div class="stat"><div class="k">Quantity traded</div><div class="v" id="stat-qty">60.0</div></div>
-            <div class="stat cs"><div class="k">Consumer surplus</div><div class="v" id="stat-cs">$1,800</div></div>
-            <div class="stat ps"><div class="k">Producer surplus</div><div class="v" id="stat-ps">$1,800</div></div>
-            <div class="stat dwl wide"><div class="k">Deadweight loss</div><div class="v" id="stat-dwl">$0</div></div>
-          </div>
-          <div class="note" id="market-note">Equilibrium price and quantity — every mutually beneficial trade happens.</div>
         </section>
       </aside>
     </div>

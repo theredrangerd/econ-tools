@@ -17,7 +17,6 @@ function buildDom() {
     <input id="ceiling-toggle" type="checkbox">
     <input id="ceiling-slider" type="range" min="0" max="180" step="1" value="50">
     <span id="ceiling-val"></span>
-    <button id="reset-btn" type="button"></button>
     <span id="stat-price"></span>
     <span id="stat-qty"></span>
     <span id="stat-cs"></span>
@@ -51,14 +50,6 @@ describe('initPriceCeilingPage', () => {
 
   it('draws demand and supply curves onto the chart', () => {
     expect(document.querySelectorAll('#chart line.demand-curve')).toHaveLength(1);
-  });
-
-  it('resets sliders and toggle to their defaults on reset', () => {
-    document.querySelector('#ceiling-toggle').checked = true;
-    document.querySelector('#ceiling-toggle').dispatchEvent(new Event('change'));
-    document.querySelector('#reset-btn').click();
-    expect(document.querySelector('#ceiling-toggle').checked).toBe(false);
-    expect(document.querySelector('#stat-price').textContent).toBe('$80.00');
   });
 
   it('changes the computed outcome when demand elasticity is adjusted away from 1', () => {
