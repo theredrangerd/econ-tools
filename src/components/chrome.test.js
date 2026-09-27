@@ -52,4 +52,25 @@ describe('renderMiniHeader', () => {
     expect(back.getAttribute('href')).toBe('/units/microeconomics.html');
     expect(back.textContent).toContain('Microeconomics');
   });
+
+  it('renders sibling links after the title, excluding the current page', () => {
+    const container = document.createElement('div');
+    renderMiniHeader(container, {
+      title: 'Subsidy',
+      siblings: [
+        { name: 'Price ceiling', href: '/a.html', current: false },
+        { name: 'Subsidy', href: '/b.html', current: true },
+        { name: 'Indirect tax', href: '/c.html', current: false },
+      ],
+    });
+    const links = container.querySelectorAll('.mini-header__siblings a');
+    expect(links).toHaveLength(2);
+    expect([...links].map((a) => a.textContent)).toEqual(['Price ceiling', 'Indirect tax']);
+  });
+
+  it('renders no siblings row when no siblings are given', () => {
+    const container = document.createElement('div');
+    renderMiniHeader(container, { title: 'Microeconomics' });
+    expect(container.querySelector('.mini-header__siblings')).toBeNull();
+  });
 });

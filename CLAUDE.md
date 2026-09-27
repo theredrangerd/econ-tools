@@ -60,9 +60,11 @@ Follows the user's actual teaching calendar, not exam weighting — do not reseq
 ## Definition of "done" for a new graph page
 
 - Interactivity matches the price-ceiling/DWL quality bar: moving a control live-updates the relevant regions (surplus, DWL, tax revenue, etc.) in distinct colors — never a static annotated image.
+- **Any overlaid policy intervention gets an explicit on/off toggle, defaulting to off.** Price ceiling, price floor, indirect tax, and subsidy all use the same `.switch` control to impose/remove the intervention on top of the free-market baseline — this is a rule for every future graph, not a per-page choice. Parameter sliders (ceiling price, tax rate, subsidy amount, ...) stay visible and live regardless of toggle state; only whether the intervention reaches `computeMarket` (vs. `{ type: 'none' }`) depends on the toggle. This does *not* apply to mode toggles with no "off" state (e.g. specific vs. ad valorem once a tax is already on) — those stay as radio-button mode switches. See spec doc, "Intervention on/off toggle" for full rationale.
 - SL/HL tag visible on both the diagram page and its tile.
 - Linked from its family page and indexed by homepage search.
 - Embeds the site's feedback form per the existing pattern.
+- **Header nav is a single `#mini-header` row, never a second nav element.** Wire it via `getFamilyNav(currentSlug, { familySlug })` (in `familyNav.js`) → `renderMiniHeader({ title, backHref, backLabel, siblings })` (in `chrome.js`). This renders, in order: back-to-family link → home link → current title → sibling pill-chip links to every *other* diagram in the family. Don't hand-roll a separate sibling-nav container per page — an earlier version did this and produced a duplicate, redundant back link. See spec doc, "Diagram-page header nav" for the full rationale and the `.mini-header__siblings` pill styling (uses the generic `--accent`/`--accent-fill` token pair, not a hardcoded color).
 
 ## Open decisions — do not silently resolve these
 

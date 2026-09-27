@@ -112,16 +112,33 @@ When two diagram variants share the same axes and curve shapes and differ only b
 
 Reuse `equilibrium-lab.html`'s existing structure (hero/eyebrow header, a controls panel of scenario-specific sliders/toggles, graph canvas) as a shared page shell that every graph page uses, importing the same shared rendering engine module (curves, shading, labels, animation) already planned in the Technical stack section above. Only the controls and parameters differ per page — this makes the "one shared engine, focused pages" decision concrete as a reusable template rather than a one-off file.
 
+### Diagram-page header nav (general rule, decided 2026-09-27)
+
+Every diagram page's single `#mini-header` row reads, in order: back-to-family link (`&larr; Government Intervention`) → divider → home link (`IB Econ Graphs`) → current page title → divider → pill-chip links to every *other* diagram in the family (the current page is excluded from the chip list since the title already names it). There is no second nav row — an earlier draft duplicated the back-to-family link into a separate `#family-nav` element directly above the sibling chips, which read as two competing "back" affordances stacked on top of each other; that element was removed and its data folded into `renderMiniHeader`'s `siblings` param.
+
+The sibling chips are rendered as `.mini-header__siblings a`: rounded pill buttons (`border-radius: 999px`, `border: 1px solid var(--hairline)`, `background: var(--surface-2)`) with their own left-bordered divider, not bare inline text jammed next to the title — bare text at this density reads as smushed and undifferentiated from the title. Hover state uses `var(--accent)` for text/border and `var(--accent-fill)` for background — a new generic token pair in `tokens.css`, added specifically so this hover treatment can later pick up each unit's own accent color (see "Per-unit visual identity") without every future family reinventing the fill color.
+
+This header structure — implemented once in `chrome.js`'s `renderMiniHeader` and `familyNav.js`'s `getFamilyNav` — is the reusable pattern for every future family, not a one-off for Government Intervention: any new family page wires up the same `getFamilyNav(currentSlug, { familySlug })` → `renderMiniHeader({ ..., siblings })` call, no bespoke nav markup per family.
+
+### Intervention on/off toggle (general rule, decided 2026-09-27)
+
+Any graph page that overlays a policy intervention on a free-market baseline (price ceiling, price floor, indirect tax, subsidy, and — looking ahead — Pigouvian tax, minimum wage, tariffs, etc.) **must** expose that intervention as an explicit on/off toggle switch (the same `.switch`/`.track`/`.thumb` control already used on price ceiling/floor), defaulting to **off**. The parameter sliders for the intervention (ceiling price, tax rate, subsidy amount, ...) stay visible and interactive regardless of toggle state — only whether `computeMarket` receives that intervention or `{ type: 'none' }` depends on the toggle.
+
+Rationale: the pedagogical point of these pages is the *before → after* contrast (cause → effect). Baking the intervention into the default render (as indirect tax and subsidy originally did) skips the "before" state a student needs to see to understand what the intervention changed. This was inconsistent until 2026-09-27 — price ceiling/floor had the toggle, indirect tax/subsidy didn't — and has now been unified across all four Government Intervention pages.
+
+This does not apply to mode toggles that pick between two flavors of the same intervention with no "off" state (e.g. specific vs. ad valorem tax type once the tax is on) — those remain radio-button mode switches, not on/off switches, and can default to whichever mode is more commonly taught.
+
 ### Definition of "done" for a graph page
 
 - Interactivity matches the price-ceiling/DWL quality bar: moving a control live-updates the relevant regions (surplus, DWL, tax revenue, etc.) in distinct colors, not a static annotated image.
+- Any overlaid policy intervention is gated behind an explicit on/off toggle defaulting to off, per the rule above — never baked into the default render.
 - SL/HL tag visible on both the page and its tile.
 - Linked from its family page and indexed by the homepage search.
 - Feedback form accessible per the existing site-wide pattern.
 
 ## Open / not yet designed
 
-- Individual graph page template's exact layout details (beyond the structural approach above) — reasonable to finalize while building the first tax page rather than in the abstract.
+- Individual graph page template's exact layout details beyond the structural approach above and the intervention-toggle rule now decided (sidebar panel grouping, stat-grid layout, etc.) — still fine to finalize opportunistically as new families are built rather than specified exhaustively upfront.
 - Analytics tool choice — needed before real launch, not before building.
 - GitHub Pages deploy workflow (base path config, GitHub Actions) — needed before the site is live, not before it's built/previewed locally.
 - Macroeconomics / International / Development roadmaps — same exercise as this one, deferred until Microeconomics is underway.

@@ -20,10 +20,13 @@ describe('initPriceFloorPage against the real page markup', () => {
     expect(document.querySelector('#stat-price').textContent).toBe('$80.00');
   });
 
-  it('renders a family nav back link to the Government Intervention family page', () => {
+  it('renders a mini-header back link plus sibling diagram links, with no separate family-nav row', () => {
     initPriceFloorPage(document);
-    const back = document.querySelector('#family-nav a.family-nav__back');
+    const back = document.querySelector('#mini-header a.mini-header__back');
     expect(back).not.toBeNull();
     expect(back.getAttribute('href')).toBe('/units/microeconomics/government-intervention.html');
+    const siblingLinks = document.querySelectorAll('#mini-header .mini-header__siblings a');
+    expect(siblingLinks.length).toBeGreaterThan(0);
+    expect(document.querySelector('#family-nav')).toBeNull();
   });
 });

@@ -10,7 +10,6 @@
 <body>
   <main class="page">
     <div id="mini-header"></div>
-    <div id="family-nav"></div>
     <header class="top">
       <span class="eyebrow">Interactive · Microeconomics <span class="level-pill">SL</span></span>
       <h1>Indirect tax</h1>
@@ -20,7 +19,7 @@
       <section class="card chart-card">
         <div class="chart-head">
           <h2 class="chart-title">Price &amp; quantity</h2>
-          <span class="status-pill" id="status-pill">Tax applied</span>
+          <span class="status-pill" id="status-pill">Free market</span>
         </div>
         <svg id="chart" class="market-chart" viewBox="0 0 780 520" role="img" aria-label="Indirect tax diagram"></svg>
         <div class="legend">
@@ -59,8 +58,15 @@
           </div>
         </section>
         <section class="card panel">
-          <h2>Tax type</h2>
+          <h2>Indirect tax</h2>
           <div class="toggle-row">
+            <span class="label">Impose tax<span class="sub">e.g. excise duty</span></span>
+            <label class="switch">
+              <input type="checkbox" id="tax-toggle">
+              <span class="track"></span><span class="thumb"></span>
+            </label>
+          </div>
+          <div class="toggle-row" style="margin-top:16px">
             <label class="label"><input type="radio" name="tax-mode" id="tax-mode-specific" value="specific" checked> Specific (per-unit)</label>
           </div>
           <div class="sub-slider open" id="specific-slider-wrap">

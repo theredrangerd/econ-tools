@@ -4,7 +4,6 @@ import { initPriceCeilingPage } from './price-ceiling.js';
 function buildDom() {
   document.body.innerHTML = `
     <div id="mini-header"></div>
-    <div id="family-nav"></div>
     <svg id="chart" class="market-chart"></svg>
     <span id="status-pill"></span>
     <input id="demand-slider" type="range" min="70" max="170" step="1" value="140">
@@ -75,9 +74,16 @@ describe('initPriceCeilingPage', () => {
     expect(document.querySelector('#market-note').innerHTML).toContain('Not binding');
   });
 
-  it('renders a family nav back link to the Government Intervention family page', () => {
-    const back = document.querySelector('#family-nav a.family-nav__back');
+  it('renders a mini-header back link to the Government Intervention family page', () => {
+    const back = document.querySelector('#mini-header a.mini-header__back');
     expect(back).not.toBeNull();
     expect(back.getAttribute('href')).toBe('/units/microeconomics/government-intervention.html');
+  });
+
+  it('renders sibling diagram links (excluding itself) in the mini-header', () => {
+    const links = document.querySelectorAll('#mini-header .mini-header__siblings a');
+    expect(links.length).toBeGreaterThan(0);
+    expect([...links].some((a) => a.textContent === 'Price ceiling')).toBe(false);
+    expect([...links].some((a) => a.textContent === 'Price floor')).toBe(true);
   });
 });

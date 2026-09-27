@@ -2,13 +2,13 @@ import { renderMiniHeader } from '../components/chrome.js';
 import { computeMarket } from '../lib/marketEngine.js';
 import { renderMarketChart } from '../lib/marketChart.js';
 import { fmtMoney, fmtPrice, fmtQty, elasticityLabel, setStatusPill } from '../lib/format.js';
-import { initFamilyNav } from '../components/familyNav.js';
+import { getFamilyNav } from '../components/familyNav.js';
 
 const DEFAULTS = { demand: 140, supply: 20, slopeD: 1, slopeS: 1, floorOn: false, floorPrice: 110 };
 
 export function initPriceFloorPage(doc) {
-  const { backHref, backLabel } = initFamilyNav(doc.querySelector('#family-nav'), 'price-floor');
-  renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Price floor', backHref, backLabel });
+  const { backHref, backLabel, siblings } = getFamilyNav('price-floor');
+  renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Price floor', backHref, backLabel, siblings });
 
   const chart = doc.querySelector('#chart');
   const demandSlider = doc.querySelector('#demand-slider');

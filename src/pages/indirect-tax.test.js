@@ -4,7 +4,6 @@ import { initIndirectTaxPage } from './indirect-tax.js';
 function buildDom() {
   document.body.innerHTML = `
     <div id="mini-header"></div>
-    <div id="family-nav"></div>
     <svg id="chart" class="market-chart"></svg>
     <span id="status-pill"></span>
     <input id="demand-slider" type="range" min="70" max="170" step="1" value="140">
@@ -15,6 +14,7 @@ function buildDom() {
     <span id="slope-d-val"></span>
     <input id="slope-s-slider" type="range" min="0.3" max="3" step="0.1" value="1">
     <span id="slope-s-val"></span>
+    <input id="tax-toggle" type="checkbox">
     <input type="radio" name="tax-mode" id="tax-mode-specific" value="specific" checked>
     <input type="radio" name="tax-mode" id="tax-mode-advalorem" value="advalorem">
     <div class="sub-slider open" id="specific-slider-wrap">
@@ -43,14 +43,26 @@ describe('initIndirectTaxPage', () => {
     initIndirectTaxPage(document);
   });
 
-  it('shows the specific-tax outcome by default', () => {
+  it('renders the free-market baseline stats with the tax toggled off', () => {
+    expect(document.querySelector('#stat-price-consumer').textContent).toBe('$80.00');
+    expect(document.querySelector('#stat-qty').textContent).toBe('60.0');
+    expect(document.querySelector('#stat-revenue').textContent).toBe('$0');
+    expect(document.querySelector('#status-pill').textContent).toBe('Free market');
+  });
+
+  it('shows the specific-tax outcome once the toggle is switched on', () => {
+    document.querySelector('#tax-toggle').checked = true;
+    document.querySelector('#tax-toggle').dispatchEvent(new Event('change'));
     expect(document.querySelector('#stat-price-consumer').textContent).toBe('$90.00');
     expect(document.querySelector('#stat-price-producer').textContent).toBe('$70.00');
     expect(document.querySelector('#stat-qty').textContent).toBe('50.0');
     expect(document.querySelector('#stat-revenue').textContent).toBe('$1,000');
+    expect(document.querySelector('#status-pill').textContent).toBe('Tax applied');
   });
 
   it('switches to the ad valorem outcome when that mode is selected', () => {
+    document.querySelector('#tax-toggle').checked = true;
+    document.querySelector('#tax-toggle').dispatchEvent(new Event('change'));
     document.querySelector('#tax-mode-advalorem').checked = true;
     document.querySelector('#tax-mode-advalorem').dispatchEvent(new Event('change'));
     expect(document.querySelector('#stat-price-producer').textContent).toBe('$64.00');
@@ -59,7 +71,17 @@ describe('initIndirectTaxPage', () => {
     expect(document.querySelector('#stat-revenue').textContent).toBe('$1,408');
   });
 
-  it('draws two wedge reference lines on the chart', () => {
+  it('resets sliders and toggle to their defaults on reset', () => {
+    document.querySelector('#tax-toggle').checked = true;
+    document.querySelector('#tax-toggle').dispatchEvent(new Event('change'));
+    document.querySelector('#reset-btn').click();
+    expect(document.querySelector('#tax-toggle').checked).toBe(false);
+    expect(document.querySelector('#stat-price-consumer').textContent).toBe('$80.00');
+  });
+
+  it('draws two wedge reference lines on the chart once the tax is toggled on', () => {
+    document.querySelector('#tax-toggle').checked = true;
+    document.querySelector('#tax-toggle').dispatchEvent(new Event('change'));
     expect(document.querySelectorAll('#chart line.wedge-line')).toHaveLength(2);
   });
 
@@ -77,7 +99,7 @@ describe('initIndirectTaxPage', () => {
   it('changes the computed outcome when demand elasticity is adjusted away from 1', () => {
     document.querySelector('#slope-d-slider').value = '2';
     document.querySelector('#slope-d-slider').dispatchEvent(new Event('input'));
-    expect(document.querySelector('#stat-price-consumer').textContent).not.toBe('$90.00');
+    expect(document.querySelector('#stat-price-consumer').textContent).not.toBe('$80.00');
   });
 
   it('shows consumer and producer surplus stats alongside tax revenue', () => {
@@ -85,9 +107,16 @@ describe('initIndirectTaxPage', () => {
     expect(document.querySelector('#stat-ps').textContent).not.toBe('');
   });
 
-  it('renders a family nav back link to the Government Intervention family page', () => {
-    const back = document.querySelector('#family-nav a.family-nav__back');
+  it('renders a mini-header back link to the Government Intervention family page', () => {
+    const back = document.querySelector('#mini-header a.mini-header__back');
     expect(back).not.toBeNull();
     expect(back.getAttribute('href')).toBe('/units/microeconomics/government-intervention.html');
+  });
+
+  it('renders sibling diagram links (excluding itself) in the mini-header', () => {
+    const links = document.querySelectorAll('#mini-header .mini-header__siblings a');
+    expect(links.length).toBeGreaterThan(0);
+    expect([...links].some((a) => a.textContent === 'Indirect tax')).toBe(false);
+    expect([...links].some((a) => a.textContent === 'Subsidy')).toBe(true);
   });
 });

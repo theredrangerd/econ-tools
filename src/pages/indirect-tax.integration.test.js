@@ -15,15 +15,25 @@ describe('initIndirectTaxPage against the real page markup', () => {
     document.body.innerHTML = bodyOf(html);
   });
 
-  it('wires up against the real ids without throwing, and shows the default specific-tax outcome', () => {
+  it('wires up against the real ids without throwing, and shows the free-market default', () => {
     expect(() => initIndirectTaxPage(document)).not.toThrow();
+    expect(document.querySelector('#stat-revenue').textContent).toBe('$0');
+  });
+
+  it('applies the specific-tax outcome once the tax toggle is switched on', () => {
+    initIndirectTaxPage(document);
+    document.querySelector('#tax-toggle').checked = true;
+    document.querySelector('#tax-toggle').dispatchEvent(new Event('change'));
     expect(document.querySelector('#stat-revenue').textContent).toBe('$1,000');
   });
 
-  it('renders a family nav back link to the Government Intervention family page', () => {
+  it('renders a mini-header back link plus sibling diagram links, with no separate family-nav row', () => {
     initIndirectTaxPage(document);
-    const back = document.querySelector('#family-nav a.family-nav__back');
+    const back = document.querySelector('#mini-header a.mini-header__back');
     expect(back).not.toBeNull();
     expect(back.getAttribute('href')).toBe('/units/microeconomics/government-intervention.html');
+    const siblingLinks = document.querySelectorAll('#mini-header .mini-header__siblings a');
+    expect(siblingLinks.length).toBeGreaterThan(0);
+    expect(document.querySelector('#family-nav')).toBeNull();
   });
 });
