@@ -64,7 +64,7 @@ export function initIndirectTaxPage(doc) {
     } else if (taxOn) {
       note.innerHTML = `<strong>${fmtMoney(result.DWL)} of surplus is lost.</strong> The tax wedge stops mutually beneficial trades between consumers who value the good above $${result.Pp.toFixed(0)} and sellers who would supply it below $${result.Pc.toFixed(0)}.`;
     } else {
-      note.innerHTML = 'Equilibrium price and quantity — every mutually beneficial trade happens.';
+      note.innerHTML = '';
     }
   }
 

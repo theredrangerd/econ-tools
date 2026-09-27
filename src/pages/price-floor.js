@@ -51,7 +51,7 @@ export function initPriceFloorPage(doc) {
     } else if (result.requestedControl) {
       note.innerHTML = '<strong>Not binding.</strong> This floor is set below the equilibrium price, so it has no effect — the market clears exactly as it would without it.';
     } else {
-      note.innerHTML = 'Equilibrium price and quantity — every mutually beneficial trade happens.';
+      note.innerHTML = '';
     }
   }
 

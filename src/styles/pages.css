@@ -549,27 +549,38 @@ input[type="range"]::-moz-range-thumb {
 .stat.gov .v { color: var(--gov); }
 .stat.wide { grid-column: 1 / -1; }
 
-.examples-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.examples-panel { display: flex; flex-direction: column; }
+.examples-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.examples-list li { display: flex; flex: 1; }
 .examples-list a {
-  display: block;
-  padding: 8px 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid var(--hairline);
   background: var(--surface-2);
   text-decoration: none;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
-.examples-list a:hover { border-color: var(--accent); background: var(--accent-fill); }
+.examples-list a:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+.examples-list li:nth-child(3n+1) a { background: var(--demand-fill); border-color: color-mix(in srgb, var(--demand) 45%, var(--hairline)); }
+.examples-list li:nth-child(3n+2) a { background: var(--supply-fill); border-color: color-mix(in srgb, var(--supply) 45%, var(--hairline)); }
+.examples-list li:nth-child(3n+3) a { background: var(--gov-fill); border-color: color-mix(in srgb, var(--gov) 45%, var(--hairline)); }
 .examples-list__title { display: block; font-size: 12.5px; font-weight: 500; color: var(--ink); line-height: 1.35; }
 .examples-list__source {
   display: block;
-  margin-top: 3px;
   font-family: "IBM Plex Mono", monospace;
   font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ink-muted);
+  font-weight: 600;
 }
+.examples-list li:nth-child(3n+1) .examples-list__source { color: var(--demand); }
+.examples-list li:nth-child(3n+2) .examples-list__source { color: var(--supply); }
+.examples-list li:nth-child(3n+3) .examples-list__source { color: var(--gov); }
 
 .note {
   font-size: 12px;
@@ -582,6 +593,7 @@ input[type="range"]::-moz-range-thumb {
   margin-top: 12px;
 }
 .note strong { color: var(--ink); }
+.note:empty { display: none; }
 
 .market-chart text { font-family: "IBM Plex Sans", sans-serif; }
 .market-chart .axis-label { fill: var(--ink-muted); font-size: 12px; }

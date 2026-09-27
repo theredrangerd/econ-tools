@@ -48,7 +48,7 @@ export function initSubsidyPage(doc) {
       ? '<strong>No trade occurs.</strong> Shift the sliders so demand sits above supply.'
       : subsidyOn
         ? `<strong>${fmtMoney(result.DWL)} of welfare is lost.</strong> The subsidy pushes output past the efficient quantity — the last few units cost more to produce than buyers value them at.`
-        : 'Equilibrium price and quantity — every mutually beneficial trade happens.';
+        : '';
   }
 
   [demandSlider, supplySlider, slopeDSlider, slopeSSlider, subsidySlider].forEach((input) => input.addEventListener('input', render));
