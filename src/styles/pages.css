@@ -234,7 +234,9 @@ body.theme-government-intervention {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--accent);
+  /* Site brand mark: stays blue everywhere, unlike --accent which a family theme
+     (e.g. Government Intervention's red) overrides for the rest of the mini-header. */
+  color: var(--demand);
   text-decoration: none;
 }
 
@@ -249,12 +251,14 @@ body.theme-government-intervention {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--ink-secondary);
+  /* Carries the current family's accent (red for Government Intervention, etc.) —
+     distinct from the always-blue site brand mark in .mini-header__home. */
+  color: var(--accent);
   text-decoration: none;
   padding-right: 12px;
   border-right: 1px solid var(--hairline-2);
 }
-.mini-header__back:hover { color: var(--accent); }
+.mini-header__back:hover { opacity: 0.75; }
 
 .mini-header__siblings {
   display: flex;

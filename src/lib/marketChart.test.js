@@ -41,18 +41,20 @@ describe('renderMarketChart', () => {
     expect(svg.querySelector('polygon.dwl-fill')).toBeNull();
   });
 
-  it('draws two wedge reference lines and a revenue rectangle for a tax', () => {
+  it('draws two wedge reference lines and consumer/producer incidence fills for a tax', () => {
     const result = computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 20 } });
     renderMarketChart(svg, result);
     expect(svg.querySelectorAll('line.wedge-line')).toHaveLength(2);
-    expect(svg.querySelector('polygon.wedge-fill')).not.toBeNull();
+    expect(svg.querySelector('polygon.wedge-fill--consumer')).not.toBeNull();
+    expect(svg.querySelector('polygon.wedge-fill--producer')).not.toBeNull();
+    expect(svg.querySelector('polygon.wedge-outline')).not.toBeNull();
   });
 
   it('draws a single reference line for a binding price floor', () => {
     const result = computeMarket({ ...base, intervention: { type: 'floor', price: 110 } });
     renderMarketChart(svg, result);
     expect(svg.querySelectorAll('line.wedge-line')).toHaveLength(1);
-    expect(svg.querySelector('polygon.wedge-fill')).toBeNull();
+    expect(svg.querySelector('polygon.wedge-fill--consumer')).toBeNull();
   });
 
   it('clears previously drawn content on re-render, so dragging a slider does not accumulate elements', () => {
@@ -70,14 +72,24 @@ describe('renderMarketChart', () => {
     expect(svg.querySelector('.tick-label')).toBe(gridLine);
   });
 
-  it('uses a distinct gov color token for the tax/subsidy wedge fill, not the producer-surplus color', () => {
+  it('tints the consumer/producer incidence fills with the demand/supply colors, and outlines the total wedge in gov color', () => {
     const result = computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 20 } });
     renderMarketChart(svg, result);
-    const wedgeFill = svg.querySelector('polygon.wedge-fill').getAttribute('fill');
+    const consumerFill = svg.querySelector('polygon.wedge-fill--consumer').getAttribute('fill');
+    const producerFill = svg.querySelector('polygon.wedge-fill--producer').getAttribute('fill');
     const psFill = svg.querySelector('polygon.ps-fill').getAttribute('fill');
-    expect(wedgeFill).toBe('var(--gov-fill)');
-    expect(psFill).toBe('var(--supply-fill)');
-    expect(wedgeFill).not.toBe(psFill);
+    expect(consumerFill).toContain('--demand');
+    expect(producerFill).toContain('--supply');
+    expect(producerFill).not.toBe(psFill);
+    expect(svg.querySelector('polygon.wedge-outline').getAttribute('stroke')).toBe('var(--gov)');
+  });
+
+  it('splits the tax wedge at the pre-tax equilibrium price so the incidence fills track relative elasticity', () => {
+    const result = computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 20 } });
+    renderMarketChart(svg, result);
+    const consumerPoly = svg.querySelector('polygon.wedge-fill--consumer').getAttribute('points');
+    const producerPoly = svg.querySelector('polygon.wedge-fill--producer').getAttribute('points');
+    expect(consumerPoly).not.toBe(producerPoly);
   });
 
   it('draws a faint non-binding reference line when a ceiling is toggled on but set above equilibrium', () => {

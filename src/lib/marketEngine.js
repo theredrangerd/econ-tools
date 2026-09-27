@@ -96,6 +96,11 @@ function taxResult(base, intervention) {
   const psPoly = psPolyFor(Smin, Ps, Q, Pp);
   const dwlPoly = dwlPolyFor(Q, Pd, Ps, Qstar, Pstar);
   const wedgePoly = [[0, Pp], [Q, Pp], [Q, Pc], [0, Pc]];
+  // Split the tax wedge at the pre-tax equilibrium price: the portion above Pstar is
+  // the share consumers absorb (price paid rose), the portion below is what producers
+  // absorb (price received fell) — this is what actually varies with relative elasticity.
+  const consumerWedgePoly = [[0, Pstar], [Q, Pstar], [Q, Pc], [0, Pc]];
+  const producerWedgePoly = [[0, Pp], [Q, Pp], [Q, Pstar], [0, Pstar]];
 
   return {
     ...base,
@@ -105,7 +110,7 @@ function taxResult(base, intervention) {
     DWL: dwlPoly ? shoelaceArea(dwlPoly) : 0,
     govRevenue: wedge * Q, govCost: 0,
     consumerIncidence: (Pc - Pstar) * Q, producerIncidence: (Pstar - Pp) * Q,
-    csPoly, psPoly, dwlPoly, wedgePoly,
+    csPoly, psPoly, dwlPoly, wedgePoly, consumerWedgePoly, producerWedgePoly,
     requestedControl: null,
     interventionMode: intervention.mode,
   };
@@ -122,6 +127,11 @@ function subsidyResult(base, intervention) {
   const psPoly = psPolyFor(Smin, Ps, Q, Pp);
   const dwlPoly = dwlPolyFor(Q, Pd, Ps, Qstar, Pstar);
   const wedgePoly = [[0, Pc], [Q, Pc], [Q, Pp], [0, Pp]];
+  // Split the subsidy wedge at the pre-subsidy equilibrium price: the portion below Pstar
+  // is the benefit consumers capture (price paid fell), the portion above is what producers
+  // capture (price received rose) — this is what actually varies with relative elasticity.
+  const consumerWedgePoly = [[0, Pc], [Q, Pc], [Q, Pstar], [0, Pstar]];
+  const producerWedgePoly = [[0, Pstar], [Q, Pstar], [Q, Pp], [0, Pp]];
 
   return {
     ...base,
@@ -131,7 +141,7 @@ function subsidyResult(base, intervention) {
     DWL: dwlPoly ? shoelaceArea(dwlPoly) : 0,
     govRevenue: 0, govCost: amount * Q,
     consumerIncidence: (Pstar - Pc) * Q, producerIncidence: (Pp - Pstar) * Q,
-    csPoly, psPoly, dwlPoly, wedgePoly,
+    csPoly, psPoly, dwlPoly, wedgePoly, consumerWedgePoly, producerWedgePoly,
     requestedControl: null,
   };
 }

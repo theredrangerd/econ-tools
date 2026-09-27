@@ -108,7 +108,14 @@ function drawWedgeLines(svg, result) {
     lbl.textContent = MODE_LABELS[result.mode];
     svg.appendChild(lbl);
   } else if (result.mode === 'tax' || result.mode === 'subsidy') {
-    svg.appendChild(el('polygon', { points: pts(result.wedgePoly), fill: 'var(--gov-fill)' }, 'wedge-fill'));
+    // The wedge is split at the pre-intervention price into a consumer-incidence portion
+    // (tinted with the demand color) and a producer-incidence portion (tinted with the
+    // supply color), so the split itself — not just its dollar value in the stats panel —
+    // visibly tracks relative elasticity as the sliders move. The dashed purple outline
+    // still traces the whole band, standing for total tax revenue / subsidy cost.
+    svg.appendChild(el('polygon', { points: pts(result.consumerWedgePoly), fill: 'var(--demand-alt-fill)' }, 'wedge-fill wedge-fill--consumer'));
+    svg.appendChild(el('polygon', { points: pts(result.producerWedgePoly), fill: 'var(--supply-alt-fill)' }, 'wedge-fill wedge-fill--producer'));
+    svg.appendChild(el('polygon', { points: pts(result.wedgePoly), fill: 'none', stroke: 'var(--gov)', 'stroke-width': 1.3, 'stroke-dasharray': '4,3' }, 'wedge-outline'));
     const yc = sy(result.Pc), yp = sy(result.Pp);
     svg.appendChild(el('line', { x1: M.left, y1: yc, x2: M.left + plotW, y2: yc, stroke: 'var(--demand)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'));
     svg.appendChild(el('line', { x1: M.left, y1: yp, x2: M.left + plotW, y2: yp, stroke: 'var(--supply)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'));

@@ -16,11 +16,19 @@
   --demand-tick:   #cfe0f5;
   --unit-microeconomics:      var(--demand);
   --unit-microeconomics-fill: var(--demand-fill);
+  /* A bright, hue-shifted blue (toward cyan) — a genuinely different color from
+     --demand, not a darker/muted version of it. Used for tax/subsidy consumer
+     incidence so it reads as a related-but-different quantity from consumer surplus. */
+  --demand-alt:      #2676b4;
+  --demand-alt-fill: rgba(38, 118, 180, 0.20);
 
   --supply:        #c85a1e;
   --supply-fill:   rgba(200, 90, 30, 0.14);
   --unit-macroeconomics:      var(--supply);
   --unit-macroeconomics-fill: var(--supply-fill);
+  /* A bright, hue-shifted yellow/gold — the producer-incidence counterpart to --demand-alt. */
+  --supply-alt:      #ce741f;
+  --supply-alt-fill: rgba(206, 116, 31, 0.20);
 
   --unit-international:      #0f8b8d;
   --unit-international-fill: rgba(15, 139, 141, 0.16);
@@ -58,11 +66,15 @@
     --demand-tick:   #223047;
     --unit-microeconomics:      var(--demand);
     --unit-microeconomics-fill: var(--demand-fill);
+    --demand-alt:      #62aee7;
+    --demand-alt-fill: rgba(98, 174, 231, 0.24);
 
     --supply:        #f0925a;
     --supply-fill:   rgba(240, 146, 90, 0.20);
     --unit-macroeconomics:      var(--supply);
     --unit-macroeconomics-fill: var(--supply-fill);
+    --supply-alt:      #efa458;
+    --supply-alt-fill: rgba(239, 164, 88, 0.24);
 
     --unit-international:      #3fb8b8;
     --unit-international-fill: rgba(63, 184, 184, 0.20);
@@ -100,11 +112,15 @@
   --demand-tick:   #223047;
   --unit-microeconomics:      var(--demand);
   --unit-microeconomics-fill: var(--demand-fill);
+  --demand-alt:      #62aee7;
+  --demand-alt-fill: rgba(98, 174, 231, 0.24);
 
   --supply:        #f0925a;
   --supply-fill:   rgba(240, 146, 90, 0.20);
   --unit-macroeconomics:      var(--supply);
   --unit-macroeconomics-fill: var(--supply-fill);
+  --supply-alt:      #efa458;
+  --supply-alt-fill: rgba(239, 164, 88, 0.24);
 
   --unit-international:      #3fb8b8;
   --unit-international-fill: rgba(63, 184, 184, 0.20);
