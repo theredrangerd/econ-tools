@@ -23,6 +23,8 @@ function buildDom() {
     <span id="stat-cs"></span>
     <span id="stat-ps"></span>
     <span id="stat-cost"></span>
+    <span id="stat-incidence-consumer"></span>
+    <span id="stat-incidence-producer"></span>
     <span id="stat-dwl"></span>
     <div id="market-note"></div>
   `;

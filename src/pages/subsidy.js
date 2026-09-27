@@ -42,6 +42,8 @@ export function initSubsidyPage(doc) {
     doc.querySelector('#stat-cs').textContent = result.noTrade ? '$0' : fmtMoney(result.CS);
     doc.querySelector('#stat-ps').textContent = result.noTrade ? '$0' : fmtMoney(result.PS);
     doc.querySelector('#stat-cost').textContent = result.noTrade ? '$0' : fmtMoney(result.govCost);
+    doc.querySelector('#stat-incidence-consumer').textContent = result.noTrade || !subsidyOn ? '$0' : fmtMoney(result.consumerIncidence);
+    doc.querySelector('#stat-incidence-producer').textContent = result.noTrade || !subsidyOn ? '$0' : fmtMoney(result.producerIncidence);
     doc.querySelector('#stat-dwl').textContent = result.noTrade ? '$0' : fmtMoney(result.DWL);
 
     doc.querySelector('#market-note').innerHTML = result.noTrade

@@ -56,6 +56,8 @@ export function initIndirectTaxPage(doc) {
     doc.querySelector('#stat-cs').textContent = result.noTrade ? '$0' : fmtMoney(result.CS);
     doc.querySelector('#stat-ps').textContent = result.noTrade ? '$0' : fmtMoney(result.PS);
     doc.querySelector('#stat-revenue').textContent = result.noTrade ? '$0' : fmtMoney(result.govRevenue);
+    doc.querySelector('#stat-incidence-consumer').textContent = result.noTrade || !taxOn ? '$0' : fmtMoney(result.consumerIncidence);
+    doc.querySelector('#stat-incidence-producer').textContent = result.noTrade || !taxOn ? '$0' : fmtMoney(result.producerIncidence);
     doc.querySelector('#stat-dwl').textContent = result.noTrade ? '$0' : fmtMoney(result.DWL);
 
     const note = doc.querySelector('#market-note');

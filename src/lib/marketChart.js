@@ -18,6 +18,17 @@ function el(tag, attrs = {}, className) {
 }
 function pts(arr) { return arr.map(([q, p]) => `${sx(q)},${sy(p)}`).join(' '); }
 
+// Renders e.g. "S" + subscript "1" as a real SVG subscript, not a unicode digit
+// (keeps curve labels short and unambiguous once a second supply line is on screen).
+function subscriptLabel(base, sub, attrs) {
+  const t = el('text', attrs, 'curve-label');
+  t.textContent = base;
+  const tspan = el('tspan', { 'baseline-shift': 'sub', 'font-size': '0.75em' });
+  tspan.textContent = sub;
+  t.appendChild(tspan);
+  return t;
+}
+
 function clipDemand(Dmax, slopeD) {
   const qAtPmax = (Dmax - PMAX) / slopeD, qAtP0 = Dmax / slopeD;
   const q0 = clampN(qAtPmax, 0, QMAX), q1 = clampN(qAtP0, 0, QMAX);
@@ -101,10 +112,12 @@ function drawWedgeLines(svg, result) {
     const yc = sy(result.Pc), yp = sy(result.Pp);
     svg.appendChild(el('line', { x1: M.left, y1: yc, x2: M.left + plotW, y2: yc, stroke: 'var(--demand)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'));
     svg.appendChild(el('line', { x1: M.left, y1: yp, x2: M.left + plotW, y2: yp, stroke: 'var(--supply)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'));
-    const cLbl = el('text', { x: M.left + plotW - 6, y: yc - 6, 'text-anchor': 'end', fill: 'var(--demand)' }, 'tick-label');
+    // Anchored at the y-axis (left), not the right edge, so these never collide with the
+    // S1/S2 curve labels which sit at the right edge once a second supply line is drawn.
+    const cLbl = el('text', { x: M.left + 6, y: yc - 6, 'text-anchor': 'start', fill: 'var(--demand)' }, 'tick-label');
     cLbl.textContent = 'Price consumers pay';
     svg.appendChild(cLbl);
-    const pLbl = el('text', { x: M.left + plotW - 6, y: yp + 14, 'text-anchor': 'end', fill: 'var(--supply)' }, 'tick-label');
+    const pLbl = el('text', { x: M.left + 6, y: yp + 14, 'text-anchor': 'start', fill: 'var(--supply)' }, 'tick-label');
     pLbl.textContent = 'Price producers receive';
     svg.appendChild(pLbl);
   } else if (result.requestedControl) {
@@ -154,16 +167,22 @@ export function renderMarketChart(svg, result) {
   const dLbl = el('text', { x: sx(dSeg[0][0]) + 8, y: sy(dSeg[0][1]) - 6, fill: 'var(--demand)' }, 'curve-label');
   dLbl.textContent = 'Demand';
   layer.appendChild(dLbl);
-  const sLbl = el('text', { x: sx(sSeg[1][0]) - 8, y: sy(sSeg[1][1]) - 8, fill: 'var(--supply)', 'text-anchor': 'end', 'fill-opacity': shifted ? '0.6' : '1' }, 'curve-label');
-  sLbl.textContent = shifted ? 'Supply (before)' : 'Supply';
-  layer.appendChild(sLbl);
 
   if (shifted) {
+    // Two supply lines on screen: label them S1 (original) / S2 (after the intervention)
+    // instead of prose ("Supply (before)" / "Supply + tax") — shorter labels are far less
+    // likely to collide with the Pc/Pp wedge labels once curves are dragged around.
+    const sLbl = subscriptLabel('S', '1', { x: sx(sSeg[0][0]) + 8, y: sy(sSeg[0][1]) - 8, fill: 'var(--supply)', 'text-anchor': 'start', 'fill-opacity': '0.6' });
+    layer.appendChild(sLbl);
+
     const s2Seg = clipSupply(shifted.Smin, shifted.slopeS);
     layer.appendChild(el('line', { x1: sx(s2Seg[0][0]), y1: sy(s2Seg[0][1]), x2: sx(s2Seg[1][0]), y2: sy(s2Seg[1][1]), stroke: 'var(--gov)', 'stroke-width': 2.5, 'stroke-linecap': 'round' }, 'supply-curve-shifted'));
-    const s2Lbl = el('text', { x: sx(s2Seg[1][0]) - 8, y: sy(s2Seg[1][1]) - 8, fill: 'var(--gov)', 'text-anchor': 'end' }, 'curve-label');
-    s2Lbl.textContent = result.mode === 'tax' ? 'Supply + tax' : 'Supply − subsidy';
+    const s2Lbl = subscriptLabel('S', '2', { x: sx(s2Seg[1][0]) - 8, y: sy(s2Seg[1][1]) - 8, fill: 'var(--gov)', 'text-anchor': 'end' });
     layer.appendChild(s2Lbl);
+  } else {
+    const sLbl = el('text', { x: sx(sSeg[1][0]) - 8, y: sy(sSeg[1][1]) - 8, fill: 'var(--supply)', 'text-anchor': 'end' }, 'curve-label');
+    sLbl.textContent = 'Supply';
+    layer.appendChild(sLbl);
   }
 
   if (!result.noTrade) {

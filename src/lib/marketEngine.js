@@ -104,6 +104,7 @@ function taxResult(base, intervention) {
     CS: shoelaceArea(csPoly), PS: shoelaceArea(psPoly),
     DWL: dwlPoly ? shoelaceArea(dwlPoly) : 0,
     govRevenue: wedge * Q, govCost: 0,
+    consumerIncidence: (Pc - Pstar) * Q, producerIncidence: (Pstar - Pp) * Q,
     csPoly, psPoly, dwlPoly, wedgePoly,
     requestedControl: null,
     interventionMode: intervention.mode,
@@ -129,6 +130,7 @@ function subsidyResult(base, intervention) {
     CS: shoelaceArea(csPoly), PS: shoelaceArea(psPoly),
     DWL: dwlPoly ? shoelaceArea(dwlPoly) : 0,
     govRevenue: 0, govCost: amount * Q,
+    consumerIncidence: (Pstar - Pc) * Q, producerIncidence: (Pp - Pstar) * Q,
     csPoly, psPoly, dwlPoly, wedgePoly,
     requestedControl: null,
   };
