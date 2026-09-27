@@ -128,6 +128,19 @@ Rationale: the pedagogical point of these pages is the *before → after* contra
 
 This does not apply to mode toggles that pick between two flavors of the same intervention with no "off" state (e.g. specific vs. ad valorem tax type once the tax is on) — those remain radio-button mode switches, not on/off switches, and can default to whichever mode is more commonly taught.
 
+### Sidebar panel order and content (general rule, decided 2026-09-27)
+
+The sidebar's stacked `.card.panel` sections follow a fixed order, top to bottom, on every graph page:
+
+1. **The intervention panel** (whatever it's called on that page — "Price ceiling", "Indirect tax", "Subsidy", etc.) — the on/off toggle plus its own parameter slider(s)/mode controls. This is the thing the page is *about*, so it comes first, above the fold, before any curve-shifting controls.
+2. **Shift the curves** — demand/supply position sliders, plus the reset button.
+3. **Elasticity** — demand/supply slope sliders only. No explanatory hint text under the sliders (see below).
+4. **Market outcome** — the stats grid and the note.
+
+Earlier drafts put "Shift the curves" and "Elasticity" first and the intervention panel third, which buried the actual point of the page under generic curve controls a student has to scroll past first.
+
+**No elasticity hint text.** The elasticity sliders used to carry a `<p class="slider-hint">` under each one (e.g. "Flatter (left) = buyers react strongly to price..."). This was removed site-wide and must not be re-added to new graph pages: the mission is to make economics feel like *play* — a student should discover what "flatter demand = more responsive to price" means by dragging the slider and watching the chart react, not by reading it first. Only the numeric label + qualitative tag (e.g. "1.0 · unit elastic", from `elasticityLabel()`) stays, since that's feedback from the student's own action, not an explanation given in advance of it.
+
 ### Definition of "done" for a graph page
 
 - Interactivity matches the price-ceiling/DWL quality bar: moving a control live-updates the relevant regions (surplus, DWL, tax revenue, etc.) in distinct colors, not a static annotated image.

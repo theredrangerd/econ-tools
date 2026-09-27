@@ -32,6 +32,20 @@
       </section>
       <aside class="sidebar">
         <section class="card panel">
+          <h2>Price floor</h2>
+          <div class="toggle-row">
+            <span class="label">Impose floor<span class="sub">e.g. minimum wage</span></span>
+            <label class="switch">
+              <input type="checkbox" id="floor-toggle">
+              <span class="track"></span><span class="thumb"></span>
+            </label>
+          </div>
+          <div class="slider-row" style="margin-top:12px">
+            <div class="slider-label"><span>Floor price</span><span class="val" id="floor-val">$110</span></div>
+            <input type="range" id="floor-slider" min="0" max="180" step="1" value="110">
+          </div>
+        </section>
+        <section class="card panel">
           <h2>Shift the curves</h2>
           <div class="slider-row">
             <div class="slider-label"><span>Demand</span><span class="val" id="demand-val">140</span></div>
@@ -48,26 +62,10 @@
           <div class="slider-row">
             <div class="slider-label"><span>Demand elasticity</span><span class="val" id="slope-d-val">1.0 · unit elastic</span></div>
             <input type="range" id="slope-d-slider" min="0.3" max="3" step="0.1" value="1">
-            <p class="slider-hint">Flatter (left) = buyers react strongly to price. Steeper (right) = they barely react.</p>
           </div>
           <div class="slider-row">
             <div class="slider-label"><span>Supply elasticity</span><span class="val" id="slope-s-val">1.0 · unit elastic</span></div>
             <input type="range" id="slope-s-slider" min="0.3" max="3" step="0.1" value="1">
-            <p class="slider-hint">Flatter (left) = sellers react strongly to price. Steeper (right) = they barely react.</p>
-          </div>
-        </section>
-        <section class="card panel">
-          <h2>Price floor</h2>
-          <div class="toggle-row">
-            <span class="label">Impose floor<span class="sub">e.g. minimum wage</span></span>
-            <label class="switch">
-              <input type="checkbox" id="floor-toggle">
-              <span class="track"></span><span class="thumb"></span>
-            </label>
-          </div>
-          <div class="slider-row" style="margin-top:12px">
-            <div class="slider-label"><span>Floor price</span><span class="val" id="floor-val">$110</span></div>
-            <input type="range" id="floor-slider" min="0" max="180" step="1" value="110">
           </div>
         </section>
         <section class="card panel">

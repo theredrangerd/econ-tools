@@ -457,8 +457,6 @@ svg.market-chart { width: 100%; height: auto; display: block; }
   font-weight: 400;
   font-size: 13px;
 }
-.slider-hint { font-size: 11.5px; color: var(--ink-muted); margin: 0 0 8px; }
-
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
