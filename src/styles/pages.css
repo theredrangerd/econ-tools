@@ -568,7 +568,7 @@ input[type="range"]::-moz-range-thumb {
 .examples-list a:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
 .examples-list li:nth-child(3n+1) a { background: var(--demand-fill); border-color: color-mix(in srgb, var(--demand) 45%, var(--hairline)); }
 .examples-list li:nth-child(3n+2) a { background: var(--supply-fill); border-color: color-mix(in srgb, var(--supply) 45%, var(--hairline)); }
-.examples-list li:nth-child(3n+3) a { background: color-mix(in srgb, var(--gov) 8%, var(--surface-2)); border-color: color-mix(in srgb, var(--gov) 22%, var(--hairline)); }
+.examples-list li:nth-child(3n+3) a { background: color-mix(in srgb, var(--gov) 6%, var(--surface-2)); border-color: color-mix(in srgb, var(--gov) 15%, var(--hairline)); }
 .examples-list__title { display: block; font-size: 12.5px; font-weight: 500; color: var(--ink); line-height: 1.35; }
 .examples-list__source {
   display: block;
@@ -580,7 +580,7 @@ input[type="range"]::-moz-range-thumb {
 }
 .examples-list li:nth-child(3n+1) .examples-list__source { color: var(--demand); }
 .examples-list li:nth-child(3n+2) .examples-list__source { color: var(--supply); }
-.examples-list li:nth-child(3n+3) .examples-list__source { color: color-mix(in srgb, var(--gov) 65%, var(--ink-muted)); }
+.examples-list li:nth-child(3n+3) .examples-list__source { color: color-mix(in srgb, var(--gov) 32%, var(--ink-secondary)); }
 
 .note {
   font-size: 12px;
