@@ -543,6 +543,28 @@ input[type="range"]::-moz-range-thumb {
 .stat.gov .v { color: var(--gov); }
 .stat.wide { grid-column: 1 / -1; }
 
+.examples-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.examples-list a {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--hairline);
+  background: var(--surface-2);
+  text-decoration: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.examples-list a:hover { border-color: var(--accent); background: var(--accent-fill); }
+.examples-list__title { display: block; font-size: 12.5px; font-weight: 500; color: var(--ink); line-height: 1.35; }
+.examples-list__source {
+  display: block;
+  margin-top: 3px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
 .note {
   font-size: 12px;
   line-height: 1.5;

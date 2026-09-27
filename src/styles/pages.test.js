@@ -15,7 +15,7 @@ describe('shared pages stylesheet', () => {
     [
       '.layout', '.main-col', '.card', '.chart-card', '.chart-title', '.status-pill',
       '.legend', '.sidebar', '.panel', '.slider-row', '.toggle-row',
-      '.switch', '.sub-slider', '.stats-grid', '.stat', '.note',
+      '.switch', '.sub-slider', '.stats-grid', '.stat', '.note', '.examples-list',
     ].forEach((selector) => {
       expect(css).toContain(selector);
     });

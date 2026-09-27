@@ -36,4 +36,14 @@ describe('initSubsidyPage against the real page markup', () => {
     expect(siblingLinks.length).toBeGreaterThan(0);
     expect(document.querySelector('#family-nav')).toBeNull();
   });
+
+  it('renders three real-world example links that open in a new tab safely', () => {
+    const links = document.querySelectorAll('.examples-list a');
+    expect(links).toHaveLength(3);
+    links.forEach((link) => {
+      expect(link.getAttribute('href')).toMatch(/^https:\/\//);
+      expect(link.getAttribute('target')).toBe('_blank');
+      expect(link.getAttribute('rel')).toBe('noopener noreferrer');
+    });
+  });
 });
