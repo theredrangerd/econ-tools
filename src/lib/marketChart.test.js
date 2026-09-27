@@ -85,4 +85,33 @@ describe('renderMarketChart', () => {
     renderMarketChart(svg, result);
     expect(svg.querySelectorAll('line.wedge-line')).toHaveLength(1);
   });
+
+  it('draws a shifted after-tax supply curve, fading the original supply curve as a reference', () => {
+    const result = computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 20 } });
+    renderMarketChart(svg, result);
+    expect(svg.querySelectorAll('line.supply-curve-shifted')).toHaveLength(1);
+    const original = svg.querySelector('line.supply-curve');
+    expect(original.getAttribute('stroke-dasharray')).toBe('6,4');
+  });
+
+  it('draws a shifted after-subsidy supply curve below the original', () => {
+    const result = computeMarket({ ...base, intervention: { type: 'subsidy', amount: 15 } });
+    renderMarketChart(svg, result);
+    const shifted = svg.querySelector('line.supply-curve-shifted');
+    expect(shifted).not.toBeNull();
+    const y1Shifted = +shifted.getAttribute('y1');
+    const y1Original = +svg.querySelector('line.supply-curve').getAttribute('y1');
+    // a lower price at the same quantity draws further down the SVG (larger y)
+    expect(y1Shifted).toBeGreaterThan(y1Original);
+  });
+
+  it('omits the shifted supply curve for a free market or a price control, which do not shift supply', () => {
+    const free = computeMarket({ ...base, intervention: { type: 'none' } });
+    renderMarketChart(svg, free);
+    expect(svg.querySelector('line.supply-curve-shifted')).toBeNull();
+
+    const ceiling = computeMarket({ ...base, intervention: { type: 'ceiling', price: 50 } });
+    renderMarketChart(svg, ceiling);
+    expect(svg.querySelector('line.supply-curve-shifted')).toBeNull();
+  });
 });

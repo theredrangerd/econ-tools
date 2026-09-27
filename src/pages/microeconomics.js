@@ -18,6 +18,7 @@ export function initMicroeconomicsPage(doc) {
   });
 
   const families = unit.families.map((family) => ({
+    slug: family.slug,
     name: family.name,
     status: family.status,
     level: family.level,

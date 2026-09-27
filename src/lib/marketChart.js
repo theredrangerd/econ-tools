@@ -29,6 +29,25 @@ function clipSupply(Smin, slopeS) {
   return [[q0, Smin + slopeS * q0], [q1, Smin + slopeS * q1]];
 }
 
+// After a specific tax or subsidy, supply shifts by a constant amount (parallel line);
+// after an ad valorem tax, it shifts by a constant multiple (the line pivots at the price axis).
+function shiftedSupplyParams(result) {
+  const { Smin, slopeS, Pc, Pp } = result;
+  if (result.mode === 'tax') {
+    if (result.interventionMode === 'advalorem') {
+      const k = Pc / Pp;
+      return { Smin: Smin * k, slopeS: slopeS * k };
+    }
+    const wedge = Pc - Pp;
+    return { Smin: Smin + wedge, slopeS };
+  }
+  if (result.mode === 'subsidy') {
+    const wedge = Pp - Pc;
+    return { Smin: Smin - wedge, slopeS };
+  }
+  return null;
+}
+
 function drawGridAndAxes(svg) {
   const defs = el('defs');
   const pattern = el('pattern', { id: 'dwlHatch', width: 6, height: 6, patternTransform: 'rotate(45)', patternUnits: 'userSpaceOnUse' });
@@ -122,16 +141,30 @@ export function renderMarketChart(svg, result) {
     }
   }
 
+  const shifted = shiftedSupplyParams(result);
+
   const dSeg = clipDemand(result.Dmax, result.slopeD), sSeg = clipSupply(result.Smin, result.slopeS);
   layer.appendChild(el('line', { x1: sx(dSeg[0][0]), y1: sy(dSeg[0][1]), x2: sx(dSeg[1][0]), y2: sy(dSeg[1][1]), stroke: 'var(--demand)', 'stroke-width': 2.5, 'stroke-linecap': 'round' }, 'demand-curve'));
-  layer.appendChild(el('line', { x1: sx(sSeg[0][0]), y1: sy(sSeg[0][1]), x2: sx(sSeg[1][0]), y2: sy(sSeg[1][1]), stroke: 'var(--supply)', 'stroke-width': 2.5, 'stroke-linecap': 'round' }, 'supply-curve'));
+  layer.appendChild(el('line', {
+    x1: sx(sSeg[0][0]), y1: sy(sSeg[0][1]), x2: sx(sSeg[1][0]), y2: sy(sSeg[1][1]),
+    stroke: 'var(--supply)', 'stroke-width': shifted ? 1.6 : 2.5, 'stroke-linecap': 'round',
+    ...(shifted ? { 'stroke-dasharray': '6,4', 'stroke-opacity': '0.55' } : {}),
+  }, 'supply-curve'));
 
   const dLbl = el('text', { x: sx(dSeg[0][0]) + 8, y: sy(dSeg[0][1]) - 6, fill: 'var(--demand)' }, 'curve-label');
   dLbl.textContent = 'Demand';
   layer.appendChild(dLbl);
-  const sLbl = el('text', { x: sx(sSeg[1][0]) - 8, y: sy(sSeg[1][1]) - 8, fill: 'var(--supply)', 'text-anchor': 'end' }, 'curve-label');
-  sLbl.textContent = 'Supply';
+  const sLbl = el('text', { x: sx(sSeg[1][0]) - 8, y: sy(sSeg[1][1]) - 8, fill: 'var(--supply)', 'text-anchor': 'end', 'fill-opacity': shifted ? '0.6' : '1' }, 'curve-label');
+  sLbl.textContent = shifted ? 'Supply (before)' : 'Supply';
   layer.appendChild(sLbl);
+
+  if (shifted) {
+    const s2Seg = clipSupply(shifted.Smin, shifted.slopeS);
+    layer.appendChild(el('line', { x1: sx(s2Seg[0][0]), y1: sy(s2Seg[0][1]), x2: sx(s2Seg[1][0]), y2: sy(s2Seg[1][1]), stroke: 'var(--gov)', 'stroke-width': 2.5, 'stroke-linecap': 'round' }, 'supply-curve-shifted'));
+    const s2Lbl = el('text', { x: sx(s2Seg[1][0]) - 8, y: sy(s2Seg[1][1]) - 8, fill: 'var(--gov)', 'text-anchor': 'end' }, 'curve-label');
+    s2Lbl.textContent = result.mode === 'tax' ? 'Supply + tax' : 'Supply − subsidy';
+    layer.appendChild(s2Lbl);
+  }
 
   if (!result.noTrade) {
     layer.appendChild(el('line', { x1: sx(result.Qstar), y1: sy(result.Pstar), x2: sx(result.Qstar), y2: M.top + plotH, stroke: 'var(--ink-muted)', 'stroke-width': 1, 'stroke-dasharray': '3,3' }));

@@ -18,6 +18,7 @@ export function initGovernmentInterventionPage(doc) {
   });
 
   const diagrams = family.diagrams.map((diagram) => ({
+    slug: diagram.slug,
     name: diagram.name,
     status: diagram.status,
     level: diagram.level,

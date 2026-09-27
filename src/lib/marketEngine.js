@@ -106,6 +106,7 @@ function taxResult(base, intervention) {
     govRevenue: wedge * Q, govCost: 0,
     csPoly, psPoly, dwlPoly, wedgePoly,
     requestedControl: null,
+    interventionMode: intervention.mode,
   };
 }
 

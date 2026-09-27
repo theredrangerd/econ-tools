@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { initPriceFloorPage } from './price-floor.js';
 
 function bodyOf(html) {
-  return html.match(/<body>([\s\S]*)<\/body>/)[1];
+  return html.match(/<body[^>]*>([\s\S]*)<\/body>/)[1];
 }
 
 describe('initPriceFloorPage against the real page markup', () => {

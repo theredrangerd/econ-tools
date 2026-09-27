@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { initGovernmentInterventionPage } from './government-intervention.js';
 
 function bodyOf(html) {
-  return html.match(/<body>([\s\S]*)<\/body>/)[1];
+  return html.match(/<body[^>]*>([\s\S]*)<\/body>/)[1];
 }
 
 describe('initGovernmentInterventionPage against the real family page markup', () => {

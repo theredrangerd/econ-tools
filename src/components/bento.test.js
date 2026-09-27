@@ -73,4 +73,11 @@ describe('renderBento', () => {
     expect(tile.className).not.toContain('international-unknown');
     expect(tile.style.backgroundImage).toBe('');
   });
+
+  it('applies an accent modifier class for a known non-unit slug without requiring a background image', () => {
+    renderBento(container, [{ name: 'Price ceiling', slug: 'price-ceiling', status: 'built', href: '/x.html', level: 'SL' }], { tiered: false });
+    const tile = container.querySelector('a.bento__tile');
+    expect(tile.className).toContain('bento__tile--price-ceiling');
+    expect(tile.style.backgroundImage).toBe('');
+  });
 });

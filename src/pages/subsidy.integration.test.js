@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { initSubsidyPage } from './subsidy.js';
 
 function bodyOf(html) {
-  return html.match(/<body>([\s\S]*)<\/body>/)[1];
+  return html.match(/<body[^>]*>([\s\S]*)<\/body>/)[1];
 }
 
 describe('initSubsidyPage against the real page markup', () => {

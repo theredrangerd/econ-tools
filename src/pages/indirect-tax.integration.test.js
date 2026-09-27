@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { initIndirectTaxPage } from './indirect-tax.js';
 
 function bodyOf(html) {
-  return html.match(/<body>([\s\S]*)<\/body>/)[1];
+  return html.match(/<body[^>]*>([\s\S]*)<\/body>/)[1];
 }
 
 describe('initIndirectTaxPage against the real page markup', () => {
