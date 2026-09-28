@@ -1,4 +1,4 @@
-import { elasticityLabel, fmtShift } from './format.js';
+import { elasticityLabel, fmtMoney, fmtQty, fmtShift } from './format.js';
 import { tweenValue } from './animate.js';
 import { computeMarket, fitsChart, pointElasticities } from './marketEngine.js';
 import { getUnits, familyHref } from './units.js';
@@ -123,6 +123,18 @@ export function updateShiftAndSlopeLabels(doc, { demandShift, supplyShift, marke
   doc.querySelector('#supply-val').textContent = fmtShift(supplyShift);
   doc.querySelector('#slope-d-val').textContent = elasticityLabel(ped);
   doc.querySelector('#slope-s-val').textContent = elasticityLabel(pes);
+}
+
+export const NO_TRADE_NOTE = '<strong>No trade occurs.</strong> Shift the sliders so demand sits above supply.';
+
+// Fills the "Market outcome" tiles every intervention page shares (quantity, CS, PS, DWL).
+// Price tiles differ per page (one price vs. Pc/Pp), so pages fill those themselves.
+export function fillSharedStats(doc, result) {
+  const set = (id, text) => { doc.querySelector(id).textContent = text; };
+  set('#stat-qty', result.noTrade ? '0.0' : fmtQty(result.Q));
+  set('#stat-cs', result.noTrade ? '$0' : fmtMoney(result.CS));
+  set('#stat-ps', result.noTrade ? '$0' : fmtMoney(result.PS));
+  set('#stat-dwl', result.noTrade ? '$0' : fmtMoney(result.DWL));
 }
 
 // Wires an intervention on/off toggle to tween its fraction (0 = off, 1 = fully on)

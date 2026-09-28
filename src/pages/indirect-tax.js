@@ -3,7 +3,7 @@ import { computeMarket } from '../lib/marketEngine.js';
 import { renderMarketChart } from '../lib/marketChart.js';
 import { fmtMoney, fmtPrice, fmtQty, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
-import { wireShiftAndSlopeInputs, updateShiftAndSlopeLabels, wireInterventionToggle, readCurveParams, marketFits, guardSliders, settleDown } from '../lib/pageControls.js';
+import { wireShiftAndSlopeInputs, updateShiftAndSlopeLabels, wireInterventionToggle, readCurveParams, marketFits, guardSliders, settleDown, fillSharedStats, NO_TRADE_NOTE } from '../lib/pageControls.js';
 import { attachRegionExplainers } from '../lib/regionExplainers.js';
 
 export function initIndirectTaxPage(doc) {
@@ -71,17 +71,14 @@ export function initIndirectTaxPage(doc) {
     const noPrice = result.noTrade || result.closed;
     doc.querySelector('#stat-price-consumer').textContent = noPrice ? '—' : fmtPrice(result.Pc);
     doc.querySelector('#stat-price-producer').textContent = noPrice ? '—' : fmtPrice(result.Pp);
-    doc.querySelector('#stat-qty').textContent = result.noTrade ? '0.0' : fmtQty(result.Q);
-    doc.querySelector('#stat-cs').textContent = result.noTrade ? '$0' : fmtMoney(result.CS);
-    doc.querySelector('#stat-ps').textContent = result.noTrade ? '$0' : fmtMoney(result.PS);
+    fillSharedStats(doc, result);
     doc.querySelector('#stat-revenue').textContent = result.noTrade ? '$0' : fmtMoney(result.govRevenue);
     doc.querySelector('#stat-incidence-consumer').textContent = result.noTrade || taxFraction <= 0 ? '$0' : fmtMoney(result.consumerIncidence);
     doc.querySelector('#stat-incidence-producer').textContent = result.noTrade || taxFraction <= 0 ? '$0' : fmtMoney(result.producerIncidence);
-    doc.querySelector('#stat-dwl').textContent = result.noTrade ? '$0' : fmtMoney(result.DWL);
 
     const note = doc.querySelector('#market-note');
     if (result.noTrade) {
-      note.innerHTML = '<strong>No trade occurs.</strong> Shift the sliders so demand sits above supply.';
+      note.innerHTML = NO_TRADE_NOTE;
     } else if (result.closed) {
       note.innerHTML = `<strong>No units are traded.</strong> The tax is at least as big as the gap between the most any buyer will pay and the least any seller will accept, so the market shuts down and all ${fmtMoney(result.DWL)} of surplus is lost.`;
     } else if (taxFraction > 0) {

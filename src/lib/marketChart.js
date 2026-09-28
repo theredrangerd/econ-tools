@@ -103,6 +103,17 @@ function drawGridAndAxes(svg) {
   svg.appendChild(yl);
 }
 
+// A binding ceiling/floor: one control-price line, with Qs/Qd either side of it.
+function isPriceControl(result) {
+  return result.mode === 'ceiling' || result.mode === 'floor';
+}
+
+// A tax or subsidy that still trades: separate Pc/Pp lines and a Q1 point. A tax big
+// enough to close the market has no traded price, so none of these marks are drawn.
+function hasOpenWedge(result) {
+  return (result.mode === 'tax' && !result.closed) || result.mode === 'subsidy';
+}
+
 const MODE_LABELS = {
   ceiling: 'Price ceiling',
   floor: 'Price floor',
@@ -124,10 +135,10 @@ const SYMBOL_PX = 12;
 function axisSymbols(result) {
   const y = [{ base: 'P', sub: 'e', v: result.Pstar, ref: true }];
   const x = [{ base: 'Q', sub: 'e', v: result.Qstar, ref: true }];
-  if (result.mode === 'ceiling' || result.mode === 'floor') {
+  if (isPriceControl(result)) {
     y.push({ base: 'P', sub: result.mode === 'ceiling' ? 'max' : 'min', v: result.Pc });
     x.push({ base: 'Q', sub: 's', v: result.qs }, { base: 'Q', sub: 'd', v: result.qd });
-  } else if ((result.mode === 'tax' && !result.closed) || result.mode === 'subsidy') {
+  } else if (hasOpenWedge(result)) {
     y.push({ base: 'P', sub: 'c', v: result.Pc }, { base: 'P', sub: 'p', v: result.Pp });
     x.push({ base: 'Q', sub: '1', v: result.Q });
   }
@@ -203,7 +214,7 @@ function drawGapBracket(layer, result) {
 }
 
 function drawWedgeLines(svg, result) {
-  if (result.mode === 'ceiling' || result.mode === 'floor') {
+  if (isPriceControl(result)) {
     const y = sy(result.Pc);
     // Grouped under data-region so regionExplainers.js can hover/click it as a unit; the
     // wide transparent line gives the thin dashed line a comfortably large hit target.
@@ -217,7 +228,7 @@ function drawWedgeLines(svg, result) {
     g.appendChild(lbl);
     svg.appendChild(g);
     drawGapBracket(svg, result);
-  } else if ((result.mode === 'tax' && !result.closed) || result.mode === 'subsidy') {
+  } else if (hasOpenWedge(result)) {
     // The consumer/producer reference lines only run from Q to the right edge — inside
     // the box (0 to Q) they'd sit exactly on top of the wedge outline's top/bottom edges,
     // and since these are drawn after the outline (see below) they'd paint over its dashes.
@@ -365,7 +376,7 @@ export function renderMarketChart(svg, result) {
 
     drawWedgeLines(layer, result);
 
-    if (result.mode === 'ceiling' || result.mode === 'floor') {
+    if (isPriceControl(result)) {
       // Both ends of the shortage/excess supply: the point on each curve at the control
       // price, each dropped to its Qs/Qd label on the axis (Qd can sit past the edge).
       for (const q of [result.qs, result.qd]) {
@@ -373,7 +384,7 @@ export function renderMarketChart(svg, result) {
         layer.appendChild(el('line', { x1: sx(q), y1: sy(result.Pc), x2: sx(q), y2: M.top + plotH, stroke: 'var(--ink-muted)', 'stroke-width': 1, 'stroke-dasharray': '1,3' }));
         layer.appendChild(el('circle', { cx: sx(q), cy: sy(result.Pc), r: 4, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': 1.8 }, 'control-point'));
       }
-    } else if ((result.mode === 'tax' && !result.closed) || result.mode === 'subsidy') {
+    } else if (hasOpenWedge(result)) {
       layer.appendChild(el('line', { x1: sx(result.Q), y1: sy(result.Pc), x2: sx(result.Q), y2: M.top + plotH, stroke: 'var(--ink-muted)', 'stroke-width': 1, 'stroke-dasharray': '1,3' }));
       layer.appendChild(el('circle', { cx: sx(result.Q), cy: sy(result.Pc), r: 4, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': 1.8 }));
     }
