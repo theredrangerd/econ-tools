@@ -5,6 +5,7 @@ import { fmtPrice, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
 import { wireShiftAndSlopeInputs, updateShiftAndSlopeLabels, wireInterventionToggle, readCurveParams, marketFits, fillSharedStats, NO_TRADE_NOTE } from '../lib/pageControls.js';
 import { attachRegionExplainers } from '../lib/regionExplainers.js';
+import { FEEDBACK_FORM_URL } from '../lib/feedback.js';
 
 // Shared controller for the price ceiling and price floor pages, which differ only in the
 // intervention type, their element ids (`#<type>-toggle`, `#<type>-slider`, `#<type>-val`),
@@ -64,4 +65,5 @@ export function initPriceControlPage(doc, { slug, title, type, bindingPill, gapN
 
   render();
   attachRegionExplainers(chart);
+  doc.querySelector('#feedback-form').src = FEEDBACK_FORM_URL;
 }

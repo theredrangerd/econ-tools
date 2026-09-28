@@ -1,6 +1,7 @@
 import { renderMiniHeader, renderHero } from '../components/chrome.js';
 import { renderBento } from '../components/bento.js';
 import { getUnits, unitHref, diagramHref } from '../lib/units.js';
+import { FEEDBACK_FORM_URL } from '../lib/feedback.js';
 
 export function initGovernmentInterventionPage(doc) {
   const unit = getUnits().find((u) => u.slug === 'microeconomics');
@@ -26,4 +27,6 @@ export function initGovernmentInterventionPage(doc) {
     href: diagramHref(unit, family, diagram),
   }));
   renderBento(doc.querySelector('#diagram-bento'), diagrams, { className: 'bento--diagrams' });
+
+  doc.querySelector('#feedback-form').src = FEEDBACK_FORM_URL;
 }

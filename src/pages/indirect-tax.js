@@ -5,6 +5,7 @@ import { fmtMoney, fmtPrice, fmtQty, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
 import { wireShiftAndSlopeInputs, updateShiftAndSlopeLabels, wireInterventionToggle, readCurveParams, marketFits, guardSliders, settleDown, fillSharedStats, NO_TRADE_NOTE } from '../lib/pageControls.js';
 import { attachRegionExplainers } from '../lib/regionExplainers.js';
+import { FEEDBACK_FORM_URL } from '../lib/feedback.js';
 
 export function initIndirectTaxPage(doc) {
   const { backHref, backLabel, siblings } = getFamilyNav('indirect-tax');
@@ -102,4 +103,5 @@ export function initIndirectTaxPage(doc) {
 
   render();
   attachRegionExplainers(chart);
+  doc.querySelector('#feedback-form').src = FEEDBACK_FORM_URL;
 }

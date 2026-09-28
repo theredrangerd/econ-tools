@@ -7,6 +7,7 @@ describe('initGovernmentInterventionPage', () => {
       <div id="mini-header"></div>
       <div id="hero"></div>
       <div id="diagram-bento"></div>
+      <iframe id="feedback-form"></iframe>
     `;
     initGovernmentInterventionPage(document);
   });

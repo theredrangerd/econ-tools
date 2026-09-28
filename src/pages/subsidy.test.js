@@ -27,6 +27,7 @@ function buildDom() {
     <span id="stat-incidence-producer"></span>
     <span id="stat-dwl"></span>
     <div id="market-note"></div>
+    <iframe id="feedback-form"></iframe>
   `;
 }
 

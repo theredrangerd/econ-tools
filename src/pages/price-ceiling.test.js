@@ -23,6 +23,7 @@ function buildDom() {
     <span id="stat-ps"></span>
     <span id="stat-dwl"></span>
     <div id="market-note"></div>
+    <iframe id="feedback-form"></iframe>
   `;
 }
 
