@@ -1,10 +1,6 @@
 export const QMAX = 100;
 export const PMAX = 180;
 
-function clampN(v, lo, hi) {
-  return Math.max(lo, Math.min(hi, v));
-}
-
 function shoelaceArea(points) {
   let sum = 0;
   for (let i = 0; i < points.length; i++) {
@@ -52,12 +48,10 @@ function rationingResult(base, intervention) {
     return { ...freeMarketResult(base), requestedControl: { type: intervention.type, price: controlPrice } };
   }
 
-  const qdRaw = Math.max(0, (Dmax - controlPrice) / slopeD);
-  const qsRaw = Math.max(0, (controlPrice - Smin) / slopeS);
-  const qd = clampN(qdRaw, 0, QMAX);
-  const qs = clampN(qsRaw, 0, QMAX);
+  const qd = Math.max(0, (Dmax - controlPrice) / slopeD);
+  const qs = Math.max(0, (controlPrice - Smin) / slopeS);
   const Q = Math.min(qd, qs);
-  const gap = isFloor ? qsRaw - qdRaw : qdRaw - qsRaw;
+  const gap = isFloor ? qs - qd : qd - qs;
 
   const csPoly = csPolyFor(Dmax, Pd, Q, controlPrice);
   const psPoly = psPolyFor(Smin, Ps, Q, controlPrice);
@@ -81,12 +75,12 @@ function taxResult(base, intervention) {
 
   if (intervention.mode === 'advalorem') {
     const rate = intervention.rate;
-    Q = clampN((Dmax - Smin * (1 + rate)) / (slopeD + slopeS * (1 + rate)), 0, QMAX);
+    Q = Math.max(0, (Dmax - Smin * (1 + rate)) / (slopeD + slopeS * (1 + rate)));
     Pp = Ps(Q);
     Pc = Pp * (1 + rate);
   } else {
     const amount = intervention.amount;
-    Q = clampN((Dmax - Smin - amount) / (slopeD + slopeS), 0, QMAX);
+    Q = Math.max(0, (Dmax - Smin - amount) / (slopeD + slopeS));
     Pc = Pd(Q);
     Pp = Pc - amount;
   }
@@ -113,13 +107,14 @@ function taxResult(base, intervention) {
     csPoly, psPoly, dwlPoly, wedgePoly, consumerWedgePoly, producerWedgePoly,
     requestedControl: null,
     interventionMode: intervention.mode,
+    taxRate: intervention.mode === 'advalorem' ? intervention.rate : null,
   };
 }
 
 function subsidyResult(base, intervention) {
   const { Dmax, Smin, slopeD, slopeS, Qstar, Pstar, Pd, Ps } = base;
   const amount = intervention.amount;
-  const Q = clampN((Dmax - Smin + amount) / (slopeD + slopeS), 0, QMAX);
+  const Q = (Dmax - Smin + amount) / (slopeD + slopeS);
   const Pc = Pd(Q);
   const Pp = Pc + amount;
 
@@ -149,7 +144,10 @@ function subsidyResult(base, intervention) {
 export function computeMarket({ demand, supply, slopeD, slopeS, intervention = { type: 'none' } }) {
   const Dmax = demand, Smin = supply;
   const noTrade = Dmax <= Smin;
-  const Qstar = noTrade ? 0 : clampN((Dmax - Smin) / (slopeD + slopeS), 0, QMAX);
+  // Never clamp quantities to the chart here: a clamped Q is a point that isn't on the
+  // curves, and every surplus/incidence figure derived from it comes out wrong. Keeping
+  // the market on-chart is the page's job (see fitsChart + guardSliders in pageControls.js).
+  const Qstar = noTrade ? 0 : (Dmax - Smin) / (slopeD + slopeS);
   const Pstar = Dmax - slopeD * Qstar;
 
   function Pd(q) { return Dmax - slopeD * q; }
@@ -177,4 +175,22 @@ export function computeMarket({ demand, supply, slopeD, slopeS, intervention = {
     default:
       return freeMarketResult(base);
   }
+}
+
+// True when every quantity and price in a result sits inside the drawn axes, so the chart
+// shows exactly what the stats report. Pages use this to stop sliders at the chart's edge.
+export function fitsChart(result) {
+  if (result.noTrade) return true;
+  const qs = [result.Qstar, result.Q];
+  const ps = [result.Pstar, result.Pc, result.Pp];
+  return qs.every((q) => q >= 0 && q <= QMAX) && ps.every((p) => p >= 0 && p <= PMAX);
+}
+
+// Point price elasticities (absolute values) at the free-market equilibrium. On a linear
+// curve elasticity varies along the curve, so it can't be read off the slope alone — it
+// depends on P/Q at the point as well. Measured at the shared equilibrium point, the
+// PED/PES ratio is also exactly what decides tax/subsidy incidence.
+export function pointElasticities({ Pstar, Qstar, slopeD, slopeS, noTrade }) {
+  if (noTrade || Qstar <= 0) return { ped: null, pes: null };
+  return { ped: Pstar / (slopeD * Qstar), pes: Pstar / (slopeS * Qstar) };
 }

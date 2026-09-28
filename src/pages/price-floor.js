@@ -3,7 +3,7 @@ import { computeMarket } from '../lib/marketEngine.js';
 import { renderMarketChart } from '../lib/marketChart.js';
 import { fmtMoney, fmtPrice, fmtQty, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
-import { wireShiftAndSlopeInputs, updateShiftAndSlopeLabels, wireInterventionToggle } from '../lib/pageControls.js';
+import { wireShiftAndSlopeInputs, updateShiftAndSlopeLabels, wireInterventionToggle, readCurveParams, marketFits } from '../lib/pageControls.js';
 import { attachRegionExplainers } from '../lib/regionExplainers.js';
 
 export function initPriceFloorPage(doc) {
@@ -19,23 +19,23 @@ export function initPriceFloorPage(doc) {
   // in smoothly instead of the line snapping straight to its target.
   let toggleCtl;
 
-  const { demandSlider, supplySlider, slopeDSlider, slopeSSlider } = wireShiftAndSlopeInputs(doc, () => render());
+  // A ceiling/floor never pushes quantity past the free-market Q*, so only the free
+  // market itself needs to stay on-chart.
+  const sliders = wireShiftAndSlopeInputs(doc, () => render(), () => marketFits(readCurveParams(sliders).market));
 
   function render() {
-    const demand = +demandSlider.value;
-    const supply = +supplySlider.value;
-    const slopeD = +slopeDSlider.value;
-    const slopeS = +slopeSSlider.value;
+    const curve = readCurveParams(sliders);
+    const { market } = curve;
     const floorPrice = +floorSlider.value;
 
-    updateShiftAndSlopeLabels(doc, { demand, supply, slopeD, slopeS });
+    updateShiftAndSlopeLabels(doc, curve);
     doc.querySelector('#floor-val').textContent = '$' + floorPrice;
 
-    const { Pstar } = computeMarket({ demand, supply, slopeD, slopeS, intervention: { type: 'none' } });
+    const { Pstar } = computeMarket({ ...market, intervention: { type: 'none' } });
     const floorFraction = toggleCtl.getFraction();
     const displayPrice = Pstar + (floorPrice - Pstar) * floorFraction;
     const intervention = floorFraction > 0 ? { type: 'floor', price: displayPrice } : { type: 'none' };
-    const result = computeMarket({ demand, supply, slopeD, slopeS, intervention });
+    const result = computeMarket({ ...market, intervention });
 
     renderMarketChart(chart, result);
 

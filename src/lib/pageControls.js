@@ -1,37 +1,121 @@
-import { elasticityLabel } from './format.js';
+import { elasticityLabel, fmtShift } from './format.js';
 import { tweenValue } from './animate.js';
+import { computeMarket, fitsChart, pointElasticities } from './marketEngine.js';
 
-// Wires the demand/supply position + elasticity sliders that every intervention page
-// shares, firing `render` on input. Returns the slider elements so pages can still read
-// their values directly inside render().
-export function wireShiftAndSlopeInputs(doc, render) {
-  const demandSlider = doc.querySelector('#demand-slider');
-  const supplySlider = doc.querySelector('#supply-slider');
-  const slopeDSlider = doc.querySelector('#slope-d-slider');
-  const slopeSSlider = doc.querySelector('#slope-s-slider');
-  [demandSlider, supplySlider, slopeDSlider, slopeSSlider].forEach((input) =>
-    input.addEventListener('input', render)
-  );
-  return { demandSlider, supplySlider, slopeDSlider, slopeSSlider };
+// Every curve pivots around its point at this quantity when its elasticity slider moves,
+// so at zero shift both curves always pass through (PIVOT_Q, PIVOT_P): changing elasticity
+// rotates the curves through the equilibrium (the standard textbook comparison) instead of
+// dragging the equilibrium off-chart, and dragging right always raises the true point
+// elasticity shown in the readout.
+export const PIVOT_Q = 60;
+export const PIVOT_P = 80;
+
+// Elasticity sliders run on a log scale where right = flatter: slope = 10^-value, so the
+// default 0 is slope 1 and the ±0.5 ends are ~3.16x steeper/flatter.
+function slopeFromSlider(input) {
+  return Math.pow(10, -(+input.value));
 }
 
-// Updates the value labels next to the shift/slope sliders wired above.
-export function updateShiftAndSlopeLabels(doc, { demand, supply, slopeD, slopeS }) {
-  doc.querySelector('#demand-val').textContent = demand;
-  doc.querySelector('#supply-val').textContent = supply;
-  doc.querySelector('#slope-d-val').textContent = slopeD.toFixed(1) + ' · ' + elasticityLabel(slopeD);
-  doc.querySelector('#slope-s-val').textContent = slopeS.toFixed(1) + ' · ' + elasticityLabel(slopeS);
+// Shift sliders are signed offsets where right always means MORE demand/supply: +demand
+// raises the demand curve, +supply lowers the supply curve (both move the curve right).
+export function readCurveParams({ demandSlider, supplySlider, slopeDSlider, slopeSSlider }) {
+  const demandShift = +demandSlider.value;
+  const supplyShift = +supplySlider.value;
+  const slopeD = slopeFromSlider(slopeDSlider);
+  const slopeS = slopeFromSlider(slopeSSlider);
+  return {
+    demandShift, supplyShift,
+    market: {
+      demand: PIVOT_P + demandShift + slopeD * PIVOT_Q,
+      supply: PIVOT_P - supplyShift - slopeS * PIVOT_Q,
+      slopeD, slopeS,
+    },
+  };
+}
+
+// Stops each input at the last value where `isValid()` still holds, instead of letting it
+// reach a state the chart can't draw. Must be wired before the input's render listener so
+// render only ever sees a valid value.
+export function guardSliders(inputs, isValid) {
+  const lastValid = new Map(inputs.map((input) => [input, input.value]));
+  inputs.forEach((input) => {
+    input.addEventListener('input', () => {
+      if (!isValid()) settleToward(input, +lastValid.get(input), isValid);
+      lastValid.set(input, input.value);
+    });
+  });
+}
+
+// Walks `input` from `from` toward its current (invalid) value one step at a time and
+// leaves it at the furthest step that is still valid.
+function settleToward(input, from, isValid) {
+  const target = +input.value;
+  const step = +input.step || 1;
+  const dir = Math.sign(target - from);
+  const n = Math.round(Math.abs(target - from) / step);
+  let best = from;
+  for (let k = 1; k <= n; k++) {
+    const v = +(from + dir * k * step).toFixed(6);
+    input.value = String(v);
+    if (!isValid()) break;
+    best = v;
+  }
+  input.value = String(best);
+}
+
+// Pulls an intervention slider back toward its minimum until the state is valid — used
+// when switching an intervention on (or changing its mode) would otherwise put the result
+// off-chart, since toggles/radios have no drag to stop.
+export function settleDown(input, isValid) {
+  const step = +input.step || 1;
+  while (!isValid() && +input.value > +input.min) {
+    input.value = String(+Math.max(+input.min, +input.value - step).toFixed(6));
+  }
+}
+
+// True when both the free market and the market with `intervention` applied fit the chart.
+export function marketFits(market, intervention) {
+  if (!fitsChart(computeMarket({ ...market, intervention: { type: 'none' } }))) return false;
+  return !intervention || fitsChart(computeMarket({ ...market, intervention }));
+}
+
+// Wires the demand/supply shift + elasticity sliders that every intervention page shares:
+// guarded by `isValid`, then firing `render` on input. Returns the slider elements so
+// pages can read them via readCurveParams() inside render().
+export function wireShiftAndSlopeInputs(doc, render, isValid) {
+  const sliders = {
+    demandSlider: doc.querySelector('#demand-slider'),
+    supplySlider: doc.querySelector('#supply-slider'),
+    slopeDSlider: doc.querySelector('#slope-d-slider'),
+    slopeSSlider: doc.querySelector('#slope-s-slider'),
+  };
+  const inputs = Object.values(sliders);
+  guardSliders(inputs, isValid);
+  inputs.forEach((input) => input.addEventListener('input', render));
+  return sliders;
+}
+
+// Updates the value labels next to the shift/elasticity sliders wired above. The elasticity
+// readouts show true point elasticity at the free-market equilibrium, not the slope.
+export function updateShiftAndSlopeLabels(doc, { demandShift, supplyShift, market }) {
+  const { ped, pes } = pointElasticities(computeMarket({ ...market, intervention: { type: 'none' } }));
+  doc.querySelector('#demand-val').textContent = fmtShift(demandShift);
+  doc.querySelector('#supply-val').textContent = fmtShift(supplyShift);
+  doc.querySelector('#slope-d-val').textContent = elasticityLabel(ped);
+  doc.querySelector('#slope-s-val').textContent = elasticityLabel(pes);
 }
 
 // Wires an intervention on/off toggle to tween its fraction (0 = off, 1 = fully on)
 // from wherever it currently sits to its new target over ~400ms, re-rendering on every
 // frame via `render` — this is the CLAUDE.md "toggle animates in/out" rule, centralized
 // so every future intervention page picks it up automatically instead of re-copying the
-// tween/cancel bookkeeping.
-export function wireInterventionToggle(toggle, render) {
+// tween/cancel bookkeeping. `beforeOn` runs just before switching on, so a page can pull
+// its intervention slider back into range first.
+export function wireInterventionToggle(toggle, render, { beforeOn } = {}) {
   let fraction = toggle.checked ? 1 : 0;
   let cancelAnim = null;
   toggle.addEventListener('change', () => {
+    if (toggle.checked && beforeOn) beforeOn();
     if (cancelAnim) cancelAnim();
     cancelAnim = tweenValue({
       from: fraction,

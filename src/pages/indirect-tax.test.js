@@ -6,13 +6,13 @@ function buildDom() {
     <div id="mini-header"></div>
     <svg id="chart" class="market-chart"></svg>
     <span id="status-pill"></span>
-    <input id="demand-slider" type="range" min="70" max="170" step="1" value="140">
+    <input id="demand-slider" type="range" min="-50" max="50" step="1" value="0">
     <span id="demand-val"></span>
-    <input id="supply-slider" type="range" min="-10" max="110" step="1" value="20">
+    <input id="supply-slider" type="range" min="-50" max="50" step="1" value="0">
     <span id="supply-val"></span>
-    <input id="slope-d-slider" type="range" min="0.3" max="3" step="0.1" value="1">
+    <input id="slope-d-slider" type="range" min="-0.5" max="0.5" step="0.05" value="0">
     <span id="slope-d-val"></span>
-    <input id="slope-s-slider" type="range" min="0.3" max="3" step="0.1" value="1">
+    <input id="slope-s-slider" type="range" min="-0.5" max="0.5" step="0.05" value="0">
     <span id="slope-s-val"></span>
     <input id="tax-toggle" type="checkbox">
     <input type="radio" name="tax-mode" id="tax-mode-specific" value="specific" checked>
@@ -89,10 +89,41 @@ describe('initIndirectTaxPage', () => {
     expect(document.querySelector('#advalorem-slider-wrap').classList.contains('open')).toBe(true);
   });
 
-  it('changes the computed outcome when demand elasticity is adjusted away from 1', () => {
-    document.querySelector('#slope-d-slider').value = '2';
+  it('shows the true point elasticity at equilibrium, rising as the elasticity slider is dragged right (flatter)', () => {
+    expect(document.querySelector('#slope-d-val').textContent).toBe('1.33 · elastic');
+    document.querySelector('#slope-d-slider').value = '0.5';
     document.querySelector('#slope-d-slider').dispatchEvent(new Event('input'));
-    expect(document.querySelector('#stat-price-consumer').textContent).not.toBe('$80.00');
+    expect(document.querySelector('#slope-d-val').textContent).toBe('4.22 · elastic');
+    document.querySelector('#slope-d-slider').value = '-0.5';
+    document.querySelector('#slope-d-slider').dispatchEvent(new Event('input'));
+    expect(document.querySelector('#slope-d-val').textContent).toBe('0.42 · inelastic');
+  });
+
+  it('shows a supply readout that rises as the slider is dragged right toward more supply', () => {
+    document.querySelector('#supply-slider').value = '10';
+    document.querySelector('#supply-slider').dispatchEvent(new Event('input'));
+    expect(document.querySelector('#supply-val').textContent).toBe('+10');
+    expect(document.querySelector('#stat-qty').textContent).toBe('65.0');
+  });
+
+  it('shifts the tax burden toward producers when demand is made more elastic', () => {
+    document.querySelector('#tax-toggle').checked = true;
+    document.querySelector('#tax-toggle').dispatchEvent(new Event('change'));
+    document.querySelector('#slope-d-slider').value = '0.5';
+    document.querySelector('#slope-d-slider').dispatchEvent(new Event('input'));
+    const money = (id) => +document.querySelector(id).textContent.replace(/[$,]/g, '');
+    expect(money('#stat-incidence-consumer')).toBeLessThan(money('#stat-incidence-producer'));
+  });
+
+  it('describes the lost trades using the correct price bands', () => {
+    document.querySelector('#tax-toggle').checked = true;
+    document.querySelector('#tax-toggle').dispatchEvent(new Event('change'));
+    const note = document.querySelector('#market-note').textContent;
+    expect(note).toContain('$100 of surplus is lost.');
+    expect(note).toContain('10.0 fewer units are traded');
+    expect(note).toContain('$80–$90');
+    expect(note).toContain('$70–$80');
+    expect(note).toContain('$20 tax');
   });
 
   it('shows consumer and producer surplus stats alongside tax revenue', () => {

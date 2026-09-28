@@ -6,13 +6,13 @@ function buildDom() {
     <div id="mini-header"></div>
     <svg id="chart" class="market-chart"></svg>
     <span id="status-pill"></span>
-    <input id="demand-slider" type="range" min="70" max="170" step="1" value="140">
+    <input id="demand-slider" type="range" min="-50" max="50" step="1" value="0">
     <span id="demand-val"></span>
-    <input id="supply-slider" type="range" min="-10" max="110" step="1" value="20">
+    <input id="supply-slider" type="range" min="-50" max="50" step="1" value="0">
     <span id="supply-val"></span>
-    <input id="slope-d-slider" type="range" min="0.3" max="3" step="0.1" value="1">
+    <input id="slope-d-slider" type="range" min="-0.5" max="0.5" step="0.05" value="0">
     <span id="slope-d-val"></span>
-    <input id="slope-s-slider" type="range" min="0.3" max="3" step="0.1" value="1">
+    <input id="slope-s-slider" type="range" min="-0.5" max="0.5" step="0.05" value="0">
     <span id="slope-s-val"></span>
     <input id="subsidy-toggle" type="checkbox">
     <input id="subsidy-slider" type="range" min="0" max="60" step="1" value="20">
@@ -67,10 +67,47 @@ describe('initSubsidyPage', () => {
     expect(document.querySelector('#chart polygon.wedge-fill')).not.toBeNull();
   });
 
-  it('changes the computed outcome when demand elasticity is adjusted away from 1', () => {
-    document.querySelector('#slope-d-slider').value = '2';
+  it('shows the true point elasticity at equilibrium, rising as the elasticity slider is dragged right (flatter)', () => {
+    expect(document.querySelector('#slope-d-val').textContent).toBe('1.33 · elastic');
+    document.querySelector('#slope-d-slider').value = '0.5';
     document.querySelector('#slope-d-slider').dispatchEvent(new Event('input'));
-    expect(document.querySelector('#stat-price-consumer').textContent).not.toBe('$80.00');
+    expect(document.querySelector('#slope-d-val').textContent).toBe('4.22 · elastic');
+    document.querySelector('#slope-d-slider').value = '-0.5';
+    document.querySelector('#slope-d-slider').dispatchEvent(new Event('input'));
+    expect(document.querySelector('#slope-d-val').textContent).toBe('0.42 · inelastic');
+  });
+
+  it('shows a supply readout that rises as the slider is dragged right toward more supply', () => {
+    document.querySelector('#supply-slider').value = '10';
+    document.querySelector('#supply-slider').dispatchEvent(new Event('input'));
+    expect(document.querySelector('#supply-val').textContent).toBe('+10');
+    expect(document.querySelector('#stat-qty').textContent).toBe('65.0');
+  });
+
+  it('stops the elasticity sliders before the subsidised quantity runs off the chart', () => {
+    document.querySelector('#subsidy-toggle').checked = true;
+    document.querySelector('#subsidy-toggle').dispatchEvent(new Event('change'));
+    document.querySelector('#subsidy-slider').value = '60';
+    document.querySelector('#subsidy-slider').dispatchEvent(new Event('input'));
+    document.querySelector('#slope-d-slider').value = '0.5';
+    document.querySelector('#slope-d-slider').dispatchEvent(new Event('input'));
+    document.querySelector('#slope-s-slider').value = '0.5';
+    document.querySelector('#slope-s-slider').dispatchEvent(new Event('input'));
+    expect(+document.querySelector('#stat-qty').textContent).toBeLessThanOrEqual(100);
+    expect(+document.querySelector('#slope-s-slider').value).toBeLessThan(0.5);
+  });
+
+  it('pulls the subsidy back into range when switched on with flat curves', () => {
+    document.querySelector('#slope-d-slider').value = '0.5';
+    document.querySelector('#slope-d-slider').dispatchEvent(new Event('input'));
+    document.querySelector('#slope-s-slider').value = '0.5';
+    document.querySelector('#slope-s-slider').dispatchEvent(new Event('input'));
+    document.querySelector('#subsidy-slider').value = '60';
+    document.querySelector('#subsidy-slider').dispatchEvent(new Event('input'));
+    document.querySelector('#subsidy-toggle').checked = true;
+    document.querySelector('#subsidy-toggle').dispatchEvent(new Event('change'));
+    expect(document.querySelector('#subsidy-val').textContent).toBe('$25');
+    expect(+document.querySelector('#stat-qty').textContent).toBeLessThanOrEqual(100);
   });
 
   it('shows consumer and producer surplus stats alongside government cost', () => {

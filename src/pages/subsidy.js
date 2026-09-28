@@ -3,7 +3,7 @@ import { computeMarket } from '../lib/marketEngine.js';
 import { renderMarketChart } from '../lib/marketChart.js';
 import { fmtMoney, fmtPrice, fmtQty, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
-import { wireShiftAndSlopeInputs, updateShiftAndSlopeLabels, wireInterventionToggle } from '../lib/pageControls.js';
+import { wireShiftAndSlopeInputs, updateShiftAndSlopeLabels, wireInterventionToggle, readCurveParams, marketFits, guardSliders, settleDown } from '../lib/pageControls.js';
 import { attachRegionExplainers } from '../lib/regionExplainers.js';
 
 export function initSubsidyPage(doc) {
@@ -18,22 +18,27 @@ export function initSubsidyPage(doc) {
   // regions shift smoothly instead of snapping between free-market and subsidized states.
   let toggleCtl;
 
-  const { demandSlider, supplySlider, slopeDSlider, slopeSSlider } = wireShiftAndSlopeInputs(doc, () => render());
+  // Only a switched-on subsidy constrains the sliders — one that's off shouldn't make the
+  // curve sliders stop early for a reason the student can't see.
+  function isValid() {
+    const intervention = subsidyToggle.checked ? { type: 'subsidy', amount: +subsidySlider.value } : null;
+    return marketFits(readCurveParams(sliders).market, intervention);
+  }
+
+  const sliders = wireShiftAndSlopeInputs(doc, () => render(), isValid);
 
   function render() {
-    const demand = +demandSlider.value;
-    const supply = +supplySlider.value;
-    const slopeD = +slopeDSlider.value;
-    const slopeS = +slopeSSlider.value;
+    const curve = readCurveParams(sliders);
+    const { market } = curve;
     const subsidyOn = subsidyToggle.checked;
     const amount = +subsidySlider.value;
 
-    updateShiftAndSlopeLabels(doc, { demand, supply, slopeD, slopeS });
+    updateShiftAndSlopeLabels(doc, curve);
     doc.querySelector('#subsidy-val').textContent = '$' + amount;
 
     const subsidyFraction = toggleCtl.getFraction();
     const intervention = subsidyFraction > 0 ? { type: 'subsidy', amount: amount * subsidyFraction } : { type: 'none' };
-    const result = computeMarket({ demand, supply, slopeD, slopeS, intervention });
+    const result = computeMarket({ ...market, intervention });
 
     renderMarketChart(chart, result);
 
@@ -55,8 +60,9 @@ export function initSubsidyPage(doc) {
         : '';
   }
 
+  guardSliders([subsidySlider], isValid);
   subsidySlider.addEventListener('input', render);
-  toggleCtl = wireInterventionToggle(subsidyToggle, render);
+  toggleCtl = wireInterventionToggle(subsidyToggle, render, { beforeOn: () => settleDown(subsidySlider, isValid) });
 
   render();
   attachRegionExplainers(chart);

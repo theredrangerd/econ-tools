@@ -9,10 +9,17 @@ export function setStatusPill(pill, text, mode) {
   pill.className = 'status-pill' + (mode ? ' ' + mode : '');
 }
 
-export function elasticityLabel(slope) {
-  if (slope < 0.5) return 'very elastic';
-  if (slope < 0.85) return 'elastic';
-  if (slope <= 1.15) return 'unit elastic';
-  if (slope < 2) return 'inelastic';
-  return 'very inelastic';
+// Takes a real point elasticity (absolute value), never a slope — see pointElasticities()
+// in marketEngine.js. "Unit elastic" only when it rounds to exactly 1.00 as displayed.
+export function elasticityLabel(e) {
+  if (e == null) return '—';
+  const shown = e.toFixed(2);
+  if (shown === '1.00') return '1.00 · unit elastic';
+  return shown + (e > 1 ? ' · elastic' : ' · inelastic');
+}
+
+export function fmtShift(v) {
+  if (v > 0) return '+' + v;
+  if (v < 0) return '−' + Math.abs(v);
+  return '0';
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeMarket } from './marketEngine.js';
+import { computeMarket, fitsChart, pointElasticities } from './marketEngine.js';
 
 const base = { demand: 140, supply: 20, slopeD: 1, slopeS: 1 };
 
@@ -156,5 +156,31 @@ describe('computeMarket — subsidy', () => {
     const r = computeMarket({ demand: 10, supply: 50, slopeD: 1, slopeS: 1, intervention: { type: 'subsidy', amount: 20 } });
     expect(r.noTrade).toBe(true);
     expect(r.govCost).toBe(0);
+  });
+});
+
+describe('computeMarket — no clamping inside the economics', () => {
+  it('keeps the equilibrium on both curves even when it lies past the chart edge', () => {
+    const r = computeMarket({ demand: 140, supply: 20, slopeD: 0.3, slopeS: 0.3 });
+    expect(r.Qstar).toBeCloseTo(200);
+    expect(r.Pd(r.Qstar)).toBeCloseTo(r.Ps(r.Qstar));
+    expect(fitsChart(r)).toBe(false);
+  });
+
+  it('reports fitsChart true for the default market', () => {
+    expect(fitsChart(computeMarket(base))).toBe(true);
+  });
+});
+
+describe('pointElasticities', () => {
+  it('measures elasticity from P/Q at equilibrium, not from slope alone', () => {
+    const { ped, pes } = pointElasticities(computeMarket(base));
+    // slope 1 on both curves, but P*/Q* = 80/60 — elastic, not "unit elastic"
+    expect(ped).toBeCloseTo(4 / 3);
+    expect(pes).toBeCloseTo(4 / 3);
+  });
+
+  it('returns nulls when no trade occurs', () => {
+    expect(pointElasticities(computeMarket({ demand: 10, supply: 50, slopeD: 1, slopeS: 1 }))).toEqual({ ped: null, pes: null });
   });
 });

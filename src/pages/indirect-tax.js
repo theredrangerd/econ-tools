@@ -3,7 +3,7 @@ import { computeMarket } from '../lib/marketEngine.js';
 import { renderMarketChart } from '../lib/marketChart.js';
 import { fmtMoney, fmtPrice, fmtQty, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
-import { wireShiftAndSlopeInputs, updateShiftAndSlopeLabels, wireInterventionToggle } from '../lib/pageControls.js';
+import { wireShiftAndSlopeInputs, updateShiftAndSlopeLabels, wireInterventionToggle, readCurveParams, marketFits, guardSliders, settleDown } from '../lib/pageControls.js';
 import { attachRegionExplainers } from '../lib/regionExplainers.js';
 
 export function initIndirectTaxPage(doc) {
@@ -23,20 +23,35 @@ export function initIndirectTaxPage(doc) {
   // regions shift smoothly instead of snapping between free-market and taxed states.
   let toggleCtl;
 
-  const { demandSlider, supplySlider, slopeDSlider, slopeSSlider } = wireShiftAndSlopeInputs(doc, () => render());
+  function currentMode() {
+    return modeAdvalorem.checked ? 'advalorem' : 'specific';
+  }
+
+  // The tax at its full slider value (ignoring the toggle's animation fraction).
+  function fullTax(mode = currentMode()) {
+    return mode === 'advalorem'
+      ? { type: 'tax', mode: 'advalorem', rate: (+advaloremSlider.value) / 100 }
+      : { type: 'tax', mode: 'specific', amount: +specificSlider.value };
+  }
+
+  // Only a switched-on tax constrains the sliders — a tax that's off shouldn't make the
+  // curve sliders stop early for a reason the student can't see.
+  function isValid() {
+    return marketFits(readCurveParams(sliders).market, taxToggle.checked ? fullTax() : null);
+  }
+
+  const sliders = wireShiftAndSlopeInputs(doc, () => render(), isValid);
 
   function render() {
-    const demand = +demandSlider.value;
-    const supply = +supplySlider.value;
-    const slopeD = +slopeDSlider.value;
-    const slopeS = +slopeSSlider.value;
+    const curve = readCurveParams(sliders);
+    const { market } = curve;
     const taxOn = taxToggle.checked;
-    const mode = modeAdvalorem.checked ? 'advalorem' : 'specific';
+    const mode = currentMode();
 
     specificSliderWrap.classList.toggle('open', mode === 'specific');
     advaloremSliderWrap.classList.toggle('open', mode === 'advalorem');
 
-    updateShiftAndSlopeLabels(doc, { demand, supply, slopeD, slopeS });
+    updateShiftAndSlopeLabels(doc, curve);
     doc.querySelector('#specific-val').textContent = '$' + specificSlider.value;
     doc.querySelector('#advalorem-val').textContent = advaloremSlider.value + '%';
 
@@ -47,7 +62,7 @@ export function initIndirectTaxPage(doc) {
         ? { type: 'tax', mode: 'advalorem', rate: ((+advaloremSlider.value) / 100) * taxFraction }
         : { type: 'tax', mode: 'specific', amount: (+specificSlider.value) * taxFraction });
 
-    const result = computeMarket({ demand, supply, slopeD, slopeS, intervention });
+    const result = computeMarket({ ...market, intervention });
 
     renderMarketChart(chart, result);
 
@@ -66,15 +81,23 @@ export function initIndirectTaxPage(doc) {
     if (result.noTrade) {
       note.innerHTML = '<strong>No trade occurs.</strong> Shift the sliders so demand sits above supply.';
     } else if (taxFraction > 0) {
-      note.innerHTML = `<strong>${fmtMoney(result.DWL)} of surplus is lost.</strong> The tax wedge stops mutually beneficial trades between consumers who value the good above $${result.Pp.toFixed(0)} and sellers who would supply it below $${result.Pc.toFixed(0)}.`;
+      // The lost units run from Q to Q*: buyers value them between P* and Pc, and they
+      // cost sellers between Pp and P* — worth more than they cost, but not worth Pc.
+      const taxText = mode === 'advalorem' ? `${advaloremSlider.value}% tax` : `$${specificSlider.value} tax`;
+      note.innerHTML = `<strong>${fmtMoney(result.DWL)} of surplus is lost.</strong> ${fmtQty(result.Qstar - result.Q)} fewer units are traded. Buyers value each of them at $${result.Pstar.toFixed(0)}–$${result.Pc.toFixed(0)}, more than the $${result.Pp.toFixed(0)}–$${result.Pstar.toFixed(0)} they cost sellers to make — but with the ${taxText} on top, those trades no longer happen.`;
     } else {
       note.innerHTML = '';
     }
   }
 
+  const settleActiveSlider = () => settleDown(currentMode() === 'advalorem' ? advaloremSlider : specificSlider, isValid);
+  guardSliders([specificSlider, advaloremSlider], isValid);
   [specificSlider, advaloremSlider].forEach((input) => input.addEventListener('input', render));
-  [modeSpecific, modeAdvalorem].forEach((input) => input.addEventListener('change', render));
-  toggleCtl = wireInterventionToggle(taxToggle, render);
+  [modeSpecific, modeAdvalorem].forEach((input) => input.addEventListener('change', () => {
+    settleActiveSlider();
+    render();
+  }));
+  toggleCtl = wireInterventionToggle(taxToggle, render, { beforeOn: settleActiveSlider });
 
   render();
   attachRegionExplainers(chart);

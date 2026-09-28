@@ -44,9 +44,11 @@ function clipSupply(Smin, slopeS) {
 // after an ad valorem tax, it shifts by a constant multiple (the line pivots at the price axis).
 function shiftedSupplyParams(result) {
   const { Smin, slopeS, Pc, Pp } = result;
+  // Pc/Pp only feed the specific-tax/subsidy branches — the ad valorem pivot comes from
+  // taxRate directly, since Pc / Pp divides by zero whenever the producer price hits $0.
   if (result.mode === 'tax') {
     if (result.interventionMode === 'advalorem') {
-      const k = Pc / Pp;
+      const k = 1 + result.taxRate;
       return { Smin: Smin * k, slopeS: slopeS * k };
     }
     const wedge = Pc - Pp;
