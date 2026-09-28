@@ -75,9 +75,16 @@ describe('renderBento', () => {
   });
 
   it('applies an accent modifier class for a known non-unit slug without requiring a background image', () => {
+    renderBento(container, [{ name: 'Government Intervention', slug: 'government-intervention', status: 'built', href: '/x.html' }], { tiered: false });
+    const tile = container.querySelector('a.bento__tile');
+    expect(tile.className).toContain('bento__tile--government-intervention');
+    expect(tile.style.backgroundImage).toBe('');
+  });
+
+  it('applies both an accent modifier class and a background image for a diagram slug with its own photo', () => {
     renderBento(container, [{ name: 'Price ceiling', slug: 'price-ceiling', status: 'built', href: '/x.html', level: 'SL' }], { tiered: false });
     const tile = container.querySelector('a.bento__tile');
     expect(tile.className).toContain('bento__tile--price-ceiling');
-    expect(tile.style.backgroundImage).toBe('');
+    expect(tile.style.backgroundImage).toMatch(/^url\(.*\.(svg|jpg|jpeg|webp|png)["']?\)$/);
   });
 });

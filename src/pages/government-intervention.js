@@ -22,7 +22,8 @@ export function initGovernmentInterventionPage(doc) {
     name: diagram.name,
     status: diagram.status,
     level: diagram.level,
+    tier: 'medium',
     href: diagramHref(unit, family, diagram),
   }));
-  renderBento(doc.querySelector('#diagram-bento'), diagrams, { tiered: false });
+  renderBento(doc.querySelector('#diagram-bento'), diagrams, { className: 'bento--diagrams' });
 }

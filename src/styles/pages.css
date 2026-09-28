@@ -131,6 +131,15 @@ header.top .lede {
   box-shadow: var(--shadow);
   text-decoration: none;
   color: var(--ink);
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.bento__tile:hover,
+.bento__tile:focus-visible {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--tile-tint, var(--hairline-2)) 70%, var(--hairline-2));
+  box-shadow: 0 4px 10px rgba(21,25,31,0.08), 0 16px 32px -14px rgba(21,25,31,0.28);
 }
 
 .bento__tile::before {
@@ -146,6 +155,12 @@ header.top .lede {
     color-mix(in srgb, var(--surface) 48%, transparent) 25%,
     transparent 50%
   );
+  transition: background-color 0.18s ease;
+}
+
+.bento__tile:hover::before,
+.bento__tile:focus-visible::before {
+  background-color: color-mix(in srgb, var(--tile-tint, transparent) 85%, var(--ink) 15%);
 }
 
 .bento__tile > * {
@@ -159,6 +174,7 @@ header.top .lede {
   font-size: 17px;
   letter-spacing: 0.01em;
   margin: 0;
+  color: var(--ink);
   text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 70%, transparent);
 }
 
@@ -177,6 +193,10 @@ header.top .lede {
   grid-row: span 1;
 }
 
+.bento--diagrams {
+  grid-auto-rows: 200px;
+}
+
 .bento__tile--microeconomics { border-color: var(--unit-microeconomics); --tile-tint: var(--unit-microeconomics-fill); }
 .bento__tile--macroeconomics { border-color: var(--unit-macroeconomics); --tile-tint: var(--unit-macroeconomics-fill); }
 .bento__tile--international { border-color: var(--unit-international); --tile-tint: var(--unit-international-fill); }
@@ -187,6 +207,26 @@ header.top .lede {
 .bento__tile--price-floor,
 .bento__tile--indirect-tax,
 .bento__tile--subsidy { border-color: var(--dwl-line); --tile-tint: var(--dwl-fill); }
+
+/* Government Intervention diagram tiles are photographic backdrops (real-world policy
+   examples), so they fill the card edge-to-edge like the unit tiles, rather than the
+   small centered `contain` sizing used for the schematic unit SVGs above. */
+.bento__tile--price-ceiling {
+  background-size: cover;
+  background-position: center 30%;
+}
+.bento__tile--price-floor {
+  background-size: cover;
+  background-position: center 65%;
+}
+.bento__tile--indirect-tax {
+  background-size: cover;
+  background-position: center 45%;
+}
+.bento__tile--subsidy {
+  background-size: cover;
+  background-position: center 62%;
+}
 
 /* Government Intervention family accent: red, used on the family page and its four diagram pages. */
 body.theme-government-intervention {

@@ -3,12 +3,20 @@ import microeconomicsImg from '../assets/bento/microeconomics.svg';
 import macroeconomicsImg from '../assets/bento/macroeconomics.svg';
 import internationalImg from '../assets/bento/international.svg';
 import developmentImg from '../assets/bento/development.svg';
+import subsidyImg from '../assets/bento/subsidy.jpg';
+import priceFloorImg from '../assets/bento/price-floor.jpg';
+import indirectTaxImg from '../assets/bento/indirect-tax.jpg';
+import priceCeilingImg from '../assets/bento/price-ceiling.jpg';
 
 const UNIT_TILE_IMAGES = {
   microeconomics: microeconomicsImg,
   macroeconomics: macroeconomicsImg,
   international: internationalImg,
   development: developmentImg,
+  subsidy: subsidyImg,
+  'price-floor': priceFloorImg,
+  'indirect-tax': indirectTaxImg,
+  'price-ceiling': priceCeilingImg,
 };
 
 // Slugs with their own accent-color CSS rule (`.bento__tile--<slug>` in pages.css),
@@ -21,7 +29,7 @@ const ACCENTED_SLUGS = new Set([
 export function renderBento(container, items, options = {}) {
   const tiered = options.tiered !== false;
   container.innerHTML = '';
-  container.className = 'bento';
+  container.className = options.className ? `bento ${options.className}` : 'bento';
   items.forEach((item) => {
     const tile = document.createElement('a');
     tile.href = item.href;
