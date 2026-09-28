@@ -103,15 +103,26 @@ const MODE_LABELS = {
 function drawWedgeLines(svg, result) {
   if (result.mode === 'ceiling' || result.mode === 'floor') {
     const y = sy(result.Pc);
-    svg.appendChild(el('line', { x1: M.left, y1: y, x2: M.left + plotW, y2: y, stroke: 'var(--dwl-line)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'));
+    // Grouped under data-region so regionExplainers.js can hover/click it as a unit; the
+    // wide transparent line gives the thin dashed line a comfortably large hit target.
+    const g = el('g', { 'data-region': result.mode }, 'region region--line');
+    g.appendChild(el('line', { x1: M.left, y1: y, x2: M.left + plotW, y2: y, stroke: 'transparent', 'stroke-width': 18 }, 'region-hit'));
+    g.appendChild(el('line', { x1: M.left, y1: y, x2: M.left + plotW, y2: y, stroke: 'var(--dwl-line)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line region-visible'));
     const lbl = el('text', { x: M.left + plotW - 6, y: y - 6, 'text-anchor': 'end', fill: 'var(--dwl-line)' }, 'tick-label');
     lbl.textContent = MODE_LABELS[result.mode];
-    svg.appendChild(lbl);
+    g.appendChild(lbl);
+    svg.appendChild(g);
   } else if (result.mode === 'tax' || result.mode === 'subsidy') {
-    svg.appendChild(el('polygon', { points: pts(result.wedgePoly), fill: 'none', stroke: 'var(--gov)', 'stroke-width': 1.3, 'stroke-dasharray': '4,3' }, 'wedge-outline'));
+    // The consumer/producer reference lines only run from Q to the right edge — inside
+    // the box (0 to Q) they'd sit exactly on top of the wedge outline's top/bottom edges,
+    // and since these are drawn after the outline (see below) they'd paint over its dashes.
     const yc = sy(result.Pc), yp = sy(result.Pp);
-    svg.appendChild(el('line', { x1: M.left, y1: yc, x2: M.left + plotW, y2: yc, stroke: 'var(--demand)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'));
-    svg.appendChild(el('line', { x1: M.left, y1: yp, x2: M.left + plotW, y2: yp, stroke: 'var(--supply)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'));
+    const xQ = sx(result.Q);
+    svg.appendChild(el('line', { x1: xQ, y1: yc, x2: M.left + plotW, y2: yc, stroke: 'var(--demand)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'));
+    svg.appendChild(el('line', { x1: xQ, y1: yp, x2: M.left + plotW, y2: yp, stroke: 'var(--supply)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'));
+    // Outline drawn last so it renders on top of the reference lines above at their
+    // shared corners (x=Q), keeping the box border crisp instead of getting erased.
+    svg.appendChild(el('polygon', { points: pts(result.wedgePoly), fill: 'none', stroke: 'var(--gov)', 'stroke-width': 2.2, 'stroke-dasharray': '5,4' }, 'wedge-outline'));
     // Anchored at the y-axis (left), not the right edge, so these never collide with the
     // S1/S2 curve labels which sit at the right edge once a second supply line is drawn.
     // Each label sits on the OUTER side of its own line (above the higher line, below the
@@ -153,8 +164,14 @@ export function renderMarketChart(svg, result) {
   while (layer.firstChild) layer.removeChild(layer.firstChild);
 
   if (!result.noTrade) {
-    layer.appendChild(el('polygon', { points: pts(result.csPoly), fill: 'var(--demand-fill)' }, 'cs-fill'));
-    layer.appendChild(el('polygon', { points: pts(result.psPoly), fill: 'var(--supply-fill)' }, 'ps-fill'));
+    // Grouped under data-region so regionExplainers.js can hover/click the whole shaded
+    // area as one unit (currently wired up on the price-ceiling page only).
+    const csG = el('g', { 'data-region': 'cs' }, 'region region--fill');
+    csG.appendChild(el('polygon', { points: pts(result.csPoly), fill: 'var(--demand-fill)' }, 'cs-fill'));
+    layer.appendChild(csG);
+    const psG = el('g', { 'data-region': 'ps' }, 'region region--fill');
+    psG.appendChild(el('polygon', { points: pts(result.psPoly), fill: 'var(--supply-fill)' }, 'ps-fill'));
+    layer.appendChild(psG);
     if (result.mode === 'tax' || result.mode === 'subsidy') {
       // The wedge is split at the pre-intervention price into a consumer-incidence portion
       // (tinted with the demand color) and a producer-incidence portion (tinted with the
@@ -179,9 +196,11 @@ export function renderMarketChart(svg, result) {
       // fill drawn above, and both are translucent — without an opaque backing the
       // wedge's demand-alt/supply-alt tint shows through the DWL hatch, reading as a
       // yellowish/bluish tinge instead of plain DWL red.
-      layer.appendChild(el('polygon', { points: pts(result.dwlPoly), fill: 'var(--surface)' }, 'dwl-backing'));
-      layer.appendChild(el('polygon', { points: pts(result.dwlPoly), fill: 'url(#dwlHatch)' }, 'dwl-fill'));
-      layer.appendChild(el('polygon', { points: pts(result.dwlPoly), fill: 'none', stroke: 'var(--dwl-line)', 'stroke-width': 1.3, 'stroke-dasharray': '3,2' }, 'dwl-outline'));
+      const dwlG = el('g', { 'data-region': 'dwl' }, 'region region--fill');
+      dwlG.appendChild(el('polygon', { points: pts(result.dwlPoly), fill: 'var(--surface)' }, 'dwl-backing'));
+      dwlG.appendChild(el('polygon', { points: pts(result.dwlPoly), fill: 'url(#dwlHatch)' }, 'dwl-fill'));
+      dwlG.appendChild(el('polygon', { points: pts(result.dwlPoly), fill: 'none', stroke: 'var(--dwl-line)', 'stroke-width': 1.3, 'stroke-dasharray': '3,2' }, 'dwl-outline'));
+      layer.appendChild(dwlG);
     }
   }
 

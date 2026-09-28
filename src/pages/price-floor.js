@@ -1,27 +1,24 @@
 import { renderMiniHeader } from '../components/chrome.js';
 import { computeMarket } from '../lib/marketEngine.js';
 import { renderMarketChart } from '../lib/marketChart.js';
-import { fmtMoney, fmtPrice, fmtQty, elasticityLabel, setStatusPill } from '../lib/format.js';
+import { fmtMoney, fmtPrice, fmtQty, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
-import { tweenValue } from '../lib/animate.js';
+import { wireShiftAndSlopeInputs, updateShiftAndSlopeLabels, wireInterventionToggle } from '../lib/pageControls.js';
 
 export function initPriceFloorPage(doc) {
   const { backHref, backLabel, siblings } = getFamilyNav('price-floor');
   renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Price floor', backHref, backLabel, siblings });
 
   const chart = doc.querySelector('#chart');
-  const demandSlider = doc.querySelector('#demand-slider');
-  const supplySlider = doc.querySelector('#supply-slider');
-  const slopeDSlider = doc.querySelector('#slope-d-slider');
-  const slopeSSlider = doc.querySelector('#slope-s-slider');
   const floorToggle = doc.querySelector('#floor-toggle');
   const floorSlider = doc.querySelector('#floor-slider');
 
   // Animates the floor in/out on toggle: it slides from the free-market equilibrium
   // price (where a floor has zero effect) up to its slider price, so the surplus grows
   // in smoothly instead of the line snapping straight to its target.
-  let floorFraction = floorToggle.checked ? 1 : 0;
-  let cancelAnim = null;
+  let toggleCtl;
+
+  const { demandSlider, supplySlider, slopeDSlider, slopeSSlider } = wireShiftAndSlopeInputs(doc, () => render());
 
   function render() {
     const demand = +demandSlider.value;
@@ -30,13 +27,11 @@ export function initPriceFloorPage(doc) {
     const slopeS = +slopeSSlider.value;
     const floorPrice = +floorSlider.value;
 
-    doc.querySelector('#demand-val').textContent = demand;
-    doc.querySelector('#supply-val').textContent = supply;
-    doc.querySelector('#slope-d-val').textContent = slopeD.toFixed(1) + ' · ' + elasticityLabel(slopeD);
-    doc.querySelector('#slope-s-val').textContent = slopeS.toFixed(1) + ' · ' + elasticityLabel(slopeS);
+    updateShiftAndSlopeLabels(doc, { demand, supply, slopeD, slopeS });
     doc.querySelector('#floor-val').textContent = '$' + floorPrice;
 
     const { Pstar } = computeMarket({ demand, supply, slopeD, slopeS, intervention: { type: 'none' } });
+    const floorFraction = toggleCtl.getFraction();
     const displayPrice = Pstar + (floorPrice - Pstar) * floorFraction;
     const intervention = floorFraction > 0 ? { type: 'floor', price: displayPrice } : { type: 'none' };
     const result = computeMarket({ demand, supply, slopeD, slopeS, intervention });
@@ -63,16 +58,8 @@ export function initPriceFloorPage(doc) {
     }
   }
 
-  [demandSlider, supplySlider, slopeDSlider, slopeSSlider, floorSlider].forEach((input) => input.addEventListener('input', render));
-  floorToggle.addEventListener('change', () => {
-    if (cancelAnim) cancelAnim();
-    cancelAnim = tweenValue({
-      from: floorFraction,
-      to: floorToggle.checked ? 1 : 0,
-      onUpdate(v) { floorFraction = v; render(); },
-      onComplete() { cancelAnim = null; },
-    });
-  });
+  floorSlider.addEventListener('input', render);
+  toggleCtl = wireInterventionToggle(floorToggle, render);
 
   render();
 }

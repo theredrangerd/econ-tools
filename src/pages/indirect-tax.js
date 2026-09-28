@@ -1,19 +1,15 @@
 import { renderMiniHeader } from '../components/chrome.js';
 import { computeMarket } from '../lib/marketEngine.js';
 import { renderMarketChart } from '../lib/marketChart.js';
-import { fmtMoney, fmtPrice, fmtQty, elasticityLabel, setStatusPill } from '../lib/format.js';
+import { fmtMoney, fmtPrice, fmtQty, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
-import { tweenValue } from '../lib/animate.js';
+import { wireShiftAndSlopeInputs, updateShiftAndSlopeLabels, wireInterventionToggle } from '../lib/pageControls.js';
 
 export function initIndirectTaxPage(doc) {
   const { backHref, backLabel, siblings } = getFamilyNav('indirect-tax');
   renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Indirect tax', backHref, backLabel, siblings });
 
   const chart = doc.querySelector('#chart');
-  const demandSlider = doc.querySelector('#demand-slider');
-  const supplySlider = doc.querySelector('#supply-slider');
-  const slopeDSlider = doc.querySelector('#slope-d-slider');
-  const slopeSSlider = doc.querySelector('#slope-s-slider');
   const taxToggle = doc.querySelector('#tax-toggle');
   const modeSpecific = doc.querySelector('#tax-mode-specific');
   const modeAdvalorem = doc.querySelector('#tax-mode-advalorem');
@@ -24,8 +20,9 @@ export function initIndirectTaxPage(doc) {
 
   // Animates the tax's magnitude in/out on toggle so the supply curve and its shaded
   // regions shift smoothly instead of snapping between free-market and taxed states.
-  let taxFraction = taxToggle.checked ? 1 : 0;
-  let cancelAnim = null;
+  let toggleCtl;
+
+  const { demandSlider, supplySlider, slopeDSlider, slopeSSlider } = wireShiftAndSlopeInputs(doc, () => render());
 
   function render() {
     const demand = +demandSlider.value;
@@ -38,13 +35,11 @@ export function initIndirectTaxPage(doc) {
     specificSliderWrap.classList.toggle('open', mode === 'specific');
     advaloremSliderWrap.classList.toggle('open', mode === 'advalorem');
 
-    doc.querySelector('#demand-val').textContent = demand;
-    doc.querySelector('#supply-val').textContent = supply;
-    doc.querySelector('#slope-d-val').textContent = slopeD.toFixed(1) + ' · ' + elasticityLabel(slopeD);
-    doc.querySelector('#slope-s-val').textContent = slopeS.toFixed(1) + ' · ' + elasticityLabel(slopeS);
+    updateShiftAndSlopeLabels(doc, { demand, supply, slopeD, slopeS });
     doc.querySelector('#specific-val').textContent = '$' + specificSlider.value;
     doc.querySelector('#advalorem-val').textContent = advaloremSlider.value + '%';
 
+    const taxFraction = toggleCtl.getFraction();
     const intervention = taxFraction <= 0
       ? { type: 'none' }
       : (mode === 'advalorem'
@@ -76,17 +71,9 @@ export function initIndirectTaxPage(doc) {
     }
   }
 
-  [demandSlider, supplySlider, slopeDSlider, slopeSSlider, specificSlider, advaloremSlider].forEach((input) => input.addEventListener('input', render));
+  [specificSlider, advaloremSlider].forEach((input) => input.addEventListener('input', render));
   [modeSpecific, modeAdvalorem].forEach((input) => input.addEventListener('change', render));
-  taxToggle.addEventListener('change', () => {
-    if (cancelAnim) cancelAnim();
-    cancelAnim = tweenValue({
-      from: taxFraction,
-      to: taxToggle.checked ? 1 : 0,
-      onUpdate(v) { taxFraction = v; render(); },
-      onComplete() { cancelAnim = null; },
-    });
-  });
+  toggleCtl = wireInterventionToggle(taxToggle, render);
 
   render();
 }

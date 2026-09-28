@@ -621,3 +621,62 @@ input[type="range"]::-moz-range-thumb {
 .market-chart .axis-label { fill: var(--ink-muted); font-size: 12px; }
 .market-chart .tick-label { fill: var(--ink-muted); font-size: 10.5px; font-family: "IBM Plex Mono", monospace; }
 .market-chart .curve-label { font-size: 12.5px; font-weight: 600; font-family: "IBM Plex Sans", sans-serif; }
+
+/* Click-to-explain regions (regionExplainers.js): hover "pops" the region so a student
+   notices it's interactive before they click; the fill scales from its own center via
+   fill-box rather than the viewBox origin, so it grows outward evenly in place. */
+.market-chart .region { cursor: pointer; }
+.market-chart .region--fill {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 150ms ease, filter 150ms ease;
+}
+.market-chart .region--fill.region-hover,
+.market-chart .region--fill.region-active {
+  transform: scale(1.045);
+  filter: brightness(1.18);
+}
+.market-chart .region--line .region-visible {
+  transition: stroke-width 150ms ease, filter 150ms ease;
+}
+.market-chart .region--line.region-hover .region-visible,
+.market-chart .region--line.region-active .region-visible {
+  stroke-width: 3;
+  filter: brightness(1.35);
+}
+
+.region-popover {
+  position: fixed;
+  z-index: 60;
+  max-width: 260px;
+  background: var(--surface-2);
+  border: 1px solid var(--hairline-2);
+  border-radius: 10px;
+  padding: 12px 16px 14px;
+  box-shadow: var(--shadow);
+  font-family: "IBM Plex Sans", sans-serif;
+}
+.region-popover h4 {
+  margin: 0 4px 6px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.region-popover p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-secondary);
+}
+.region-popover__close {
+  float: right;
+  margin: -4px -8px 0 8px;
+  border: none;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+}
+.region-popover__close:hover { color: var(--ink); }
