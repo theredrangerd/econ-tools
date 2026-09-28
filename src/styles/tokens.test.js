@@ -16,9 +16,14 @@ describe('design tokens stylesheet', () => {
     });
   });
 
-  it('defines a dark-mode override block', () => {
+  it('does not auto-switch to dark mode based on OS preference', () => {
     const css = readTokensCss();
-    expect(css).toContain('prefers-color-scheme: dark');
+    expect(css).not.toContain('prefers-color-scheme: dark');
+  });
+
+  it('keeps a manual dark-theme override block for future use', () => {
+    const css = readTokensCss();
+    expect(css).toContain('data-theme="dark"');
   });
 
   it('defines a microeconomics unit accent token, independent of tile tier', () => {
