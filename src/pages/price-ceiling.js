@@ -3,6 +3,7 @@ import { computeMarket } from '../lib/marketEngine.js';
 import { renderMarketChart } from '../lib/marketChart.js';
 import { fmtMoney, fmtPrice, fmtQty, elasticityLabel, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
+import { tweenValue } from '../lib/animate.js';
 
 export function initPriceCeilingPage(doc) {
   const { backHref, backLabel, siblings } = getFamilyNav('price-ceiling');
@@ -16,12 +17,17 @@ export function initPriceCeilingPage(doc) {
   const ceilingToggle = doc.querySelector('#ceiling-toggle');
   const ceilingSlider = doc.querySelector('#ceiling-slider');
 
+  // Animates the ceiling in/out on toggle: it slides from the free-market equilibrium
+  // price (where a ceiling has zero effect) down to its slider price, so the shortage
+  // grows in smoothly instead of the line snapping straight to its target.
+  let ceilingFraction = ceilingToggle.checked ? 1 : 0;
+  let cancelAnim = null;
+
   function render() {
     const demand = +demandSlider.value;
     const supply = +supplySlider.value;
     const slopeD = +slopeDSlider.value;
     const slopeS = +slopeSSlider.value;
-    const ceilingOn = ceilingToggle.checked;
     const ceilingPrice = +ceilingSlider.value;
 
     doc.querySelector('#demand-val').textContent = demand;
@@ -30,7 +36,9 @@ export function initPriceCeilingPage(doc) {
     doc.querySelector('#slope-s-val').textContent = slopeS.toFixed(1) + ' · ' + elasticityLabel(slopeS);
     doc.querySelector('#ceiling-val').textContent = '$' + ceilingPrice;
 
-    const intervention = ceilingOn ? { type: 'ceiling', price: ceilingPrice } : { type: 'none' };
+    const { Pstar } = computeMarket({ demand, supply, slopeD, slopeS, intervention: { type: 'none' } });
+    const displayPrice = Pstar + (ceilingPrice - Pstar) * ceilingFraction;
+    const intervention = ceilingFraction > 0 ? { type: 'ceiling', price: displayPrice } : { type: 'none' };
     const result = computeMarket({ demand, supply, slopeD, slopeS, intervention });
 
     renderMarketChart(chart, result);
@@ -56,7 +64,15 @@ export function initPriceCeilingPage(doc) {
   }
 
   [demandSlider, supplySlider, slopeDSlider, slopeSSlider, ceilingSlider].forEach((input) => input.addEventListener('input', render));
-  ceilingToggle.addEventListener('change', render);
+  ceilingToggle.addEventListener('change', () => {
+    if (cancelAnim) cancelAnim();
+    cancelAnim = tweenValue({
+      from: ceilingFraction,
+      to: ceilingToggle.checked ? 1 : 0,
+      onUpdate(v) { ceilingFraction = v; render(); },
+      onComplete() { cancelAnim = null; },
+    });
+  });
 
   render();
 }

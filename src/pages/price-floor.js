@@ -3,6 +3,7 @@ import { computeMarket } from '../lib/marketEngine.js';
 import { renderMarketChart } from '../lib/marketChart.js';
 import { fmtMoney, fmtPrice, fmtQty, elasticityLabel, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
+import { tweenValue } from '../lib/animate.js';
 
 export function initPriceFloorPage(doc) {
   const { backHref, backLabel, siblings } = getFamilyNav('price-floor');
@@ -16,12 +17,17 @@ export function initPriceFloorPage(doc) {
   const floorToggle = doc.querySelector('#floor-toggle');
   const floorSlider = doc.querySelector('#floor-slider');
 
+  // Animates the floor in/out on toggle: it slides from the free-market equilibrium
+  // price (where a floor has zero effect) up to its slider price, so the surplus grows
+  // in smoothly instead of the line snapping straight to its target.
+  let floorFraction = floorToggle.checked ? 1 : 0;
+  let cancelAnim = null;
+
   function render() {
     const demand = +demandSlider.value;
     const supply = +supplySlider.value;
     const slopeD = +slopeDSlider.value;
     const slopeS = +slopeSSlider.value;
-    const floorOn = floorToggle.checked;
     const floorPrice = +floorSlider.value;
 
     doc.querySelector('#demand-val').textContent = demand;
@@ -30,7 +36,9 @@ export function initPriceFloorPage(doc) {
     doc.querySelector('#slope-s-val').textContent = slopeS.toFixed(1) + ' · ' + elasticityLabel(slopeS);
     doc.querySelector('#floor-val').textContent = '$' + floorPrice;
 
-    const intervention = floorOn ? { type: 'floor', price: floorPrice } : { type: 'none' };
+    const { Pstar } = computeMarket({ demand, supply, slopeD, slopeS, intervention: { type: 'none' } });
+    const displayPrice = Pstar + (floorPrice - Pstar) * floorFraction;
+    const intervention = floorFraction > 0 ? { type: 'floor', price: displayPrice } : { type: 'none' };
     const result = computeMarket({ demand, supply, slopeD, slopeS, intervention });
 
     renderMarketChart(chart, result);
@@ -56,7 +64,15 @@ export function initPriceFloorPage(doc) {
   }
 
   [demandSlider, supplySlider, slopeDSlider, slopeSSlider, floorSlider].forEach((input) => input.addEventListener('input', render));
-  floorToggle.addEventListener('change', render);
+  floorToggle.addEventListener('change', () => {
+    if (cancelAnim) cancelAnim();
+    cancelAnim = tweenValue({
+      from: floorFraction,
+      to: floorToggle.checked ? 1 : 0,
+      onUpdate(v) { floorFraction = v; render(); },
+      onComplete() { cancelAnim = null; },
+    });
+  });
 
   render();
 }

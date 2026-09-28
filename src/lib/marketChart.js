@@ -114,11 +114,18 @@ function drawWedgeLines(svg, result) {
     svg.appendChild(el('line', { x1: M.left, y1: yp, x2: M.left + plotW, y2: yp, stroke: 'var(--supply)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'));
     // Anchored at the y-axis (left), not the right edge, so these never collide with the
     // S1/S2 curve labels which sit at the right edge once a second supply line is drawn.
-    const cLbl = el('text', { x: M.left + 6, y: yc - 6, 'text-anchor': 'start', fill: 'var(--demand)' }, 'tick-label');
-    cLbl.textContent = 'Price consumers pay';
+    // Each label sits on the OUTER side of its own line (above the higher line, below the
+    // lower one) rather than a fixed "consumer above / producer below" — for a tax the
+    // consumer line is the higher one so this matches the old behavior, but for a subsidy
+    // the producer line is higher, so pinning "consumer above" would push both labels into
+    // the narrow gap between the lines and they'd collide once the wedge got small.
+    const isSubsidy = result.mode === 'subsidy';
+    const consumerIsHigher = yc < yp;
+    const cLbl = el('text', { x: M.left + 6, y: consumerIsHigher ? yc - 6 : yc + 14, 'text-anchor': 'start', fill: 'var(--demand)' }, 'tick-label');
+    cLbl.textContent = isSubsidy ? 'Consumer Benefit Incidence' : 'Consumer Burden';
     svg.appendChild(cLbl);
-    const pLbl = el('text', { x: M.left + 6, y: yp + 14, 'text-anchor': 'start', fill: 'var(--supply)' }, 'tick-label');
-    pLbl.textContent = 'Price producers receive';
+    const pLbl = el('text', { x: M.left + 6, y: consumerIsHigher ? yp + 14 : yp - 6, 'text-anchor': 'start', fill: 'var(--supply)' }, 'tick-label');
+    pLbl.textContent = isSubsidy ? 'Producer Benefit Incidence' : 'Producer Burden';
     svg.appendChild(pLbl);
   } else if (result.requestedControl) {
     const { type, price } = result.requestedControl;
@@ -168,6 +175,11 @@ export function renderMarketChart(svg, result) {
       layer.appendChild(el('polygon', { points: pts(result.producerWedgePoly), fill: 'var(--supply-alt-fill)' }, 'wedge-fill wedge-fill--producer'));
     }
     if (result.dwlPoly) {
+      // For a tax or subsidy the DWL triangle sits inside the consumer/producer wedge
+      // fill drawn above, and both are translucent — without an opaque backing the
+      // wedge's demand-alt/supply-alt tint shows through the DWL hatch, reading as a
+      // yellowish/bluish tinge instead of plain DWL red.
+      layer.appendChild(el('polygon', { points: pts(result.dwlPoly), fill: 'var(--surface)' }, 'dwl-backing'));
       layer.appendChild(el('polygon', { points: pts(result.dwlPoly), fill: 'url(#dwlHatch)' }, 'dwl-fill'));
       layer.appendChild(el('polygon', { points: pts(result.dwlPoly), fill: 'none', stroke: 'var(--dwl-line)', 'stroke-width': 1.3, 'stroke-dasharray': '3,2' }, 'dwl-outline'));
     }
