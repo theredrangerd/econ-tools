@@ -15,19 +15,37 @@ function csPolyFor(Dmax, Pd, Q, price) {
   return [[0, Dmax], [Q, Pd(Q)], [Q, price], [0, price]];
 }
 
-function psPolyFor(Smin, Ps, Q, price) {
-  return [[0, Smin], [Q, Ps(Q)], [Q, price], [0, price]];
+// Points along the supply curve from quantity a to b, floored at a price of $0. A linear
+// supply curve with a negative price intercept (steep, inelastic supply) hits the quantity
+// axis at q0: the first q0 units would be supplied even at $0, so their minimum acceptable
+// price is $0, not the negative number the straight line extrapolates to. Without the
+// floor, surplus areas include a region below the axis and PS/DWL come out too big.
+function supplyPath(Smin, slopeS, a, b) {
+  const eff = (q) => Math.max(0, Smin + slopeS * q);
+  const path = [[a, eff(a)]];
+  if (Smin < 0) {
+    const q0 = -Smin / slopeS;
+    if ((q0 - a) * (q0 - b) < 0) path.push([q0, 0]);
+  }
+  path.push([b, eff(b)]);
+  return path;
 }
 
-function dwlPolyFor(Q, Pd, Ps, Qstar, Pstar) {
+function psPolyFor(Smin, slopeS, Q, price) {
+  return [...supplyPath(Smin, slopeS, 0, Q), [Q, price], [0, price]];
+}
+
+// Between demand and (floored) supply from the traded Q to Q*: works for Q < Q* (ceiling,
+// floor, tax) and Q > Q* (subsidy) alike, since the path runs Q → Q* either way.
+function dwlPolyFor(Q, Pd, Smin, slopeS, Qstar) {
   if (Math.abs(Q - Qstar) < 1e-9) return null;
-  return [[Q, Pd(Q)], [Q, Ps(Q)], [Qstar, Pstar]];
+  return [[Q, Pd(Q)], ...supplyPath(Smin, slopeS, Q, Qstar)];
 }
 
 function freeMarketResult(base) {
-  const { Qstar, Pstar, Dmax, Smin, Pd, Ps } = base;
+  const { Qstar, Pstar, Dmax, Smin, slopeS, Pd } = base;
   const csPoly = csPolyFor(Dmax, Pd, Qstar, Pstar);
-  const psPoly = psPolyFor(Smin, Ps, Qstar, Pstar);
+  const psPoly = psPolyFor(Smin, slopeS, Qstar, Pstar);
   return {
     ...base,
     mode: 'free',
@@ -54,8 +72,8 @@ function rationingResult(base, intervention) {
   const gap = isFloor ? qs - qd : qd - qs;
 
   const csPoly = csPolyFor(Dmax, Pd, Q, controlPrice);
-  const psPoly = psPolyFor(Smin, Ps, Q, controlPrice);
-  const dwlPoly = dwlPolyFor(Q, Pd, Ps, Qstar, Pstar);
+  const psPoly = psPolyFor(Smin, slopeS, Q, controlPrice);
+  const dwlPoly = dwlPolyFor(Q, Pd, Smin, slopeS, Qstar);
 
   return {
     ...base,
@@ -90,9 +108,11 @@ function taxResult(base, intervention) {
   // anything (no unit changes hands at either price), so pages must not report them.
   const closed = Q <= 0;
 
-  const csPoly = csPolyFor(Dmax, Pd, Q, Pc);
-  const psPoly = psPolyFor(Smin, Ps, Q, Pp);
-  const dwlPoly = dwlPolyFor(Q, Pd, Ps, Qstar, Pstar);
+  // A closed market has no surplus regions: skip them rather than build zero-width shapes
+  // at a notional (possibly negative) producer price.
+  const csPoly = closed ? [] : csPolyFor(Dmax, Pd, Q, Pc);
+  const psPoly = closed ? [] : psPolyFor(Smin, slopeS, Q, Pp);
+  const dwlPoly = dwlPolyFor(Q, Pd, Smin, slopeS, Qstar);
   const wedgePoly = [[0, Pp], [Q, Pp], [Q, Pc], [0, Pc]];
   // Split the tax wedge at the pre-tax equilibrium price: the portion above Pstar is
   // the share consumers absorb (price paid rose), the portion below is what producers
@@ -123,8 +143,8 @@ function subsidyResult(base, intervention) {
   const Pp = Pc + amount;
 
   const csPoly = csPolyFor(Dmax, Pd, Q, Pc);
-  const psPoly = psPolyFor(Smin, Ps, Q, Pp);
-  const dwlPoly = dwlPolyFor(Q, Pd, Ps, Qstar, Pstar);
+  const psPoly = psPolyFor(Smin, slopeS, Q, Pp);
+  const dwlPoly = dwlPolyFor(Q, Pd, Smin, slopeS, Qstar);
   const wedgePoly = [[0, Pc], [Q, Pc], [Q, Pp], [0, Pp]];
   // Split the subsidy wedge at the pre-subsidy equilibrium price: the portion below Pstar
   // is the benefit consumers capture (price paid fell), the portion above is what producers

@@ -221,4 +221,15 @@ describe('renderMarketChart', () => {
     expect(svg.querySelectorAll('line.wedge-line')).toHaveLength(0);
     expect(symbols(svg).sort()).toEqual(['Pe', 'Qe']);
   });
+
+  it('clips shaded regions to the plot area instead of squashing off-chart corners', () => {
+    // Demand intercept far above PMAX: the CS tip must keep its true (off-chart) position
+    renderMarketChart(svg, computeMarket({ demand: 330, supply: -170, slopeD: 4.2, slopeS: 4.2 }));
+    const fills = svg.querySelector('g.fills');
+    expect(fills.getAttribute('clip-path')).toBe('url(#plotClip)');
+    expect(fills.querySelector('polygon.cs-fill')).not.toBeNull();
+    const tipY = Math.min(...svg.querySelector('polygon.cs-fill').getAttribute('points').split(' ').map((pt) => +pt.split(',')[1]));
+    expect(tipY).toBeLessThan(0);
+    expect(svg.querySelector('clipPath#plotClip')).not.toBeNull();
+  });
 });

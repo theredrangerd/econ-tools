@@ -97,6 +97,10 @@ describe('every state the guard accepts is internally consistent', () => {
           expect(r.producerIncidence).toBeGreaterThanOrEqual(-1e-9);
         }
         if (r.mode !== 'free') expect(r.DWL).toBeGreaterThanOrEqual(0);
+        // no surplus region ever dips below a $0 price
+        for (const poly of [r.psPoly, r.dwlPoly].filter(Boolean)) {
+          expect(Math.min(...poly.map(([, p]) => p))).toBeGreaterThanOrEqual(-1e-9);
+        }
       }
     }
   });

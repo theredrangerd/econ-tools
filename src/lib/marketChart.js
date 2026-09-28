@@ -7,7 +7,10 @@ const plotH = VBH - M.top - M.bottom;
 
 function clampN(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function sx(q) { return M.left + (q / QMAX) * plotW; }
-function sy(p) { return M.top + plotH - (clampN(p, -20, PMAX + 40) / PMAX) * plotH; }
+// No clamping: squashing an off-chart price flattens polygon corners (e.g. the tip of a
+// CS triangle whose steep demand curve starts far above PMAX), so the shading stops
+// following the curve. Fills are clipped to the plot area with #plotClip instead.
+function sy(p) { return M.top + plotH - (p / PMAX) * plotH; }
 
 const svgns = 'http://www.w3.org/2000/svg';
 function el(tag, attrs = {}, className) {
@@ -67,6 +70,9 @@ function drawGridAndAxes(svg) {
   pattern.appendChild(el('rect', { width: 6, height: 6, fill: 'var(--dwl-fill)' }));
   pattern.appendChild(el('line', { x1: 0, y1: 0, x2: 0, y2: 6, stroke: 'var(--dwl-hatch)', 'stroke-width': 1.4 }));
   defs.appendChild(pattern);
+  const clip = el('clipPath', { id: 'plotClip' });
+  clip.appendChild(el('rect', { x: M.left, y: M.top, width: plotW, height: plotH }));
+  defs.appendChild(clip);
   svg.appendChild(defs);
 
   svg.appendChild(el('rect', { x: M.left, y: M.top, width: plotW, height: plotH, fill: 'var(--surface)', stroke: 'none' }));
@@ -268,14 +274,18 @@ export function renderMarketChart(svg, result) {
   while (layer.firstChild) layer.removeChild(layer.firstChild);
 
   if (!result.noTrade) {
+    // All shaded regions go in one group clipped to the plot area, so a region whose true
+    // shape runs past the axes (steep curves) is cut off at the edge rather than distorted.
+    const fills = el('g', { 'clip-path': 'url(#plotClip)' }, 'fills');
+    layer.appendChild(fills);
     // Grouped under data-region so regionExplainers.js can hover/click the whole shaded
     // area as one unit (currently wired up on the price-ceiling page only).
     const csG = el('g', { 'data-region': 'cs' }, 'region region--fill');
     csG.appendChild(el('polygon', { points: pts(result.csPoly), fill: 'var(--demand-fill)' }, 'cs-fill'));
-    layer.appendChild(csG);
+    fills.appendChild(csG);
     const psG = el('g', { 'data-region': 'ps' }, 'region region--fill');
     psG.appendChild(el('polygon', { points: pts(result.psPoly), fill: 'var(--supply-fill)' }, 'ps-fill'));
-    layer.appendChild(psG);
+    fills.appendChild(psG);
     if (result.mode === 'tax' || result.mode === 'subsidy') {
       // The wedge is split at the pre-intervention price into a consumer-incidence portion
       // (tinted with the demand color) and a producer-incidence portion (tinted with the
@@ -295,12 +305,12 @@ export function renderMarketChart(svg, result) {
       consumerG.appendChild(el('polygon', { points: pts(result.consumerWedgePoly), fill: 'var(--surface)' }, 'wedge-backing'));
       consumerG.appendChild(el('polygon', { points: pts(result.consumerWedgePoly), fill: 'var(--demand-alt-fill)' }, 'wedge-fill wedge-fill--consumer'));
       bandLabel(consumerG, result.consumerWedgePoly, isSubsidy ? 'Consumer benefit' : 'Consumer burden');
-      layer.appendChild(consumerG);
+      fills.appendChild(consumerG);
       const producerG = el('g', { 'data-region': isSubsidy ? 'subsidy-producer' : 'tax-producer' }, 'region region--fill');
       producerG.appendChild(el('polygon', { points: pts(result.producerWedgePoly), fill: 'var(--surface)' }, 'wedge-backing'));
       producerG.appendChild(el('polygon', { points: pts(result.producerWedgePoly), fill: 'var(--supply-alt-fill)' }, 'wedge-fill wedge-fill--producer'));
       bandLabel(producerG, result.producerWedgePoly, isSubsidy ? 'Producer benefit' : 'Producer burden');
-      layer.appendChild(producerG);
+      fills.appendChild(producerG);
     }
     if (result.dwlPoly) {
       // For a tax or subsidy the DWL triangle sits inside the consumer/producer wedge
@@ -311,7 +321,7 @@ export function renderMarketChart(svg, result) {
       dwlG.appendChild(el('polygon', { points: pts(result.dwlPoly), fill: 'var(--surface)' }, 'dwl-backing'));
       dwlG.appendChild(el('polygon', { points: pts(result.dwlPoly), fill: 'url(#dwlHatch)' }, 'dwl-fill'));
       dwlG.appendChild(el('polygon', { points: pts(result.dwlPoly), fill: 'none', stroke: 'var(--dwl-line)', 'stroke-width': 1.3, 'stroke-dasharray': '3,2' }, 'dwl-outline'));
-      layer.appendChild(dwlG);
+      fills.appendChild(dwlG);
     }
   }
 

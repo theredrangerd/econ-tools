@@ -204,3 +204,26 @@ describe('computeMarket — a tax that closes the market', () => {
     expect(computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 20 } }).closed).toBe(false);
   });
 });
+
+describe('computeMarket — steep (inelastic) supply that crosses the quantity axis', () => {
+  // Supply P = -40 + 2Q hits the quantity axis at Q = 20; the first 20 units would be
+  // supplied even at $0, so their minimum acceptable price is $0, not negative.
+  const steep = { demand: 160, supply: -40, slopeD: 2, slopeS: 2 };
+
+  it('floors the supply curve at $0 when measuring producer surplus', () => {
+    const r = computeMarket(steep);
+    expect(r.Qstar).toBe(50);
+    expect(r.Pstar).toBe(60);
+    // rectangle 0–20 at $60 + triangle 20–50 rising to $60 = 1200 + 900
+    expect(r.PS).toBeCloseTo(2100);
+    expect(Math.min(...r.psPoly.map(([, p]) => p))).toBe(0);
+  });
+
+  it('floors the deadweight-loss region at $0 too', () => {
+    const r = computeMarket({ ...steep, intervention: { type: 'floor', price: 140 } });
+    // qd = 10, where supply is below $0: the DWL region must stop at the axis
+    expect(Math.min(...r.dwlPoly.map(([, p]) => p))).toBe(0);
+    // ∫ demand − floored supply over Q 10–50: 4000 (demand, avg $100 × 40) − 900 (supply triangle)
+    expect(r.DWL).toBeCloseTo(3100);
+  });
+});
