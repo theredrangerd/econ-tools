@@ -102,17 +102,22 @@ const MODE_LABELS = {
   floor: 'Price floor',
 };
 
-// Minimum spacing between axis symbols (and between a symbol and a numeric tick) before
-// they're pushed apart / the tick is hidden. y is one text line; x fits "Qd" next to "Qe".
-const Y_GAP = 13;
+// Distance from its equilibrium symbol (Pe/Qe) at which an intervention symbol reaches
+// full size. Chosen so two symbols centred on their lines stop overlapping at ~40% size
+// (below that they're tiny, fading, and drawn under Pe/Qe's halo).
+const Y_GAP = 20;
 const X_GAP = 24;
+// Growth starts this far out from Pe/Qe: Pe's hanging subscript needs ~3px more room than
+// the centred-glyph estimate, and at this distance the symbol would be <1px tall anyway.
+const SYMBOL_DEAD_ZONE = 3;
+const SYMBOL_PX = 12;
 
 // The IB-style symbols a result puts on each axis: Pe/Qe for the free-market equilibrium
 // (always, so the before/after comparison stays readable), plus whatever prices and
-// quantities the intervention creates.
+// quantities the intervention creates (`ref: false`).
 function axisSymbols(result) {
-  const y = [{ base: 'P', sub: 'e', v: result.Pstar }];
-  const x = [{ base: 'Q', sub: 'e', v: result.Qstar }];
+  const y = [{ base: 'P', sub: 'e', v: result.Pstar, ref: true }];
+  const x = [{ base: 'Q', sub: 'e', v: result.Qstar, ref: true }];
   if (result.mode === 'ceiling' || result.mode === 'floor') {
     y.push({ base: 'P', sub: result.mode === 'ceiling' ? 'max' : 'min', v: result.Pc });
     x.push({ base: 'Q', sub: 's', v: result.qs }, { base: 'Q', sub: 'd', v: result.qd });
@@ -120,37 +125,44 @@ function axisSymbols(result) {
     y.push({ base: 'P', sub: 'c', v: result.Pc }, { base: 'P', sub: 'p', v: result.Pp });
     x.push({ base: 'Q', sub: '1', v: result.Q });
   }
-  return {
-    y: y.map((s) => ({ ...s, pos: sy(s.v) })),
-    x: x.filter((s) => s.v >= 0 && s.v <= QMAX).map((s) => ({ ...s, pos: sx(s.v) })),
+  const place = (syms, pos, gap) => {
+    const withPos = syms.map((s) => ({ ...s, pos: pos(s.v) }));
+    const refPos = withPos[0].pos;
+    // Every symbol stays exactly on its own line. An intervention symbol closing in on its
+    // equilibrium symbol shrinks in proportion to the distance instead of being pushed
+    // aside, so it never sits off its line or covers Pe/Qe, and it vanishes at exactly
+    // zero intervention (e.g. tax = 0, where Pc = Pp = Pe).
+    return withPos
+      .map((s) => ({ ...s, scale: s.ref ? 1 : Math.min(1, Math.max(0, Math.abs(s.pos - refPos) - SYMBOL_DEAD_ZONE) / (gap - SYMBOL_DEAD_ZONE)) }))
+      .filter((s) => s.scale > 0.05);
   };
-}
-
-// Pushes 1-D label positions apart to at least `gap`, keeping them in [lo, hi].
-function spread(items, gap, lo, hi) {
-  items.sort((a, b) => a.pos - b.pos);
-  for (let i = 1; i < items.length; i++) {
-    if (items[i].pos - items[i - 1].pos < gap) items[i].pos = items[i - 1].pos + gap;
-  }
-  const over = items.length ? items[items.length - 1].pos - hi : 0;
-  if (over > 0) items.forEach((it) => { it.pos -= over; });
-  items.forEach((it) => { it.pos = Math.max(lo, it.pos); });
+  return {
+    y: place(y, sy, Y_GAP),
+    x: place(x.filter((s) => s.v >= 0 && s.v <= QMAX), sx, X_GAP),
+  };
 }
 
 function drawAxisSymbols(svg, layer, result) {
   const { x, y } = axisSymbols(result);
-  spread(y, Y_GAP, M.top, M.top + plotH);
-  spread(x, X_GAP, M.left, M.left + plotW);
-  for (const s of y) {
-    layer.appendChild(subscriptLabel(s.base, s.sub, { x: M.left - 10, y: s.pos + 4, 'text-anchor': 'end' }, 'axis-symbol'));
+  // Equilibrium symbols last, with a halo in the card colour, so a shrinking intervention
+  // symbol that brushes Pe/Qe passes underneath rather than over it.
+  const order = (syms) => [...syms].sort((a, b) => Number(a.ref ?? false) - Number(b.ref ?? false));
+  const cls = (s) => (s.ref ? 'axis-symbol axis-symbol--ref' : 'axis-symbol');
+  // Fade in the last stretch before vanishing, so a symbol too small to read doesn't
+  // linger as a speck.
+  const size = (s) => ({ 'font-size': (SYMBOL_PX * s.scale).toFixed(2), opacity: Math.min(1, 2 * s.scale).toFixed(2) });
+  // Baseline 0.2em below the line centres the glyphs (cap height ~0.7em above the
+  // baseline, subscript ~0.3em below) on the price they label.
+  for (const s of order(y)) {
+    layer.appendChild(subscriptLabel(s.base, s.sub, { x: M.left - 10, y: s.pos + 0.2 * SYMBOL_PX * s.scale, 'text-anchor': 'end', ...size(s) }, cls(s)));
   }
-  for (const s of x) {
-    layer.appendChild(subscriptLabel(s.base, s.sub, { x: s.pos, y: M.top + plotH + 20, 'text-anchor': 'middle' }, 'axis-symbol'));
+  for (const s of order(x)) {
+    layer.appendChild(subscriptLabel(s.base, s.sub, { x: s.pos, y: M.top + plotH + 20, 'text-anchor': 'middle', ...size(s) }, cls(s)));
   }
-  // Hide any numeric tick that a symbol now sits on top of.
+  // Hide any numeric tick that a symbol now sits on top of (13px ≈ one tick label's height).
   svg.querySelectorAll('.tick-label[data-axis]').forEach((tick) => {
     const syms = tick.dataset.axis === 'x' ? x : y;
-    const gap = tick.dataset.axis === 'x' ? X_GAP : Y_GAP;
+    const gap = tick.dataset.axis === 'x' ? X_GAP : 13;
     const hidden = syms.some((s) => Math.abs(s.pos - +tick.dataset.pos) < gap);
     tick.setAttribute('visibility', hidden ? 'hidden' : 'visible');
   });

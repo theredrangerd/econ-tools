@@ -173,10 +173,45 @@ describe('renderMarketChart', () => {
     expect(svg.querySelector('.band-label')).toBeNull();
   });
 
-  it('spreads crowded axis symbols apart so they never overlap', () => {
+  const symbolEl = (svg, name) => [...svg.querySelectorAll('text.axis-symbol')].find((t) => t.textContent === name);
+  const fontSize = (svg, name) => +symbolEl(svg, name).getAttribute('font-size');
+
+  it('shrinks Pc/Pp toward Pe for a small tax, keeping every symbol on its own line and Pe full size', () => {
+    const r = computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 6 } });
+    renderMarketChart(svg, r);
+    expect(fontSize(svg, 'Pe')).toBe(12);
+    expect(fontSize(svg, 'Pc')).toBeGreaterThan(0);
+    expect(fontSize(svg, 'Pc')).toBeLessThan(12);
+    expect(fontSize(svg, 'Pp')).toBeLessThan(12);
+    // not pushed aside: Pc stays above Pe by exactly the gap between their price lines
+    const y = (name) => +symbolEl(svg, name).getAttribute('y');
+    expect(y('Pe') - y('Pc')).toBeLessThan(13);
+  });
+
+  it('shows Pc/Pp at full size once the wedge is wide enough', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 20 } }));
+    expect(fontSize(svg, 'Pc')).toBe(12);
+    expect(fontSize(svg, 'Pp')).toBe(12);
+  });
+
+  it('drops Pc/Pp entirely once they are within a few px of Pe', () => {
     renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 2 } }));
-    const ys = [...svg.querySelectorAll('text.axis-symbol')].filter((t) => t.textContent.startsWith('P')).map((t) => +t.getAttribute('y')).sort((a, b) => a - b);
-    for (let i = 1; i < ys.length; i++) expect(ys[i] - ys[i - 1]).toBeGreaterThanOrEqual(13 - 1e-9);
+    expect(symbols(svg)).not.toContain('Pc');
+    expect(symbols(svg)).not.toContain('Pp');
+  });
+
+  it('drops Pc/Pp/Q1 entirely at a zero tax or subsidy, leaving only Pe/Qe', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 0 } }));
+    expect(symbols(svg).sort()).toEqual(['Pe', 'Qe']);
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'subsidy', amount: 0 } }));
+    expect(symbols(svg).sort()).toEqual(['Pe', 'Qe']);
+  });
+
+  it('draws Pe/Qe after the intervention symbols so they stay on top', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 6 } }));
+    const names = [...svg.querySelectorAll('text.axis-symbol')].map((t) => t.textContent);
+    expect(names.indexOf('Pe')).toBeGreaterThan(names.indexOf('Pc'));
+    expect(names.indexOf('Pe')).toBeGreaterThan(names.indexOf('Pp'));
   });
 
   it('draws no price lines or Pc/Pp symbols once a tax has closed the market', () => {
