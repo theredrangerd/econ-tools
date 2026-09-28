@@ -108,13 +108,6 @@ function drawWedgeLines(svg, result) {
     lbl.textContent = MODE_LABELS[result.mode];
     svg.appendChild(lbl);
   } else if (result.mode === 'tax' || result.mode === 'subsidy') {
-    // The wedge is split at the pre-intervention price into a consumer-incidence portion
-    // (tinted with the demand color) and a producer-incidence portion (tinted with the
-    // supply color), so the split itself — not just its dollar value in the stats panel —
-    // visibly tracks relative elasticity as the sliders move. The dashed purple outline
-    // still traces the whole band, standing for total tax revenue / subsidy cost.
-    svg.appendChild(el('polygon', { points: pts(result.consumerWedgePoly), fill: 'var(--demand-alt-fill)' }, 'wedge-fill wedge-fill--consumer'));
-    svg.appendChild(el('polygon', { points: pts(result.producerWedgePoly), fill: 'var(--supply-alt-fill)' }, 'wedge-fill wedge-fill--producer'));
     svg.appendChild(el('polygon', { points: pts(result.wedgePoly), fill: 'none', stroke: 'var(--gov)', 'stroke-width': 1.3, 'stroke-dasharray': '4,3' }, 'wedge-outline'));
     const yc = sy(result.Pc), yp = sy(result.Pp);
     svg.appendChild(el('line', { x1: M.left, y1: yc, x2: M.left + plotW, y2: yc, stroke: 'var(--demand)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'));
@@ -155,6 +148,25 @@ export function renderMarketChart(svg, result) {
   if (!result.noTrade) {
     layer.appendChild(el('polygon', { points: pts(result.csPoly), fill: 'var(--demand-fill)' }, 'cs-fill'));
     layer.appendChild(el('polygon', { points: pts(result.psPoly), fill: 'var(--supply-fill)' }, 'ps-fill'));
+    if (result.mode === 'tax' || result.mode === 'subsidy') {
+      // The wedge is split at the pre-intervention price into a consumer-incidence portion
+      // (tinted with the demand color) and a producer-incidence portion (tinted with the
+      // supply color), so the split itself — not just its dollar value in the stats panel —
+      // visibly tracks relative elasticity as the sliders move.
+      // For a subsidy the CS/PS surplus regions grow past the free-market baseline and
+      // geometrically overlap this same band (unlike a tax, where they shrink away from
+      // it), so an opaque backing polygon goes down first — otherwise the translucent
+      // wedge tint would blend with the translucent surplus fill underneath and read
+      // muddy on the subsidy page even though the tokens are identical to the tax page.
+      // This fill step runs before both the DWL hatch (the DWL triangle sits inside this
+      // same wedge rectangle, so it must be drawn after or the opaque backing erases it)
+      // and the curves/gridlines/equilibrium dot (unlike the wedge outline and price
+      // lines, which stay layered on top of those in drawWedgeLines below).
+      layer.appendChild(el('polygon', { points: pts(result.consumerWedgePoly), fill: 'var(--surface)' }, 'wedge-backing'));
+      layer.appendChild(el('polygon', { points: pts(result.producerWedgePoly), fill: 'var(--surface)' }, 'wedge-backing'));
+      layer.appendChild(el('polygon', { points: pts(result.consumerWedgePoly), fill: 'var(--demand-alt-fill)' }, 'wedge-fill wedge-fill--consumer'));
+      layer.appendChild(el('polygon', { points: pts(result.producerWedgePoly), fill: 'var(--supply-alt-fill)' }, 'wedge-fill wedge-fill--producer'));
+    }
     if (result.dwlPoly) {
       layer.appendChild(el('polygon', { points: pts(result.dwlPoly), fill: 'url(#dwlHatch)' }, 'dwl-fill'));
       layer.appendChild(el('polygon', { points: pts(result.dwlPoly), fill: 'none', stroke: 'var(--dwl-line)', 'stroke-width': 1.3, 'stroke-dasharray': '3,2' }, 'dwl-outline'));
@@ -183,8 +195,8 @@ export function renderMarketChart(svg, result) {
     layer.appendChild(sLbl);
 
     const s2Seg = clipSupply(shifted.Smin, shifted.slopeS);
-    layer.appendChild(el('line', { x1: sx(s2Seg[0][0]), y1: sy(s2Seg[0][1]), x2: sx(s2Seg[1][0]), y2: sy(s2Seg[1][1]), stroke: 'var(--gov)', 'stroke-width': 2.5, 'stroke-linecap': 'round' }, 'supply-curve-shifted'));
-    const s2Lbl = subscriptLabel('S', '2', { x: sx(s2Seg[1][0]) - 8, y: sy(s2Seg[1][1]) - 8, fill: 'var(--gov)', 'text-anchor': 'end' });
+    layer.appendChild(el('line', { x1: sx(s2Seg[0][0]), y1: sy(s2Seg[0][1]), x2: sx(s2Seg[1][0]), y2: sy(s2Seg[1][1]), stroke: 'var(--supply)', 'stroke-width': 2.5, 'stroke-linecap': 'round' }, 'supply-curve-shifted'));
+    const s2Lbl = subscriptLabel('S', '2', { x: sx(s2Seg[1][0]) - 8, y: sy(s2Seg[1][1]) - 8, fill: 'var(--supply)', 'text-anchor': 'end' });
     layer.appendChild(s2Lbl);
   } else {
     const sLbl = el('text', { x: sx(sSeg[1][0]) - 8, y: sy(sSeg[1][1]) - 8, fill: 'var(--supply)', 'text-anchor': 'end' }, 'curve-label');

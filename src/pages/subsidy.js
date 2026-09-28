@@ -3,6 +3,7 @@ import { computeMarket } from '../lib/marketEngine.js';
 import { renderMarketChart } from '../lib/marketChart.js';
 import { fmtMoney, fmtPrice, fmtQty, elasticityLabel, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
+import { tweenValue } from '../lib/animate.js';
 
 export function initSubsidyPage(doc) {
   const { backHref, backLabel, siblings } = getFamilyNav('subsidy');
@@ -15,6 +16,11 @@ export function initSubsidyPage(doc) {
   const slopeSSlider = doc.querySelector('#slope-s-slider');
   const subsidySlider = doc.querySelector('#subsidy-slider');
   const subsidyToggle = doc.querySelector('#subsidy-toggle');
+
+  // Animates the subsidy's magnitude in/out on toggle so the supply curve and its shaded
+  // regions shift smoothly instead of snapping between free-market and subsidized states.
+  let subsidyFraction = subsidyToggle.checked ? 1 : 0;
+  let cancelAnim = null;
 
   function render() {
     const demand = +demandSlider.value;
@@ -30,7 +36,7 @@ export function initSubsidyPage(doc) {
     doc.querySelector('#slope-s-val').textContent = slopeS.toFixed(1) + ' · ' + elasticityLabel(slopeS);
     doc.querySelector('#subsidy-val').textContent = '$' + amount;
 
-    const intervention = subsidyOn ? { type: 'subsidy', amount } : { type: 'none' };
+    const intervention = subsidyFraction > 0 ? { type: 'subsidy', amount: amount * subsidyFraction } : { type: 'none' };
     const result = computeMarket({ demand, supply, slopeD, slopeS, intervention });
 
     renderMarketChart(chart, result);
@@ -42,19 +48,27 @@ export function initSubsidyPage(doc) {
     doc.querySelector('#stat-cs').textContent = result.noTrade ? '$0' : fmtMoney(result.CS);
     doc.querySelector('#stat-ps').textContent = result.noTrade ? '$0' : fmtMoney(result.PS);
     doc.querySelector('#stat-cost').textContent = result.noTrade ? '$0' : fmtMoney(result.govCost);
-    doc.querySelector('#stat-incidence-consumer').textContent = result.noTrade || !subsidyOn ? '$0' : fmtMoney(result.consumerIncidence);
-    doc.querySelector('#stat-incidence-producer').textContent = result.noTrade || !subsidyOn ? '$0' : fmtMoney(result.producerIncidence);
+    doc.querySelector('#stat-incidence-consumer').textContent = result.noTrade || subsidyFraction <= 0 ? '$0' : fmtMoney(result.consumerIncidence);
+    doc.querySelector('#stat-incidence-producer').textContent = result.noTrade || subsidyFraction <= 0 ? '$0' : fmtMoney(result.producerIncidence);
     doc.querySelector('#stat-dwl').textContent = result.noTrade ? '$0' : fmtMoney(result.DWL);
 
     doc.querySelector('#market-note').innerHTML = result.noTrade
       ? '<strong>No trade occurs.</strong> Shift the sliders so demand sits above supply.'
-      : subsidyOn
+      : subsidyFraction > 0
         ? `<strong>${fmtMoney(result.DWL)} of welfare is lost.</strong> The subsidy pushes output past the efficient quantity — the last few units cost more to produce than buyers value them at.`
         : '';
   }
 
   [demandSlider, supplySlider, slopeDSlider, slopeSSlider, subsidySlider].forEach((input) => input.addEventListener('input', render));
-  subsidyToggle.addEventListener('change', render);
+  subsidyToggle.addEventListener('change', () => {
+    if (cancelAnim) cancelAnim();
+    cancelAnim = tweenValue({
+      from: subsidyFraction,
+      to: subsidyToggle.checked ? 1 : 0,
+      onUpdate(v) { subsidyFraction = v; render(); },
+      onComplete() { cancelAnim = null; },
+    });
+  });
 
   render();
 }

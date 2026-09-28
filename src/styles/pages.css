@@ -563,6 +563,12 @@ input[type="range"]::-moz-range-thumb {
 .stat.cs .v { color: var(--demand); }
 .stat.ps .v { color: var(--supply); }
 .stat.gov .v { color: var(--gov); }
+/* Hue-shifted counterparts to .stat.cs/.stat.ps, matching the --demand-alt/--supply-alt
+   tint used for tax/subsidy incidence on the chart itself — keeps incidence (who bears
+   the wedge) visually distinct from surplus (the welfare area) everywhere it's reported,
+   not just in the SVG. */
+.stat.cs-alt .v { color: var(--demand-alt); }
+.stat.ps-alt .v { color: var(--supply-alt); }
 .stat.wide { grid-column: 1 / -1; }
 
 .examples-panel { display: flex; flex-direction: column; }
