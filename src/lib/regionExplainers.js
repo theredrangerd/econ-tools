@@ -1,8 +1,7 @@
 // Hardcoded per-region explanations for the "click a shaded area / line to learn what it
 // is" feature. Keyed by the `data-region` value set on chart elements in marketChart.js.
-// Starting with price ceiling/floor's regions only (cs, ps, dwl, ceiling, floor); tax and
-// subsidy pages reuse cs/ps/dwl already but aren't wired up to this yet (see indirect-tax.js
-// and subsidy.js — deliberately out of scope for this first pass).
+// Covers all four government-intervention pages: price ceiling, price floor, indirect tax,
+// and subsidy.
 export const REGION_INFO = {
   cs: {
     title: 'Consumer Surplus',
@@ -14,7 +13,7 @@ export const REGION_INFO = {
   },
   dwl: {
     title: 'Deadweight Loss',
-    text: "The value of mutually beneficial trades that no longer happen because of the price control — welfare that simply disappears rather than shifting to anyone.",
+    text: "The loss of total welfare when the market doesn't trade the efficient quantity — value that simply disappears rather than shifting to anyone, whether because too little is traded (a shortage) or too much is (a subsidy).",
   },
   ceiling: {
     title: 'Price Ceiling',
@@ -23,6 +22,30 @@ export const REGION_INFO = {
   floor: {
     title: 'Price Floor',
     text: 'A legal minimum price. Set above the equilibrium price, it holds the price artificially high, which is what creates the surplus below it.',
+  },
+  'tax-consumer': {
+    title: 'Consumer Burden',
+    text: 'The portion of the tax that consumers pay through a higher price. How much of the burden falls here rather than on producers depends on how responsive (elastic) demand is relative to supply.',
+  },
+  'tax-producer': {
+    title: 'Producer Burden',
+    text: 'The portion of the tax that producers absorb through a lower price received. How much of the burden falls here rather than on consumers depends on how responsive (elastic) supply is relative to demand.',
+  },
+  'tax-revenue': {
+    title: 'Government Tax Revenue',
+    text: 'The total revenue the government collects from the tax — the tax per unit multiplied by the quantity still traded after the tax.',
+  },
+  'subsidy-consumer': {
+    title: 'Consumer Benefit',
+    text: 'The portion of the subsidy that lowers the price consumers pay. How much of the benefit lands here rather than with producers depends on how responsive (elastic) demand is relative to supply.',
+  },
+  'subsidy-producer': {
+    title: 'Producer Benefit',
+    text: 'The portion of the subsidy that raises the price producers receive. How much of the benefit lands here rather than with consumers depends on how responsive (elastic) supply is relative to demand.',
+  },
+  'subsidy-cost': {
+    title: 'Government Spending',
+    text: 'The total cost to the government of paying the subsidy — the subsidy per unit multiplied by the quantity traded.',
   },
 };
 
@@ -110,7 +133,10 @@ export function attachRegionExplainers(svg) {
 
   document.addEventListener('click', (e) => {
     if (!popover) return;
-    if (popover.contains(e.target) || svg.contains(e.target)) return;
+    // Only clicks that land on the active region itself (handled above, which toggles it
+    // closed) or inside the popover should be ignored here — everywhere else, including
+    // empty chart background/axes inside the SVG, should close it.
+    if (popover.contains(e.target) || findRegion(e.target) === activeRegion) return;
     closePopover();
   });
   document.addEventListener('keydown', (e) => {

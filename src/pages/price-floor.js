@@ -4,6 +4,7 @@ import { renderMarketChart } from '../lib/marketChart.js';
 import { fmtMoney, fmtPrice, fmtQty, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
 import { wireShiftAndSlopeInputs, updateShiftAndSlopeLabels, wireInterventionToggle } from '../lib/pageControls.js';
+import { attachRegionExplainers } from '../lib/regionExplainers.js';
 
 export function initPriceFloorPage(doc) {
   const { backHref, backLabel, siblings } = getFamilyNav('price-floor');
@@ -62,4 +63,5 @@ export function initPriceFloorPage(doc) {
   toggleCtl = wireInterventionToggle(floorToggle, render);
 
   render();
+  attachRegionExplainers(chart);
 }

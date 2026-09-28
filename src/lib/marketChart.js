@@ -121,8 +121,14 @@ function drawWedgeLines(svg, result) {
     svg.appendChild(el('line', { x1: xQ, y1: yc, x2: M.left + plotW, y2: yc, stroke: 'var(--demand)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'));
     svg.appendChild(el('line', { x1: xQ, y1: yp, x2: M.left + plotW, y2: yp, stroke: 'var(--supply)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'));
     // Outline drawn last so it renders on top of the reference lines above at their
-    // shared corners (x=Q), keeping the box border crisp instead of getting erased.
-    svg.appendChild(el('polygon', { points: pts(result.wedgePoly), fill: 'none', stroke: 'var(--gov)', 'stroke-width': 2.2, 'stroke-dasharray': '5,4' }, 'wedge-outline'));
+    // shared corners (x=Q), keeping the box border crisp instead of getting erased. Grouped
+    // under data-region (with a wide invisible hit-stroke, same trick as the ceiling/floor
+    // line) so clicking the border explains total revenue/cost, distinct from clicking
+    // inside either colored half which explains that side's incidence.
+    const revenueG = el('g', { 'data-region': result.mode === 'subsidy' ? 'subsidy-cost' : 'tax-revenue' }, 'region region--line');
+    revenueG.appendChild(el('polygon', { points: pts(result.wedgePoly), fill: 'none', stroke: 'transparent', 'stroke-width': 14 }, 'region-hit'));
+    revenueG.appendChild(el('polygon', { points: pts(result.wedgePoly), fill: 'none', stroke: 'var(--gov)', 'stroke-width': 2.2, 'stroke-dasharray': '5,4' }, 'wedge-outline region-visible'));
+    svg.appendChild(revenueG);
     // Anchored at the y-axis (left), not the right edge, so these never collide with the
     // S1/S2 curve labels which sit at the right edge once a second supply line is drawn.
     // Each label sits on the OUTER side of its own line (above the higher line, below the
@@ -186,10 +192,15 @@ export function renderMarketChart(svg, result) {
       // same wedge rectangle, so it must be drawn after or the opaque backing erases it)
       // and the curves/gridlines/equilibrium dot (unlike the wedge outline and price
       // lines, which stay layered on top of those in drawWedgeLines below).
-      layer.appendChild(el('polygon', { points: pts(result.consumerWedgePoly), fill: 'var(--surface)' }, 'wedge-backing'));
-      layer.appendChild(el('polygon', { points: pts(result.producerWedgePoly), fill: 'var(--surface)' }, 'wedge-backing'));
-      layer.appendChild(el('polygon', { points: pts(result.consumerWedgePoly), fill: 'var(--demand-alt-fill)' }, 'wedge-fill wedge-fill--consumer'));
-      layer.appendChild(el('polygon', { points: pts(result.producerWedgePoly), fill: 'var(--supply-alt-fill)' }, 'wedge-fill wedge-fill--producer'));
+      const isSubsidy = result.mode === 'subsidy';
+      const consumerG = el('g', { 'data-region': isSubsidy ? 'subsidy-consumer' : 'tax-consumer' }, 'region region--fill');
+      consumerG.appendChild(el('polygon', { points: pts(result.consumerWedgePoly), fill: 'var(--surface)' }, 'wedge-backing'));
+      consumerG.appendChild(el('polygon', { points: pts(result.consumerWedgePoly), fill: 'var(--demand-alt-fill)' }, 'wedge-fill wedge-fill--consumer'));
+      layer.appendChild(consumerG);
+      const producerG = el('g', { 'data-region': isSubsidy ? 'subsidy-producer' : 'tax-producer' }, 'region region--fill');
+      producerG.appendChild(el('polygon', { points: pts(result.producerWedgePoly), fill: 'var(--surface)' }, 'wedge-backing'));
+      producerG.appendChild(el('polygon', { points: pts(result.producerWedgePoly), fill: 'var(--supply-alt-fill)' }, 'wedge-fill wedge-fill--producer'));
+      layer.appendChild(producerG);
     }
     if (result.dwlPoly) {
       // For a tax or subsidy the DWL triangle sits inside the consumer/producer wedge

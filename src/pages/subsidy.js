@@ -4,6 +4,7 @@ import { renderMarketChart } from '../lib/marketChart.js';
 import { fmtMoney, fmtPrice, fmtQty, setStatusPill } from '../lib/format.js';
 import { getFamilyNav } from '../components/familyNav.js';
 import { wireShiftAndSlopeInputs, updateShiftAndSlopeLabels, wireInterventionToggle } from '../lib/pageControls.js';
+import { attachRegionExplainers } from '../lib/regionExplainers.js';
 
 export function initSubsidyPage(doc) {
   const { backHref, backLabel, siblings } = getFamilyNav('subsidy');
@@ -58,4 +59,5 @@ export function initSubsidyPage(doc) {
   toggleCtl = wireInterventionToggle(subsidyToggle, render);
 
   render();
+  attachRegionExplainers(chart);
 }
