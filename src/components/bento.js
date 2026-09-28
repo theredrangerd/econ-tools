@@ -29,7 +29,13 @@ export function renderBento(container, items, options = {}) {
     if (tiered && item.tier) classes.push(`bento__tile--${item.tier}`);
     if (item.slug && ACCENTED_SLUGS.has(item.slug)) classes.push(`bento__tile--${item.slug}`);
     const image = UNIT_TILE_IMAGES[item.slug];
-    if (image) tile.style.backgroundImage = `url(${image})`;
+    // Quoted, not a bare url(...): in the production build Vite inlines these small SVGs as
+    // percent-encoded (not base64) data URIs, which carry the SVG's own literal single-quote
+    // attribute quoting (xmlns='...') straight through. An unquoted CSS url() token can't
+    // contain a raw quote character, so `style.backgroundImage` silently rejects the whole
+    // value with no error — invisible in dev, since the dev server serves these as plain file
+    // paths instead of inlining them. Quoting the token permits the embedded quotes.
+    if (image) tile.style.backgroundImage = `url("${image}")`;
     tile.className = classes.join(' ');
     const badge = item.status === 'coming-soon' ? '<span class="bento__badge">Coming soon</span>' : '';
     const levelPill = item.level ? `<span class="level-pill">${item.level}</span>` : '';
