@@ -203,7 +203,9 @@ export function renderMarketChart(svg, result) {
     // Two supply lines on screen: label them S1 (original) / S2 (after the intervention)
     // instead of prose ("Supply (before)" / "Supply + tax") — shorter labels are far less
     // likely to collide with the Pc/Pp wedge labels once curves are dragged around.
-    const sLbl = subscriptLabel('S', '1', { x: sx(sSeg[0][0]) + 8, y: sy(sSeg[0][1]) - 8, fill: 'var(--supply)', 'text-anchor': 'start', 'fill-opacity': '0.6' });
+    // Both sit at their own line's right-hand endpoint (not S1 on the left, S2 on the
+    // right) so they read as a matched pair and never land near the Demand label on the left.
+    const sLbl = subscriptLabel('S', '1', { x: sx(sSeg[1][0]) - 8, y: sy(sSeg[1][1]) - 8, fill: 'var(--supply)', 'text-anchor': 'end', 'fill-opacity': '0.6' });
     layer.appendChild(sLbl);
 
     const s2Seg = clipSupply(shifted.Smin, shifted.slopeS);
