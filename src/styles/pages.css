@@ -535,6 +535,17 @@ input[type="range"] {
   outline: none;
   cursor: pointer;
 }
+/* The supply slider is bound directly to Smin (the supply curve's price-axis intercept,
+   i.e. sellers' reservation price at Q=0) — raising that number is a cost increase, which
+   shifts the curve up/left, a DECREASE in supply. Left un-reversed this reads backwards
+   next to the demand slider, where raising Dmax (the choke price) intuitively shifts
+   demand right, an INCREASE. `direction: rtl` flips only the drag direction (not the
+   underlying value or range), so dragging right now reads as "more supply" on both
+   sliders. See docs/superpowers/specs/2026-09-24-ib-econ-graph-site-design.md,
+   "Known failure mode: intercept-sliders read backwards for supply". */
+.slider--reversed {
+  direction: rtl;
+}
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 16px; height: 16px;
