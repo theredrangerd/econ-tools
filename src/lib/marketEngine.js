@@ -60,7 +60,7 @@ function rationingResult(base, intervention) {
   return {
     ...base,
     mode: isFloor ? 'floor' : 'ceiling',
-    Q, Pc: controlPrice, Pp: controlPrice, gap,
+    Q, Pc: controlPrice, Pp: controlPrice, gap, qd, qs,
     CS: shoelaceArea(csPoly), PS: shoelaceArea(psPoly),
     DWL: dwlPoly ? shoelaceArea(dwlPoly) : 0,
     govRevenue: 0, govCost: 0,
@@ -85,6 +85,10 @@ function taxResult(base, intervention) {
     Pp = Pc - amount;
   }
   const wedge = Pc - Pp;
+  // Q hits 0 when the tax is at least the gap between the highest price any buyer will pay
+  // and the lowest price any seller will accept: the market shuts, and Pc/Pp stop meaning
+  // anything (no unit changes hands at either price), so pages must not report them.
+  const closed = Q <= 0;
 
   const csPoly = csPolyFor(Dmax, Pd, Q, Pc);
   const psPoly = psPolyFor(Smin, Ps, Q, Pp);
@@ -99,7 +103,7 @@ function taxResult(base, intervention) {
   return {
     ...base,
     mode: 'tax',
-    Q, Pc, Pp, gap: 0,
+    Q, Pc, Pp, gap: 0, closed,
     CS: shoelaceArea(csPoly), PS: shoelaceArea(psPoly),
     DWL: dwlPoly ? shoelaceArea(dwlPoly) : 0,
     govRevenue: wedge * Q, govCost: 0,
@@ -182,7 +186,9 @@ export function computeMarket({ demand, supply, slopeD, slopeS, intervention = {
 export function fitsChart(result) {
   if (result.noTrade) return true;
   const qs = [result.Qstar, result.Q];
-  const ps = [result.Pstar, result.Pc, result.Pp];
+  // A closed market's Pc/Pp aren't prices anyone trades at (and aren't drawn), so they
+  // don't need to fit — the student can push a tax far enough to shut the market.
+  const ps = result.closed ? [result.Pstar] : [result.Pstar, result.Pc, result.Pp];
   return qs.every((q) => q >= 0 && q <= QMAX) && ps.every((p) => p >= 0 && p <= PMAX);
 }
 

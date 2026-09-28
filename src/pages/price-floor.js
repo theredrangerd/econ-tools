@@ -51,7 +51,7 @@ export function initPriceFloorPage(doc) {
     if (result.noTrade) {
       note.innerHTML = '<strong>No trade occurs.</strong> Shift the sliders so demand sits above supply.';
     } else if (result.mode === 'floor') {
-      note.innerHTML = `<strong>${fmtQty(result.gap)} units go unsold.</strong> Sellers want to supply more than buyers demand at this price.`;
+      note.innerHTML = `<strong>${fmtQty(result.gap)} units of excess supply.</strong> Sellers want to supply more than buyers demand at this price, so the extra output goes unsold.`;
     } else if (result.requestedControl) {
       note.innerHTML = '<strong>Not binding.</strong> This floor is set below the equilibrium price, so it has no effect — the market clears exactly as it would without it.';
     } else {

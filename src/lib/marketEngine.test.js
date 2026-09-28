@@ -184,3 +184,23 @@ describe('pointElasticities', () => {
     expect(pointElasticities(computeMarket({ demand: 10, supply: 50, slopeD: 1, slopeS: 1 }))).toEqual({ ped: null, pes: null });
   });
 });
+
+describe('computeMarket — a tax that closes the market', () => {
+  const closing = { demand: 100, supply: 60, slopeD: 1, slopeS: 1, intervention: { type: 'tax', mode: 'specific', amount: 60 } };
+
+  it('flags the result as closed with nothing traded and the whole surplus lost', () => {
+    const r = computeMarket(closing);
+    expect(r.closed).toBe(true);
+    expect(r.Q).toBe(0);
+    expect(r.govRevenue).toBe(0);
+    expect(r.DWL).toBeCloseTo(computeMarket({ ...closing, intervention: { type: 'none' } }).CS * 2);
+  });
+
+  it('still fits the chart even though its notional Pp is meaningless', () => {
+    expect(fitsChart(computeMarket(closing))).toBe(true);
+  });
+
+  it('is not flagged for an ordinary tax', () => {
+    expect(computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 20 } }).closed).toBe(false);
+  });
+});

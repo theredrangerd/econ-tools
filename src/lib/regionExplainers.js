@@ -13,15 +13,23 @@ export const REGION_INFO = {
   },
   dwl: {
     title: 'Deadweight Loss',
-    text: "The loss of total welfare when the market doesn't trade the efficient quantity — value that simply disappears rather than shifting to anyone, whether because too little is traded (a shortage) or too much is (a subsidy).",
+    text: "The loss of total welfare when the market doesn't trade the efficient quantity — value that simply disappears rather than shifting to anyone. A price ceiling, price floor or tax means too few units are traded; a subsidy means too many.",
   },
   ceiling: {
     title: 'Price Ceiling',
-    text: 'A legal maximum price. Set below the equilibrium price, it holds the price artificially low, which is what creates the shortage below it.',
+    text: 'A legal maximum price. Set below the equilibrium price, it stops the price rising to clear the market: at this price buyers want more than sellers will supply, and the gap between them is the shortage.',
   },
   floor: {
     title: 'Price Floor',
-    text: 'A legal minimum price. Set above the equilibrium price, it holds the price artificially high, which is what creates the surplus below it.',
+    text: 'A legal minimum price. Set above the equilibrium price, it stops the price falling to clear the market: at this price sellers want to supply more than buyers will buy, and the gap between them is the excess supply.',
+  },
+  shortage: {
+    title: 'Shortage',
+    text: 'Quantity demanded minus quantity supplied at the ceiling price (Qd − Qs). Only Qs is actually traded, so some buyers who would pay the ceiling price go without — expect queues, waiting lists or black markets.',
+  },
+  'excess-supply': {
+    title: 'Excess supply',
+    text: 'Quantity supplied minus quantity demanded at the floor price (Qs − Qd), often called a "surplus" — not the same thing as producer surplus. Only Qd is actually bought, so the rest goes unsold unless the government buys it up.',
   },
   'tax-consumer': {
     title: 'Consumer Burden',

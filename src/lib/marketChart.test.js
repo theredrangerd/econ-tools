@@ -126,4 +126,64 @@ describe('renderMarketChart', () => {
     renderMarketChart(svg, ceiling);
     expect(svg.querySelector('line.supply-curve-shifted')).toBeNull();
   });
+
+  const symbols = (svg) => [...svg.querySelectorAll('text.axis-symbol')].map((t) => t.textContent);
+
+  it('labels the equilibrium Pe/Qe on the axes and hides the numeric tick underneath', () => {
+    renderMarketChart(svg, computeMarket(base));
+    expect(symbols(svg).sort()).toEqual(['Pe', 'Qe']);
+    const tick80 = [...svg.querySelectorAll('.tick-label[data-axis="y"]')].find((t) => t.textContent === '80');
+    expect(tick80.getAttribute('visibility')).toBe('hidden');
+    const tick100 = [...svg.querySelectorAll('.tick-label[data-axis="y"]')].find((t) => t.textContent === '100');
+    expect(tick100.getAttribute('visibility')).toBe('visible');
+  });
+
+  it('marks both Qs and Qd plus a labelled shortage bracket under a binding ceiling', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'ceiling', price: 50 } }));
+    expect(svg.querySelectorAll('circle.control-point')).toHaveLength(2);
+    expect(symbols(svg).sort()).toEqual(['Pe', 'Pmax', 'Qd', 'Qe', 'Qs']);
+    const bracket = svg.querySelector('[data-region="shortage"]');
+    expect(bracket).not.toBeNull();
+    expect(bracket.querySelector('.bracket-label').textContent).toBe('Shortage');
+  });
+
+  it('labels the gap under a binding floor as excess supply, not "surplus"', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'floor', price: 110 } }));
+    expect(symbols(svg)).toContain('Pmin');
+    expect(svg.querySelector('[data-region="excess-supply"] .bracket-label').textContent).toBe('Excess supply');
+  });
+
+  it('clips the shortage bracket with an arrow when Qd lies past the chart edge, and omits the Qd symbol', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'ceiling', price: 30 } }));
+    expect(svg.querySelector('[data-region="shortage"] polyline')).not.toBeNull();
+    expect(symbols(svg)).not.toContain('Qd');
+    expect(svg.querySelectorAll('circle.control-point')).toHaveLength(1);
+  });
+
+  it('names the tax prices Pc/Pp on the axis and the burdens inside their bands, not on the lines', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 40 } }));
+    expect(symbols(svg).sort()).toEqual(['Pc', 'Pe', 'Pp', 'Q1', 'Qe']);
+    expect(svg.querySelector('[data-region="tax-consumer"] .band-label').textContent).toBe('Consumer burden');
+    expect(svg.querySelector('[data-region="tax-producer"] .band-label').textContent).toBe('Producer burden');
+    expect(svg.textContent).not.toMatch(/Burden|Incidence/);
+  });
+
+  it('skips a band label when the band is too thin to hold it', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 2 } }));
+    expect(svg.querySelector('.band-label')).toBeNull();
+  });
+
+  it('spreads crowded axis symbols apart so they never overlap', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 2 } }));
+    const ys = [...svg.querySelectorAll('text.axis-symbol')].filter((t) => t.textContent.startsWith('P')).map((t) => +t.getAttribute('y')).sort((a, b) => a - b);
+    for (let i = 1; i < ys.length; i++) expect(ys[i] - ys[i - 1]).toBeGreaterThanOrEqual(13 - 1e-9);
+  });
+
+  it('draws no price lines or Pc/Pp symbols once a tax has closed the market', () => {
+    const r = computeMarket({ demand: 100, supply: 60, slopeD: 1, slopeS: 1, intervention: { type: 'tax', mode: 'specific', amount: 60 } });
+    expect(r.closed).toBe(true);
+    renderMarketChart(svg, r);
+    expect(svg.querySelectorAll('line.wedge-line')).toHaveLength(0);
+    expect(symbols(svg).sort()).toEqual(['Pe', 'Qe']);
+  });
 });

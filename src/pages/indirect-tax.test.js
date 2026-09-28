@@ -143,4 +143,17 @@ describe('initIndirectTaxPage', () => {
     expect([...links].some((a) => a.textContent === 'Indirect tax')).toBe(false);
     expect([...links].some((a) => a.textContent === 'Subsidy')).toBe(true);
   });
+
+  it('reports no prices and explains why once the tax closes the market', () => {
+    document.querySelector('#tax-toggle').checked = true;
+    document.querySelector('#tax-toggle').dispatchEvent(new Event('change'));
+    for (const [id, v] of [['#demand-slider', '-40'], ['#supply-slider', '-30'], ['#specific-slider', '60']]) {
+      document.querySelector(id).value = v;
+      document.querySelector(id).dispatchEvent(new Event('input'));
+    }
+    expect(document.querySelector('#stat-qty').textContent).toBe('0.0');
+    expect(document.querySelector('#stat-price-consumer').textContent).toBe('—');
+    expect(document.querySelector('#stat-price-producer').textContent).toBe('—');
+    expect(document.querySelector('#market-note').textContent).toContain('No units are traded');
+  });
 });

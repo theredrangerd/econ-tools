@@ -67,8 +67,10 @@ export function initIndirectTaxPage(doc) {
     renderMarketChart(chart, result);
 
     setStatusPill(doc.querySelector('#status-pill'), taxOn ? 'Tax applied' : 'Free market', result.mode);
-    doc.querySelector('#stat-price-consumer').textContent = result.noTrade ? '—' : fmtPrice(result.Pc);
-    doc.querySelector('#stat-price-producer').textContent = result.noTrade ? '—' : fmtPrice(result.Pp);
+    // A tax big enough to close the market leaves no traded price to report.
+    const noPrice = result.noTrade || result.closed;
+    doc.querySelector('#stat-price-consumer').textContent = noPrice ? '—' : fmtPrice(result.Pc);
+    doc.querySelector('#stat-price-producer').textContent = noPrice ? '—' : fmtPrice(result.Pp);
     doc.querySelector('#stat-qty').textContent = result.noTrade ? '0.0' : fmtQty(result.Q);
     doc.querySelector('#stat-cs').textContent = result.noTrade ? '$0' : fmtMoney(result.CS);
     doc.querySelector('#stat-ps').textContent = result.noTrade ? '$0' : fmtMoney(result.PS);
@@ -80,6 +82,8 @@ export function initIndirectTaxPage(doc) {
     const note = doc.querySelector('#market-note');
     if (result.noTrade) {
       note.innerHTML = '<strong>No trade occurs.</strong> Shift the sliders so demand sits above supply.';
+    } else if (result.closed) {
+      note.innerHTML = `<strong>No units are traded.</strong> The tax is at least as big as the gap between the most any buyer will pay and the least any seller will accept, so the market shuts down and all ${fmtMoney(result.DWL)} of surplus is lost.`;
     } else if (taxFraction > 0) {
       // The lost units run from Q to Q*: buyers value them between P* and Pc, and they
       // cost sellers between Pp and P* — worth more than they cost, but not worth Pc.

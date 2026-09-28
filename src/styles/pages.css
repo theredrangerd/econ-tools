@@ -661,6 +661,11 @@ input[type="range"]::-moz-range-thumb {
 .market-chart .axis-label { fill: var(--ink-muted); font-size: 12px; }
 .market-chart .tick-label { fill: var(--ink-muted); font-size: 10.5px; font-family: "IBM Plex Mono", monospace; }
 .market-chart .curve-label { font-size: 12.5px; font-weight: 600; font-family: "IBM Plex Sans", sans-serif; }
+.market-chart .axis-symbol { fill: var(--ink); font-size: 12px; font-weight: 600; font-family: "IBM Plex Sans", sans-serif; }
+/* Halo in the chart background colour so guide lines passing behind a label don't cut through it. */
+.market-chart .line-label { paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.market-chart .bracket-label { font-size: 11.5px; font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.market-chart .band-label { fill: var(--ink); fill-opacity: 0.75; font-size: 11px; font-weight: 500; }
 
 /* Click-to-explain regions (regionExplainers.js): hover "pops" the region so a student
    notices it's interactive before they click; the fill scales from its own center via
