@@ -56,8 +56,8 @@ describe('initIndirectTaxPage', () => {
     document.querySelector('#tax-toggle').dispatchEvent(new Event('change'));
     expect(document.querySelector('#stat-price-consumer').textContent).toBe('$90.00');
     expect(document.querySelector('#stat-price-producer').textContent).toBe('$70.00');
-    expect(document.querySelector('#stat-qty').textContent).toBe('50.0');
-    expect(document.querySelector('#stat-revenue').textContent).toBe('$1,000');
+    expect(document.querySelector('#stat-qty').textContent).toBe('52.5');
+    expect(document.querySelector('#stat-revenue').textContent).toBe('$1,050');
     expect(document.querySelector('#status-pill').textContent).toBe('Tax applied');
   });
 
@@ -68,8 +68,8 @@ describe('initIndirectTaxPage', () => {
     document.querySelector('#tax-mode-advalorem').dispatchEvent(new Event('change'));
     expect(document.querySelector('#stat-price-producer').textContent).toBe('$64.00');
     expect(document.querySelector('#stat-price-consumer').textContent).toBe('$96.00');
-    expect(document.querySelector('#stat-qty').textContent).toBe('44.0');
-    expect(document.querySelector('#stat-revenue').textContent).toBe('$1,408');
+    expect(document.querySelector('#stat-qty').textContent).toBe('48.0');
+    expect(document.querySelector('#stat-revenue').textContent).toBe('$1,536');
   });
 
   it('draws two wedge reference lines on the chart once the tax is toggled on', () => {
@@ -90,20 +90,20 @@ describe('initIndirectTaxPage', () => {
   });
 
   it('shows the true point elasticity at equilibrium, rising as the elasticity slider is dragged right (flatter)', () => {
-    expect(document.querySelector('#slope-d-val').textContent).toBe('1.33 · elastic');
+    expect(document.querySelector('#slope-d-val').textContent).toBe('1.00 · unit elastic');
     document.querySelector('#slope-d-slider').value = '0.5';
     document.querySelector('#slope-d-slider').dispatchEvent(new Event('input'));
-    expect(document.querySelector('#slope-d-val').textContent).toBe('4.22 · elastic');
+    expect(document.querySelector('#slope-d-val').textContent).toBe('3.16 · elastic');
     document.querySelector('#slope-d-slider').value = '-0.5';
     document.querySelector('#slope-d-slider').dispatchEvent(new Event('input'));
-    expect(document.querySelector('#slope-d-val').textContent).toBe('0.42 · inelastic');
+    expect(document.querySelector('#slope-d-val').textContent).toBe('0.32 · inelastic');
   });
 
   it('shows a supply readout that rises as the slider is dragged right toward more supply', () => {
     document.querySelector('#supply-slider').value = '10';
     document.querySelector('#supply-slider').dispatchEvent(new Event('input'));
     expect(document.querySelector('#supply-val').textContent).toBe('+10');
-    expect(document.querySelector('#stat-qty').textContent).toBe('65.0');
+    expect(document.querySelector('#stat-qty').textContent).toBe('63.8');
   });
 
   it('shifts the tax burden toward producers when demand is made more elastic', () => {
@@ -119,8 +119,8 @@ describe('initIndirectTaxPage', () => {
     document.querySelector('#tax-toggle').checked = true;
     document.querySelector('#tax-toggle').dispatchEvent(new Event('change'));
     const note = document.querySelector('#market-note').textContent;
-    expect(note).toContain('$100 of surplus is lost.');
-    expect(note).toContain('10.0 fewer units are traded');
+    expect(note).toContain('$75 of surplus is lost.');
+    expect(note).toContain('7.5 fewer units are traded');
     expect(note).toContain('$80–$90');
     expect(note).toContain('$70–$80');
     expect(note).toContain('$20 tax');
@@ -147,7 +147,7 @@ describe('initIndirectTaxPage', () => {
   it('reports no prices and explains why once the tax closes the market', () => {
     document.querySelector('#tax-toggle').checked = true;
     document.querySelector('#tax-toggle').dispatchEvent(new Event('change'));
-    for (const [id, v] of [['#demand-slider', '-40'], ['#supply-slider', '-30'], ['#specific-slider', '60']]) {
+    for (const [id, v] of [['#demand-slider', '-50'], ['#supply-slider', '-50'], ['#specific-slider', '60']]) {
       document.querySelector(id).value = v;
       document.querySelector(id).dispatchEvent(new Event('input'));
     }

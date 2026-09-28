@@ -39,4 +39,11 @@ describe('initPriceFloorPage against the real page markup', () => {
       expect(link.getAttribute('rel')).toBe('noopener noreferrer');
     });
   });
+
+  it('shows the elasticity simplification disclaimer, linked to the Elasticity stub', () => {
+    initPriceFloorPage(document);
+    const disclaimer = document.querySelector('.panel-disclaimer');
+    expect(disclaimer.textContent).toMatch(/Simplified/);
+    expect(document.querySelector('#elasticity-more').getAttribute('href')).toMatch(/wip\.html\?unit=elasticity$/);
+  });
 });

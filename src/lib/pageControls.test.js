@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { readCurveParams, guardSliders, marketFits } from './pageControls.js';
+import { readCurveParams, guardSliders, marketFits, elasticityInfoHref } from './pageControls.js';
 import { computeMarket, pointElasticities } from './marketEngine.js';
 
 function slider(value, { min = -50, max = 50, step = 1 } = {}) {
@@ -22,9 +22,24 @@ const SHIFTS = range(-50, 50, 10);
 const ELAST = range(-0.5, 0.5, 0.05);
 
 describe('readCurveParams', () => {
-  it('maps the default sliders to the textbook market (P* 80, Q* 60)', () => {
+  it('maps the default sliders to a market that is unit elastic at P* 80, Q* 60', () => {
     const { market } = readCurveParams(sliders(0, 0, 0, 0));
-    expect(market).toEqual({ demand: 140, supply: 20, slopeD: 1, slopeS: 1 });
+    expect(market.demand).toBeCloseTo(160);
+    expect(market.supply).toBeCloseTo(0);
+    const r = computeMarket(market);
+    expect(r.Qstar).toBeCloseTo(60);
+    expect(r.Pstar).toBeCloseTo(80);
+    const { ped, pes } = pointElasticities(r);
+    expect(ped).toBeCloseTo(1);
+    expect(pes).toBeCloseTo(1);
+  });
+
+  it('keeps both readouts at unit elastic when only demand is shifted', () => {
+    for (const d of [-30, -10, 10, 30]) {
+      const { ped, pes } = pointElasticities(computeMarket(readCurveParams(sliders(d, 0, 0, 0)).market));
+      expect(ped).toBeCloseTo(1);
+      expect(pes).toBeCloseTo(1);
+    }
   });
 
   it('moves supply right (more supply) when the supply slider is dragged right', () => {
@@ -102,5 +117,11 @@ describe('guardSliders', () => {
     input.value = '9';
     input.dispatchEvent(new Event('input'));
     expect(input.value).toBe('9');
+  });
+});
+
+describe('elasticityInfoHref', () => {
+  it('routes to the Elasticity family, which is the shared WIP stub until that family is built', () => {
+    expect(elasticityInfoHref()).toMatch(/units\/wip\.html\?unit=elasticity$/);
   });
 });

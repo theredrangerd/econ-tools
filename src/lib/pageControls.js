@@ -1,6 +1,7 @@
 import { elasticityLabel, fmtShift } from './format.js';
 import { tweenValue } from './animate.js';
 import { computeMarket, fitsChart, pointElasticities } from './marketEngine.js';
+import { getUnits, familyHref } from './units.js';
 
 // Every curve pivots around its point at this quantity when its elasticity slider moves,
 // so at zero shift both curves always pass through (PIVOT_Q, PIVOT_P): changing elasticity
@@ -10,10 +11,27 @@ import { computeMarket, fitsChart, pointElasticities } from './marketEngine.js';
 export const PIVOT_Q = 60;
 export const PIVOT_P = 80;
 
-// Elasticity sliders run on a log scale where right = flatter: slope = 10^-value, so the
-// default 0 is slope 1 and the ±0.5 ends are ~3.16x steeper/flatter.
+// Default slope that makes both curves unit elastic at the default equilibrium
+// (PED = PES = P/(slope·Q) = 80/(4/3·60) = 1), so the readouts start at "1.00 · unit
+// elastic" — the SL-friendly baseline. It also matches two facts SL students meet: the
+// default supply curve runs through the origin (unit elastic), and the equilibrium sits at
+// the midpoint of the default demand curve (where PED = 1).
+export const UNIT_ELASTIC_SLOPE = PIVOT_P / PIVOT_Q;
+
+// Elasticity sliders run on a log scale where right = flatter: slope = UNIT_ELASTIC_SLOPE ·
+// 10^-value, so the default 0 is unit elastic and at zero shift the equilibrium elasticity
+// is exactly 10^value (0.32 at the left end, 3.16 at the right).
 function slopeFromSlider(input) {
-  return Math.pow(10, -(+input.value));
+  return UNIT_ELASTIC_SLOPE * Math.pow(10, -(+input.value));
+}
+
+// Where the elasticity-panel disclaimer's "Why?" link goes: the Elasticity family page,
+// resolved through units.js so it's the shared WIP stub until that family is built and
+// then switches to the real page automatically.
+export function elasticityInfoHref() {
+  const unit = getUnits().find((u) => u.slug === 'microeconomics');
+  const family = unit.families.find((f) => f.slug === 'elasticity');
+  return familyHref(unit, family);
 }
 
 // Shift sliders are signed offsets where right always means MORE demand/supply: +demand
@@ -90,6 +108,8 @@ export function wireShiftAndSlopeInputs(doc, render, isValid) {
     slopeSSlider: doc.querySelector('#slope-s-slider'),
   };
   const inputs = Object.values(sliders);
+  const moreLink = doc.querySelector('#elasticity-more');
+  if (moreLink) moreLink.setAttribute('href', elasticityInfoHref());
   guardSliders(inputs, isValid);
   inputs.forEach((input) => input.addEventListener('input', render));
   return sliders;

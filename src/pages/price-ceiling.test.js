@@ -42,8 +42,8 @@ describe('initPriceCeilingPage', () => {
     document.querySelector('#ceiling-toggle').checked = true;
     document.querySelector('#ceiling-toggle').dispatchEvent(new Event('change'));
     expect(document.querySelector('#stat-price').textContent).toBe('$50.00');
-    expect(document.querySelector('#stat-qty').textContent).toBe('30.0');
-    expect(document.querySelector('#stat-dwl').textContent).toBe('$900');
+    expect(document.querySelector('#stat-qty').textContent).toBe('37.5');
+    expect(document.querySelector('#stat-dwl').textContent).toBe('$675');
     expect(document.querySelector('#status-pill').textContent).toBe('Price ceiling binding');
     expect(document.querySelector('#status-pill').classList.contains('ceiling')).toBe(true);
   });
@@ -53,20 +53,20 @@ describe('initPriceCeilingPage', () => {
   });
 
   it('shows the true point elasticity at equilibrium, rising as the elasticity slider is dragged right (flatter)', () => {
-    expect(document.querySelector('#slope-d-val').textContent).toBe('1.33 · elastic');
+    expect(document.querySelector('#slope-d-val').textContent).toBe('1.00 · unit elastic');
     document.querySelector('#slope-d-slider').value = '0.5';
     document.querySelector('#slope-d-slider').dispatchEvent(new Event('input'));
-    expect(document.querySelector('#slope-d-val').textContent).toBe('4.22 · elastic');
+    expect(document.querySelector('#slope-d-val').textContent).toBe('3.16 · elastic');
     document.querySelector('#slope-d-slider').value = '-0.5';
     document.querySelector('#slope-d-slider').dispatchEvent(new Event('input'));
-    expect(document.querySelector('#slope-d-val').textContent).toBe('0.42 · inelastic');
+    expect(document.querySelector('#slope-d-val').textContent).toBe('0.32 · inelastic');
   });
 
   it('shows a supply readout that rises as the slider is dragged right toward more supply', () => {
     document.querySelector('#supply-slider').value = '10';
     document.querySelector('#supply-slider').dispatchEvent(new Event('input'));
     expect(document.querySelector('#supply-val').textContent).toBe('+10');
-    expect(document.querySelector('#stat-qty').textContent).toBe('65.0');
+    expect(document.querySelector('#stat-qty').textContent).toBe('63.8');
   });
 
   it('shows a non-binding note when the ceiling toggle is on but set above equilibrium', () => {

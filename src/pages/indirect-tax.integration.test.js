@@ -24,7 +24,7 @@ describe('initIndirectTaxPage against the real page markup', () => {
     initIndirectTaxPage(document);
     document.querySelector('#tax-toggle').checked = true;
     document.querySelector('#tax-toggle').dispatchEvent(new Event('change'));
-    expect(document.querySelector('#stat-revenue').textContent).toBe('$1,000');
+    expect(document.querySelector('#stat-revenue').textContent).toBe('$1,050');
   });
 
   it('renders a mini-header back link plus sibling diagram links, with no separate family-nav row', () => {
@@ -45,5 +45,12 @@ describe('initIndirectTaxPage against the real page markup', () => {
       expect(link.getAttribute('target')).toBe('_blank');
       expect(link.getAttribute('rel')).toBe('noopener noreferrer');
     });
+  });
+
+  it('shows the elasticity simplification disclaimer, linked to the Elasticity stub', () => {
+    initIndirectTaxPage(document);
+    const disclaimer = document.querySelector('.panel-disclaimer');
+    expect(disclaimer.textContent).toMatch(/Simplified/);
+    expect(document.querySelector('#elasticity-more').getAttribute('href')).toMatch(/wip\.html\?unit=elasticity$/);
   });
 });

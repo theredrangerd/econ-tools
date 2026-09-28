@@ -48,8 +48,8 @@ describe('initSubsidyPage', () => {
     document.querySelector('#subsidy-toggle').dispatchEvent(new Event('change'));
     expect(document.querySelector('#stat-price-consumer').textContent).toBe('$70.00');
     expect(document.querySelector('#stat-price-producer').textContent).toBe('$90.00');
-    expect(document.querySelector('#stat-qty').textContent).toBe('70.0');
-    expect(document.querySelector('#stat-cost').textContent).toBe('$1,400');
+    expect(document.querySelector('#stat-qty').textContent).toBe('67.5');
+    expect(document.querySelector('#stat-cost').textContent).toBe('$1,350');
     expect(document.querySelector('#status-pill').textContent).toBe('Subsidy applied');
   });
 
@@ -58,7 +58,7 @@ describe('initSubsidyPage', () => {
     document.querySelector('#subsidy-toggle').dispatchEvent(new Event('change'));
     document.querySelector('#subsidy-slider').value = '40';
     document.querySelector('#subsidy-slider').dispatchEvent(new Event('input'));
-    expect(document.querySelector('#stat-qty').textContent).not.toBe('70.0');
+    expect(document.querySelector('#stat-qty').textContent).not.toBe('67.5');
   });
 
   it('draws a wedge fill rectangle for the government cost once toggled on', () => {
@@ -68,20 +68,20 @@ describe('initSubsidyPage', () => {
   });
 
   it('shows the true point elasticity at equilibrium, rising as the elasticity slider is dragged right (flatter)', () => {
-    expect(document.querySelector('#slope-d-val').textContent).toBe('1.33 · elastic');
+    expect(document.querySelector('#slope-d-val').textContent).toBe('1.00 · unit elastic');
     document.querySelector('#slope-d-slider').value = '0.5';
     document.querySelector('#slope-d-slider').dispatchEvent(new Event('input'));
-    expect(document.querySelector('#slope-d-val').textContent).toBe('4.22 · elastic');
+    expect(document.querySelector('#slope-d-val').textContent).toBe('3.16 · elastic');
     document.querySelector('#slope-d-slider').value = '-0.5';
     document.querySelector('#slope-d-slider').dispatchEvent(new Event('input'));
-    expect(document.querySelector('#slope-d-val').textContent).toBe('0.42 · inelastic');
+    expect(document.querySelector('#slope-d-val').textContent).toBe('0.32 · inelastic');
   });
 
   it('shows a supply readout that rises as the slider is dragged right toward more supply', () => {
     document.querySelector('#supply-slider').value = '10';
     document.querySelector('#supply-slider').dispatchEvent(new Event('input'));
     expect(document.querySelector('#supply-val').textContent).toBe('+10');
-    expect(document.querySelector('#stat-qty').textContent).toBe('65.0');
+    expect(document.querySelector('#stat-qty').textContent).toBe('63.8');
   });
 
   it('stops the elasticity sliders before the subsidised quantity runs off the chart', () => {
@@ -106,7 +106,7 @@ describe('initSubsidyPage', () => {
     document.querySelector('#subsidy-slider').dispatchEvent(new Event('input'));
     document.querySelector('#subsidy-toggle').checked = true;
     document.querySelector('#subsidy-toggle').dispatchEvent(new Event('change'));
-    expect(document.querySelector('#subsidy-val').textContent).toBe('$25');
+    expect(document.querySelector('#subsidy-val').textContent).toBe('$33');
     expect(+document.querySelector('#stat-qty').textContent).toBeLessThanOrEqual(100);
   });
 
