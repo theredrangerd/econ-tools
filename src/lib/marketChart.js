@@ -1,9 +1,32 @@
 import { QMAX, PMAX } from './marketEngine.js';
 
-const M = { left: 64, right: 24, top: 24, bottom: 56 };
-const VBW = 780, VBH = 520;
-const plotW = VBW - M.left - M.right;
-const plotH = VBH - M.top - M.bottom;
+// The chart is drawn in real CSS pixels: the viewBox is sized to the SVG's rendered width
+// (see sizeChart), so 1 user unit = 1 screen px and every font size below is the size the
+// student actually sees — a fixed 780-wide viewBox scaled down to a 640px card (or a
+// 340px phone) shrank 12px labels to 10px (or 5px), unreadable on a projector.
+// Margins leave room for 3-digit tick labels + the rotated axis title on the left, and
+// tick labels/axis symbols + the axis title underneath.
+const M = { left: 62, right: 18, top: 18, bottom: 58 };
+// Fallback width when layout gives none (jsdom, or a chart not yet in the document).
+const DEFAULT_W = 780;
+let VBW = DEFAULT_W, VBH = 520, plotW = 0, plotH = 0;
+
+// Wide charts keep the familiar 3:2 frame; narrow ones (phones, where the columns stack)
+// get relatively taller so the plot area doesn't collapse into a strip once the fixed-size
+// margins are taken out.
+function sizeChart(width) {
+  VBW = Math.round(width);
+  // Blend from 3:2 at 560px to roughly square at phone width (~340px).
+  const t = Math.min(1, Math.max(0, (560 - width) / 220));
+  VBH = Math.round(width * ((2 / 3) + t * (1.02 - 2 / 3)));
+  plotW = VBW - M.left - M.right;
+  plotH = VBH - M.top - M.bottom;
+}
+sizeChart(DEFAULT_W);
+
+// Type scale in screen px (roughly 1.15 steps): ticks 13 → labels 14 → axis symbols 16.
+const TICK_PX = 13;
+const TICK_Y = 22; // tick-label / x-axis symbol baseline, below the plot
 
 function clampN(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function sx(q) { return M.left + (q / QMAX) * plotW; }
@@ -80,13 +103,13 @@ function drawGridAndAxes(svg) {
   const g = el('g');
   for (let qq = 0; qq <= QMAX; qq += 20) {
     g.appendChild(el('line', { x1: sx(qq), y1: M.top, x2: sx(qq), y2: M.top + plotH, stroke: 'var(--hairline)', 'stroke-width': 1 }));
-    const lbl = el('text', { x: sx(qq), y: M.top + plotH + 20, 'text-anchor': 'middle', 'data-axis': 'x', 'data-pos': sx(qq) }, 'tick-label');
+    const lbl = el('text', { x: sx(qq), y: M.top + plotH + TICK_Y, 'text-anchor': 'middle', 'data-axis': 'x', 'data-pos': sx(qq) }, 'tick-label');
     lbl.textContent = qq;
     g.appendChild(lbl);
   }
   for (let pp = 0; pp <= PMAX; pp += 20) {
     g.appendChild(el('line', { x1: M.left, y1: sy(pp), x2: M.left + plotW, y2: sy(pp), stroke: 'var(--hairline)', 'stroke-width': 1 }));
-    const plbl = el('text', { x: M.left - 10, y: sy(pp) + 4, 'text-anchor': 'end', 'data-axis': 'y', 'data-pos': sy(pp) }, 'tick-label');
+    const plbl = el('text', { x: M.left - 10, y: sy(pp) + TICK_PX * 0.35, 'text-anchor': 'end', 'data-axis': 'y', 'data-pos': sy(pp) }, 'tick-label');
     plbl.textContent = pp;
     g.appendChild(plbl);
   }
@@ -95,10 +118,10 @@ function drawGridAndAxes(svg) {
   svg.appendChild(el('line', { x1: M.left, y1: M.top, x2: M.left, y2: M.top + plotH, stroke: 'var(--hairline-2)', 'stroke-width': 1.5 }));
   svg.appendChild(el('line', { x1: M.left, y1: M.top + plotH, x2: M.left + plotW, y2: M.top + plotH, stroke: 'var(--hairline-2)', 'stroke-width': 1.5 }));
 
-  const xl = el('text', { x: M.left + plotW / 2, y: VBH - 10, 'text-anchor': 'middle' }, 'axis-label');
+  const xl = el('text', { x: M.left + plotW / 2, y: VBH - 8, 'text-anchor': 'middle' }, 'axis-label');
   xl.textContent = 'Quantity (units)';
   svg.appendChild(xl);
-  const yl = el('text', { x: 16, y: M.top + plotH / 2, 'text-anchor': 'middle', transform: `rotate(-90 16 ${M.top + plotH / 2})` }, 'axis-label');
+  const yl = el('text', { x: 14, y: M.top + plotH / 2, 'text-anchor': 'middle', transform: `rotate(-90 14 ${M.top + plotH / 2})` }, 'axis-label');
   yl.textContent = 'Price ($ / unit)';
   svg.appendChild(yl);
 }
@@ -122,12 +145,14 @@ const MODE_LABELS = {
 // Distance from its equilibrium symbol (Pe/Qe) at which an intervention symbol reaches
 // full size. Chosen so two symbols centred on their lines stop overlapping at ~40% size
 // (below that they're tiny, fading, and drawn under Pe/Qe's halo).
-const Y_GAP = 20;
-const X_GAP = 24;
+// Both scale with SYMBOL_PX: a symbol with its subscript is ~1.3em tall and ~1.1em wide,
+// plus clearance. (Kept tight enough that the default $20 tax shows Pc/Pp at full size.)
+const SYMBOL_PX = 16;
+const Y_GAP = Math.round(SYMBOL_PX * 1.4);
+const X_GAP = Math.round(SYMBOL_PX * 1.75);
 // Growth starts this far out from Pe/Qe: Pe's hanging subscript needs ~3px more room than
 // the centred-glyph estimate, and at this distance the symbol would be <1px tall anyway.
 const SYMBOL_DEAD_ZONE = 3;
-const SYMBOL_PX = 12;
 
 // The IB-style symbols a result puts on each axis: Pe/Qe for the free-market equilibrium
 // (always, so the before/after comparison stays readable), plus whatever prices and
@@ -174,13 +199,20 @@ function drawAxisSymbols(svg, layer, result) {
     layer.appendChild(subscriptLabel(s.base, s.sub, { x: M.left - 10, y: s.pos + 0.2 * SYMBOL_PX * s.scale, 'text-anchor': 'end', ...size(s) }, cls(s)));
   }
   for (const s of order(x)) {
-    layer.appendChild(subscriptLabel(s.base, s.sub, { x: s.pos, y: M.top + plotH + 20, 'text-anchor': 'middle', ...size(s) }, cls(s)));
+    layer.appendChild(subscriptLabel(s.base, s.sub, { x: s.pos, y: M.top + plotH + TICK_Y, 'text-anchor': 'middle', ...size(s) }, cls(s)));
   }
-  // Hide any numeric tick that a symbol now sits on top of (13px ≈ one tick label's height).
+  // Hide any numeric tick that a symbol now sits on top of. On y the symbol isn't
+  // symmetric about its line: the subscript (e.g. "max") hangs ~0.5em further below, so a
+  // tick just under a symbol needs more clearance than one just above it.
+  const clear = (s, tickPos) => {
+    const d = tickPos - s.pos; // > 0: tick is below the symbol
+    return d > 0 ? d >= SYMBOL_PX * s.scale * 0.6 + TICK_PX : -d >= TICK_PX + 3;
+  };
   svg.querySelectorAll('.tick-label[data-axis]').forEach((tick) => {
-    const syms = tick.dataset.axis === 'x' ? x : y;
-    const gap = tick.dataset.axis === 'x' ? X_GAP : 13;
-    const hidden = syms.some((s) => Math.abs(s.pos - +tick.dataset.pos) < gap);
+    const pos = +tick.dataset.pos;
+    const hidden = tick.dataset.axis === 'x'
+      ? x.some((s) => Math.abs(s.pos - pos) < X_GAP)
+      : y.some((s) => !clear(s, pos));
     tick.setAttribute('visibility', hidden ? 'hidden' : 'visible');
   });
 }
@@ -189,14 +221,28 @@ function drawAxisSymbols(svg, layer, result) {
 // the smaller of Qs/Qd to the larger, labelled, on the side of the line where there's
 // empty space (below a ceiling, above a floor). Clipped with an arrow at the chart edge
 // when Qd/Qs lies past it — the note still reports the full amount.
+// Room the bracket + its label need on one side of the control line.
+const BRACKET_ROOM = 34;
+
+// Below a ceiling / above a floor is normally the empty side, but a ceiling near $0 or a
+// floor near the top of the chart leaves no room there, so the bracket flips across the
+// line rather than spilling out of the plot (the name label flips with it; see below).
+function bracketBelow(result) {
+  const yLine = sy(result.Pc);
+  const roomBelow = M.top + plotH - yLine, roomAbove = yLine - M.top;
+  if (result.mode === 'ceiling') return roomBelow >= BRACKET_ROOM || roomBelow >= roomAbove;
+  return !(roomAbove >= BRACKET_ROOM || roomAbove >= roomBelow);
+}
+
 function drawGapBracket(layer, result) {
   const isCeiling = result.mode === 'ceiling';
+  const below = bracketBelow(result);
   const q0 = Math.min(result.qd, result.qs), q1 = Math.max(result.qd, result.qs);
   const x0 = sx(q0), x1 = sx(Math.min(q1, QMAX));
   if (x1 - x0 < 2) return;
   const clipped = q1 > QMAX;
   const yLine = sy(result.Pc);
-  const y = isCeiling ? yLine + 12 : yLine - 12;
+  const y = below ? yLine + 12 : yLine - 12;
   const g = el('g', { 'data-region': isCeiling ? 'shortage' : 'excess-supply' }, 'region region--line');
   g.appendChild(el('line', { x1: x0, y1: y, x2: x1, y2: y, stroke: 'transparent', 'stroke-width': 16 }, 'region-hit'));
   const stroke = { stroke: 'var(--ink)', 'stroke-width': 1.4 };
@@ -207,7 +253,7 @@ function drawGapBracket(layer, result) {
   } else {
     g.appendChild(el('line', { x1: x1, y1: y - 4, x2: x1, y2: y + 4, ...stroke }, 'region-visible'));
   }
-  const lbl = el('text', { x: (x0 + x1) / 2, y: isCeiling ? y + 15 : y - 7, 'text-anchor': 'middle', fill: 'var(--ink)' }, 'bracket-label');
+  const lbl = el('text', { x: (x0 + x1) / 2, y: below ? y + 17 : y - 8, 'text-anchor': 'middle', fill: 'var(--ink)' }, 'bracket-label');
   lbl.textContent = isCeiling ? 'Shortage' : 'Excess supply';
   g.appendChild(lbl);
   layer.appendChild(g);
@@ -223,7 +269,8 @@ function drawWedgeLines(svg, result) {
     g.appendChild(el('line', { x1: M.left, y1: y, x2: M.left + plotW, y2: y, stroke: 'var(--dwl-line)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line region-visible'));
     // Name label on the opposite side of the line from the gap bracket, so the two can't
     // collide when Qd/Qs reaches the right edge.
-    const lbl = el('text', { x: M.left + plotW - 6, y: result.mode === 'ceiling' ? y - 6 : y + 14, 'text-anchor': 'end', fill: 'var(--dwl-line)' }, 'tick-label line-label');
+    // (Its own class, not .tick-label: that rule's grey fill would override this red.)
+    const lbl = el('text', { x: M.left + plotW - 6, y: bracketBelow(result) ? y - 7 : y + 17, 'text-anchor': 'end', fill: 'var(--dwl-line)' }, 'line-label');
     lbl.textContent = MODE_LABELS[result.mode];
     g.appendChild(lbl);
     svg.appendChild(g);
@@ -251,7 +298,7 @@ function drawWedgeLines(svg, result) {
     const { type, price } = result.requestedControl;
     const y = sy(price);
     svg.appendChild(el('line', { x1: M.left, y1: y, x2: M.left + plotW, y2: y, stroke: 'var(--ink-muted)', 'stroke-width': 1.4, 'stroke-dasharray': '4,4' }, 'wedge-line'));
-    const lbl = el('text', { x: M.left + plotW - 6, y: y - 6, 'text-anchor': 'end', fill: 'var(--ink-muted)' }, 'tick-label');
+    const lbl = el('text', { x: M.left + plotW - 6, y: y - 7, 'text-anchor': 'end', fill: 'var(--ink-secondary)' }, 'line-label line-label--muted');
     lbl.textContent = (type === 'floor' ? 'Price floor' : 'Price ceiling') + ' (not binding)';
     svg.appendChild(lbl);
   }
@@ -263,15 +310,55 @@ function drawWedgeLines(svg, result) {
 function bandLabel(group, poly, text) {
   const top = Math.min(sy(poly[2][1]), sy(poly[1][1])), bottom = Math.max(sy(poly[2][1]), sy(poly[1][1]));
   const width = sx(poly[1][0]) - sx(poly[0][0]);
-  if (bottom - top < 16 || width < 120) return;
-  const t = el('text', { x: sx(poly[0][0]) + 8, y: (top + bottom) / 2 + 4, 'pointer-events': 'none' }, 'band-label');
+  if (bottom - top < 18 || width < 136) return;
+  const t = el('text', { x: sx(poly[0][0]) + 8, y: (top + bottom) / 2 + 4.5, 'pointer-events': 'none' }, 'band-label');
   t.textContent = text;
   group.appendChild(t);
 }
 
+// A curve that leaves the chart through the top edge would put its name above the plot,
+// clipped by the card; keep the baseline one label-height inside instead.
+const CURVE_LABEL_PX = 14;
+function labelY(y) { return Math.max(y, M.top + CURVE_LABEL_PX); }
+
+// The Demand name sits at the curve's top-left end, which is exactly where a high floor's
+// line and excess-supply bracket run. If they'd overlap, step the name past the bracket
+// band (the side away from the line), so the two labels never print over each other.
+function demandLabelY(result, y) {
+  y = labelY(y);
+  if (!isPriceControl(result) || result.noTrade) return y;
+  const yLine = sy(result.Pc);
+  const below = bracketBelow(result);
+  const bandTop = below ? yLine - 4 : yLine - BRACKET_ROOM - 4;
+  const bandBottom = below ? yLine + BRACKET_ROOM : yLine + 4;
+  if (y < bandTop || y - CURVE_LABEL_PX > bandBottom) return y;
+  return below ? bandBottom + CURVE_LABEL_PX + 2 : labelY(bandTop - 2);
+}
+
+function measuredWidth(svg) {
+  const w = svg.clientWidth || (svg.getBoundingClientRect ? svg.getBoundingClientRect().width : 0);
+  return w > 0 ? w : DEFAULT_W;
+}
+
+// Redraws at the new pixel size whenever the card changes width (window resize, the
+// columns stacking at the mobile breakpoint), replaying the last result.
+function watchSize(svg) {
+  if (svg._chartObserver || typeof ResizeObserver === 'undefined') return;
+  svg._chartObserver = new ResizeObserver(() => {
+    if (!svg._lastResult || Math.abs(measuredWidth(svg) - +svg.dataset.chartW) < 1) return;
+    renderMarketChart(svg, svg._lastResult);
+  });
+  svg._chartObserver.observe(svg);
+}
+
 function ensureDynamicLayer(svg) {
-  if (svg.dataset.chartInit === 'true') return svg.querySelector('.dynamic-layer');
+  const width = measuredWidth(svg);
+  // sizeChart() sets module-level geometry, so run it on every render: two charts of
+  // different widths on one page must each draw against their own size.
+  sizeChart(width);
+  if (svg.dataset.chartInit === 'true' && Math.abs(width - +svg.dataset.chartW) < 1) return svg.querySelector('.dynamic-layer');
   while (svg.firstChild) svg.removeChild(svg.firstChild);
+  svg.dataset.chartW = String(width);
   svg.setAttribute('viewBox', `0 0 ${VBW} ${VBH}`);
   drawGridAndAxes(svg);
   const layer = el('g', {}, 'dynamic-layer');
@@ -281,6 +368,8 @@ function ensureDynamicLayer(svg) {
 }
 
 export function renderMarketChart(svg, result) {
+  svg._lastResult = result;
+  watchSize(svg);
   const layer = ensureDynamicLayer(svg);
   while (layer.firstChild) layer.removeChild(layer.firstChild);
 
@@ -346,7 +435,7 @@ export function renderMarketChart(svg, result) {
     ...(shifted ? { 'stroke-dasharray': '6,4', 'stroke-opacity': '0.55' } : {}),
   }, 'supply-curve'));
 
-  const dLbl = el('text', { x: sx(dSeg[0][0]) + 8, y: sy(dSeg[0][1]) - 6, fill: 'var(--demand)' }, 'curve-label');
+  const dLbl = el('text', { x: sx(dSeg[0][0]) + 10, y: demandLabelY(result, sy(dSeg[0][1]) - 7), fill: 'var(--demand)' }, 'curve-label');
   dLbl.textContent = 'Demand';
   layer.appendChild(dLbl);
 
@@ -356,15 +445,15 @@ export function renderMarketChart(svg, result) {
     // likely to collide with the Pc/Pp wedge labels once curves are dragged around.
     // Both sit at their own line's right-hand endpoint (not S1 on the left, S2 on the
     // right) so they read as a matched pair and never land near the Demand label on the left.
-    const sLbl = subscriptLabel('S', '1', { x: sx(sSeg[1][0]) - 8, y: sy(sSeg[1][1]) - 8, fill: 'var(--supply)', 'text-anchor': 'end', 'fill-opacity': '0.6' });
+    const sLbl = subscriptLabel('S', '1', { x: sx(sSeg[1][0]) - 10, y: labelY(sy(sSeg[1][1]) - 8), fill: 'var(--supply)', 'text-anchor': 'end', 'fill-opacity': '0.6' });
     layer.appendChild(sLbl);
 
     const s2Seg = clipSupply(shifted.Smin, shifted.slopeS);
     layer.appendChild(el('line', { x1: sx(s2Seg[0][0]), y1: sy(s2Seg[0][1]), x2: sx(s2Seg[1][0]), y2: sy(s2Seg[1][1]), stroke: 'var(--supply)', 'stroke-width': 2.5, 'stroke-linecap': 'round' }, 'supply-curve-shifted'));
-    const s2Lbl = subscriptLabel('S', '2', { x: sx(s2Seg[1][0]) - 8, y: sy(s2Seg[1][1]) - 8, fill: 'var(--supply)', 'text-anchor': 'end' });
+    const s2Lbl = subscriptLabel('S', '2', { x: sx(s2Seg[1][0]) - 10, y: labelY(sy(s2Seg[1][1]) - 8), fill: 'var(--supply)', 'text-anchor': 'end' });
     layer.appendChild(s2Lbl);
   } else {
-    const sLbl = el('text', { x: sx(sSeg[1][0]) - 8, y: sy(sSeg[1][1]) - 8, fill: 'var(--supply)', 'text-anchor': 'end' }, 'curve-label');
+    const sLbl = el('text', { x: sx(sSeg[1][0]) - 10, y: labelY(sy(sSeg[1][1]) - 8), fill: 'var(--supply)', 'text-anchor': 'end' }, 'curve-label');
     sLbl.textContent = 'Supply';
     layer.appendChild(sLbl);
   }

@@ -179,10 +179,10 @@ describe('renderMarketChart', () => {
   it('shrinks Pc/Pp toward Pe for a small tax, keeping every symbol on its own line and Pe full size', () => {
     const r = computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 6 } });
     renderMarketChart(svg, r);
-    expect(fontSize(svg, 'Pe')).toBe(12);
+    expect(fontSize(svg, 'Pe')).toBe(16);
     expect(fontSize(svg, 'Pc')).toBeGreaterThan(0);
-    expect(fontSize(svg, 'Pc')).toBeLessThan(12);
-    expect(fontSize(svg, 'Pp')).toBeLessThan(12);
+    expect(fontSize(svg, 'Pc')).toBeLessThan(16);
+    expect(fontSize(svg, 'Pp')).toBeLessThan(16);
     // not pushed aside: Pc stays above Pe by exactly the gap between their price lines
     const y = (name) => +symbolEl(svg, name).getAttribute('y');
     expect(y('Pe') - y('Pc')).toBeLessThan(13);
@@ -190,8 +190,8 @@ describe('renderMarketChart', () => {
 
   it('shows Pc/Pp at full size once the wedge is wide enough', () => {
     renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 20 } }));
-    expect(fontSize(svg, 'Pc')).toBe(12);
-    expect(fontSize(svg, 'Pp')).toBe(12);
+    expect(fontSize(svg, 'Pc')).toBe(16);
+    expect(fontSize(svg, 'Pp')).toBe(16);
   });
 
   it('drops Pc/Pp entirely once they are within a few px of Pe', () => {
@@ -220,6 +220,45 @@ describe('renderMarketChart', () => {
     renderMarketChart(svg, r);
     expect(svg.querySelectorAll('line.wedge-line')).toHaveLength(0);
     expect(symbols(svg).sort()).toEqual(['Pe', 'Qe']);
+  });
+
+  it('sizes the viewBox to the rendered width so chart text renders at its true pixel size', () => {
+    Object.defineProperty(svg, 'clientWidth', { value: 360, configurable: true });
+    renderMarketChart(svg, computeMarket(base));
+    const [, , w, h] = svg.getAttribute('viewBox').split(' ').map(Number);
+    expect(w).toBe(360);
+    // narrow charts get a taller frame than 3:2 so the plot keeps usable height
+    expect(h / w).toBeGreaterThan(2 / 3);
+  });
+
+  it('rebuilds the grid when the chart width changes', () => {
+    renderMarketChart(svg, computeMarket(base));
+    const before = svg.querySelector('.tick-label');
+    Object.defineProperty(svg, 'clientWidth', { value: 400, configurable: true });
+    renderMarketChart(svg, computeMarket(base));
+    expect(svg.querySelector('.tick-label')).not.toBe(before);
+    expect(svg.getAttribute('viewBox').startsWith('0 0 400 ')).toBe(true);
+  });
+
+  it('colours the ceiling/floor name label itself, not with the grey tick-label style', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'ceiling', price: 50 } }));
+    const lbl = svg.querySelector('[data-region="ceiling"] .line-label');
+    expect(lbl.textContent).toBe('Price ceiling');
+    expect(lbl.classList.contains('tick-label')).toBe(false);
+  });
+
+  it('flips the excess-supply bracket below a floor set near the top of the chart', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'floor', price: 175 } }));
+    const bracket = svg.querySelector('[data-region="excess-supply"] .gap-bracket');
+    if (!bracket) return; // market may close entirely at this floor
+    const lineY = +svg.querySelector('[data-region="floor"] .wedge-line').getAttribute('y1');
+    expect(+bracket.getAttribute('y1')).toBeGreaterThan(lineY);
+  });
+
+  it('keeps curve names inside the plot when a curve leaves through the top edge', () => {
+    renderMarketChart(svg, computeMarket({ demand: 330, supply: -170, slopeD: 4.2, slopeS: 4.2 }));
+    const y = +svg.querySelector('text.curve-label').getAttribute('y');
+    expect(y).toBeGreaterThanOrEqual(18 + 14);
   });
 
   it('clips shaded regions to the plot area instead of squashing off-chart corners', () => {
