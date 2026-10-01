@@ -89,4 +89,30 @@ describe('initPriceCeilingPage', () => {
     expect([...links].some((a) => a.textContent === 'Price ceiling')).toBe(false);
     expect([...links].some((a) => a.textContent === 'Price floor')).toBe(true);
   });
+
+  it('renders CS and PS badges on the chart initially, and adds DWL when ceiling is imposed', () => {
+    expect(document.querySelector('#chart .region-badge--cs')).not.toBeNull();
+    expect(document.querySelector('#chart .region-badge--ps')).not.toBeNull();
+    expect(document.querySelector('#chart .region-badge--dwl')).toBeNull();
+
+    document.querySelector('#ceiling-toggle').checked = true;
+    document.querySelector('#ceiling-toggle').dispatchEvent(new Event('change'));
+
+    expect(document.querySelector('#chart .region-badge--dwl')).not.toBeNull();
+    expect(document.querySelector('#chart .region-badge--dwl .region-badge__text').textContent).toBe('DWL');
+  });
+
+  it('opens an explainer popover with live values and context when a region badge is clicked', () => {
+    document.querySelector('#ceiling-toggle').checked = true;
+    document.querySelector('#ceiling-toggle').dispatchEvent(new Event('change'));
+
+    const dwlBadge = document.querySelector('#chart .region-badge--dwl');
+    dwlBadge.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: 200, clientY: 200 }));
+
+    const popover = document.querySelector('.region-popover');
+    expect(popover).not.toBeNull();
+    expect(popover.querySelector('h4').textContent).toBe('Deadweight Loss');
+    expect(popover.querySelector('.region-popover__stat .v').textContent).toBe('$675');
+    expect(popover.querySelector('.region-popover__callout').textContent).toContain('Restricting output');
+  });
 });

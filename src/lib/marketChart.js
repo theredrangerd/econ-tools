@@ -340,13 +340,138 @@ function measuredWidth(svg) {
   return w > 0 ? w : DEFAULT_W;
 }
 
+// Computes the visual centroid of a polygon in screen coordinates so that region labels
+// (CS, PS, DWL) can sit inside their respective areas. Clamps to the visible plot bounds.
+function polygonCentroid(poly) {
+  if (!poly || poly.length < 3) return null;
+  const pts = poly.map(([q, p]) => [sx(q), sy(p)]);
+  let signedArea = 0;
+  let cx = 0;
+  let cy = 0;
+  const n = pts.length;
+  for (let i = 0; i < n; i++) {
+    const [x0, y0] = pts[i];
+    const [x1, y1] = pts[(i + 1) % n];
+    const a = x0 * y1 - x1 * y0;
+    signedArea += a;
+    cx += (x0 + x1) * a;
+    cy += (y0 + y1) * a;
+  }
+  signedArea *= 0.5;
+  const absArea = Math.abs(signedArea);
+  // Omit the badge if the polygon is too small to comfortably display it without crowding.
+  if (absArea < 180) return null;
+  let x = cx / (6 * signedArea);
+  let y = cy / (6 * signedArea);
+  x = Math.max(M.left + 22, Math.min(M.left + plotW - 22, x));
+  y = Math.max(M.top + 14, Math.min(M.top + plotH - 14, y));
+  return { x, y, area: absArea };
+}
+
+// Renders an interactive pill-badge with category styling inside a chart region.
+function drawRegionBadge(layer, { id, text, center, colorVar, title }) {
+  if (!center) return;
+  const g = el('g', {
+    'data-region': id,
+    transform: `translate(${center.x.toFixed(1)}, ${center.y.toFixed(1)})`,
+    role: 'button',
+    tabindex: '0',
+    'aria-label': `${title} (${text}) — click for explanation`,
+  }, `region-badge region-badge--${id} region`);
+
+  const pillW = text.length > 2 ? 40 : 34;
+  const pillH = 22;
+  const r = 11;
+
+  // Larger transparent hit area
+  g.appendChild(el('rect', {
+    x: -pillW / 2 - 6,
+    y: -pillH / 2 - 6,
+    width: pillW + 12,
+    height: pillH + 12,
+    fill: 'transparent',
+  }, 'region-hit'));
+
+  // Crisp pill background
+  g.appendChild(el('rect', {
+    x: -pillW / 2,
+    y: -pillH / 2,
+    width: pillW,
+    height: pillH,
+    rx: r,
+    ry: r,
+    fill: 'var(--surface)',
+    stroke: `var(--${colorVar})`,
+    'stroke-width': '1.6',
+  }, 'region-badge__pill'));
+
+  // Label text
+  const txt = el('text', {
+    x: 0,
+    y: 0.5,
+    'text-anchor': 'middle',
+    'dominant-baseline': 'central',
+    fill: `var(--${colorVar})`,
+    'font-size': '11.5px',
+    'font-weight': '700',
+    'font-family': '"IBM Plex Sans", sans-serif',
+    'letter-spacing': '0.5px',
+  }, 'region-badge__text');
+  txt.textContent = text;
+  g.appendChild(txt);
+
+  layer.appendChild(g);
+}
+
+// Draws CS, PS, and DWL region badges when enabled.
+function drawSurplusBadges(layer, result) {
+  const badgeLayer = el('g', {}, 'surplus-badges');
+  if (result.csPoly && result.csPoly.length >= 3) {
+    const c = polygonCentroid(result.csPoly);
+    if (c) {
+      drawRegionBadge(badgeLayer, {
+        id: 'cs',
+        text: 'CS',
+        center: c,
+        colorVar: 'demand',
+        title: 'Consumer Surplus',
+      });
+    }
+  }
+  if (result.psPoly && result.psPoly.length >= 3) {
+    const c = polygonCentroid(result.psPoly);
+    if (c) {
+      drawRegionBadge(badgeLayer, {
+        id: 'ps',
+        text: 'PS',
+        center: c,
+        colorVar: 'supply',
+        title: 'Producer Surplus',
+      });
+    }
+  }
+  if (result.dwlPoly && result.dwlPoly.length >= 3) {
+    const c = polygonCentroid(result.dwlPoly);
+    if (c) {
+      drawRegionBadge(badgeLayer, {
+        id: 'dwl',
+        text: 'DWL',
+        center: c,
+        colorVar: 'dwl-line',
+        title: 'Deadweight Loss',
+      });
+    }
+  }
+  layer.appendChild(badgeLayer);
+}
+
 // Redraws at the new pixel size whenever the card changes width (window resize, the
 // columns stacking at the mobile breakpoint), replaying the last result.
 function watchSize(svg) {
   if (svg._chartObserver || typeof ResizeObserver === 'undefined') return;
   svg._chartObserver = new ResizeObserver(() => {
     if (!svg._lastResult || Math.abs(measuredWidth(svg) - +svg.dataset.chartW) < 1) return;
-    renderMarketChart(svg, svg._lastResult);
+    renderMarketChart(svg, svg._lastResult, svg._lastOptions);
   });
   svg._chartObserver.observe(svg);
 }
@@ -367,8 +492,9 @@ function ensureDynamicLayer(svg) {
   return layer;
 }
 
-export function renderMarketChart(svg, result) {
+export function renderMarketChart(svg, result, options = {}) {
   svg._lastResult = result;
+  svg._lastOptions = options;
   watchSize(svg);
   const layer = ensureDynamicLayer(svg);
   while (layer.firstChild) layer.removeChild(layer.firstChild);
@@ -476,6 +602,11 @@ export function renderMarketChart(svg, result) {
     } else if (hasOpenWedge(result)) {
       layer.appendChild(el('line', { x1: sx(result.Q), y1: sy(result.Pc), x2: sx(result.Q), y2: M.top + plotH, stroke: 'var(--ink-muted)', 'stroke-width': 1, 'stroke-dasharray': '1,3' }));
       layer.appendChild(el('circle', { cx: sx(result.Q), cy: sy(result.Pc), r: 4, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': 1.8 }));
+    }
+
+    const showSurplusLabels = options.showSurplusLabels ?? result.showSurplusLabels ?? false;
+    if (showSurplusLabels) {
+      drawSurplusBadges(layer, result);
     }
   }
 

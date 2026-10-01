@@ -713,38 +713,200 @@ input[type="range"]::-moz-range-thumb {
   filter: brightness(1.35);
 }
 
+/* Region badges (CS, PS, DWL) */
+.market-chart .region-badge {
+  cursor: pointer;
+  transition: transform 140ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.market-chart .region-badge .region-badge__pill {
+  transition: fill 140ms ease, stroke-width 140ms ease, filter 140ms ease;
+  filter: drop-shadow(0 1px 2px rgba(21, 25, 31, 0.12));
+}
+.market-chart .region-badge .region-badge__text {
+  transition: fill 140ms ease;
+  pointer-events: none;
+  user-select: none;
+}
+.market-chart .region-badge:hover,
+.market-chart .region-badge.region-hover,
+.market-chart .region-badge.region-active {
+  transform: scale(1.14);
+}
+.market-chart .region-badge:hover .region-badge__pill,
+.market-chart .region-badge.region-hover .region-badge__pill,
+.market-chart .region-badge.region-active .region-badge__pill {
+  filter: drop-shadow(0 3px 8px rgba(21, 25, 31, 0.22));
+}
+
+.market-chart .region-badge--cs:hover .region-badge__pill,
+.market-chart .region-badge--cs.region-hover .region-badge__pill,
+.market-chart .region-badge--cs.region-active .region-badge__pill {
+  fill: var(--demand);
+}
+.market-chart .region-badge--cs:hover .region-badge__text,
+.market-chart .region-badge--cs.region-hover .region-badge__text,
+.market-chart .region-badge--cs.region-active .region-badge__text {
+  fill: #ffffff;
+}
+
+.market-chart .region-badge--ps:hover .region-badge__pill,
+.market-chart .region-badge--ps.region-hover .region-badge__pill,
+.market-chart .region-badge--ps.region-active .region-badge__pill {
+  fill: var(--supply);
+}
+.market-chart .region-badge--ps:hover .region-badge__text,
+.market-chart .region-badge--ps.region-hover .region-badge__text,
+.market-chart .region-badge--ps.region-active .region-badge__text {
+  fill: #ffffff;
+}
+
+.market-chart .region-badge--dwl:hover .region-badge__pill,
+.market-chart .region-badge--dwl.region-hover .region-badge__pill,
+.market-chart .region-badge--dwl.region-active .region-badge__pill {
+  fill: var(--dwl-line);
+}
+.market-chart .region-badge--dwl:hover .region-badge__text,
+.market-chart .region-badge--dwl.region-hover .region-badge__text,
+.market-chart .region-badge--dwl.region-active .region-badge__text {
+  fill: #ffffff;
+}
+
 .region-popover {
   position: fixed;
   z-index: 60;
-  max-width: 260px;
-  background: var(--surface-2);
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  background: var(--surface);
   border: 1px solid var(--hairline-2);
-  border-radius: 10px;
-  padding: 12px 16px 14px;
-  box-shadow: var(--shadow);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 20px rgba(21, 25, 31, 0.14), 0 1px 4px rgba(21, 25, 31, 0.08);
   font-family: "IBM Plex Sans", sans-serif;
+  animation: popoverFadeIn 150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+@keyframes popoverFadeIn {
+  from { opacity: 0; transform: translateY(4px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.region-popover__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.region-popover__pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-secondary);
+  border: 1px solid var(--hairline-2);
+}
+.region-popover__pill--cs {
+  background: var(--demand-fill);
+  color: var(--demand);
+  border-color: var(--demand);
+}
+.region-popover__pill--ps {
+  background: var(--supply-fill);
+  color: var(--supply);
+  border-color: var(--supply);
+}
+.region-popover__pill--dwl {
+  background: var(--dwl-fill);
+  color: var(--dwl-line);
+  border-color: var(--dwl-line);
+}
+.region-popover__pill--ceiling,
+.region-popover__pill--shortage {
+  background: rgba(179, 52, 52, 0.12);
+  color: var(--dwl-line);
+  border-color: var(--dwl-line);
+}
+
 .region-popover h4 {
-  margin: 0 4px 6px 0;
-  font-size: 14px;
+  margin: 0;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--ink);
+  flex: 1;
 }
-.region-popover p {
-  margin: 0;
+
+.region-popover__close {
+  border: none;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+.region-popover__close:hover {
+  color: var(--ink);
+  background: var(--surface-2);
+}
+
+.region-popover__stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  background: var(--surface-2);
+  border-radius: 6px;
+  padding: 5px 10px;
+  margin-bottom: 9px;
+  border: 1px solid var(--hairline);
+}
+.region-popover__stat .k {
+  font-size: 11.5px;
+  color: var(--ink-secondary);
+  font-weight: 500;
+}
+.region-popover__stat .v {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.region-popover__def {
+  margin: 0 0 9px 0;
   font-size: 12.5px;
   line-height: 1.5;
   color: var(--ink-secondary);
 }
-.region-popover__close {
-  float: right;
-  margin: -4px -8px 0 8px;
-  border: none;
-  background: none;
-  color: var(--ink-muted);
-  font-size: 16px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 4px;
+
+.region-popover__callout {
+  background: var(--surface-2);
+  border-left: 3px solid var(--hairline-2);
+  border-radius: 0 6px 6px 0;
+  padding: 7px 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink);
 }
-.region-popover__close:hover { color: var(--ink); }
+.region-popover__callout--cs { border-left-color: var(--demand); }
+.region-popover__callout--ps { border-left-color: var(--supply); }
+.region-popover__callout--dwl { border-left-color: var(--dwl-line); }
+.region-popover__callout--ceiling,
+.region-popover__callout--shortage { border-left-color: var(--dwl-line); }
+
+.region-popover__callout .callout-title {
+  font-weight: 600;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+  color: var(--ink-muted);
+}
+.region-popover__callout p {
+  margin: 0;
+}

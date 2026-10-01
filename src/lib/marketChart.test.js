@@ -271,4 +271,34 @@ describe('renderMarketChart', () => {
     expect(tipY).toBeLessThan(0);
     expect(svg.querySelector('clipPath#plotClip')).not.toBeNull();
   });
+
+  it('renders CS and PS badges when showSurplusLabels option is enabled in free market', () => {
+    renderMarketChart(svg, computeMarket(base), { showSurplusLabels: true });
+    const csBadge = svg.querySelector('.region-badge--cs');
+    const psBadge = svg.querySelector('.region-badge--ps');
+    const dwlBadge = svg.querySelector('.region-badge--dwl');
+    expect(csBadge).not.toBeNull();
+    expect(csBadge.querySelector('.region-badge__text').textContent).toBe('CS');
+    expect(psBadge).not.toBeNull();
+    expect(psBadge.querySelector('.region-badge__text').textContent).toBe('PS');
+    expect(dwlBadge).toBeNull();
+  });
+
+  it('renders CS, PS, and DWL badges when showSurplusLabels is enabled under a binding ceiling', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'ceiling', price: 50 } }), { showSurplusLabels: true });
+    const csBadge = svg.querySelector('.region-badge--cs');
+    const psBadge = svg.querySelector('.region-badge--ps');
+    const dwlBadge = svg.querySelector('.region-badge--dwl');
+    expect(csBadge).not.toBeNull();
+    expect(psBadge).not.toBeNull();
+    expect(dwlBadge).not.toBeNull();
+    expect(dwlBadge.querySelector('.region-badge__text').textContent).toBe('DWL');
+  });
+
+  it('omits surplus badges by default when showSurplusLabels is false', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'ceiling', price: 50 } }));
+    expect(svg.querySelector('.region-badge--cs')).toBeNull();
+    expect(svg.querySelector('.region-badge--ps')).toBeNull();
+    expect(svg.querySelector('.region-badge--dwl')).toBeNull();
+  });
 });

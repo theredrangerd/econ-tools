@@ -1,3 +1,5 @@
+import { fmtMoney, fmtPrice, fmtQty } from './format.js';
+
 // Hardcoded per-region explanations for the "click a shaded area / line to learn what it
 // is" feature. Keyed by the `data-region` value set on chart elements in marketChart.js.
 // Covers all four government-intervention pages: price ceiling, price floor, indirect tax,
@@ -57,6 +59,63 @@ export const REGION_INFO = {
   },
 };
 
+export const REGION_BADGES = {
+  cs: 'CS',
+  ps: 'PS',
+  dwl: 'DWL',
+  ceiling: 'Pmax',
+  floor: 'Pmin',
+  shortage: 'Shortage',
+  'excess-supply': 'Excess supply',
+  'tax-consumer': 'Tax (consumer)',
+  'tax-producer': 'Tax (producer)',
+  'tax-revenue': 'Tax rev',
+  'subsidy-consumer': 'Sub (consumer)',
+  'subsidy-producer': 'Sub (producer)',
+  'subsidy-cost': 'Gov cost',
+};
+
+function getContextNote(key, result) {
+  if (!result) return null;
+  if (result.mode === 'ceiling') {
+    if (key === 'cs') {
+      return `Consumers who manage to purchase at the legal ceiling price ($${fmtPrice(result.Pc)}) gain surplus transferred from producers. However, because suppliers only provide ${fmtQty(result.qs)} units, other willing buyers face a shortage of ${fmtQty(result.gap)} units.`;
+    }
+    if (key === 'ps') {
+      return `Producers receive only the capped price of $${fmtPrice(result.Pc)} and cut back production to ${fmtQty(result.qs)} units, sharply reducing producer surplus.`;
+    }
+    if (key === 'dwl') {
+      return `Restricting output to ${fmtQty(result.qs)} units prevents mutually beneficial trades between ${fmtQty(result.qs)} and ${fmtQty(result.Qstar)} units that buyers and sellers wanted to make. This lost welfare disappears completely from society.`;
+    }
+    if (key === 'ceiling') {
+      return `A legal maximum price of $${fmtPrice(result.Pc)}. Set below the market equilibrium ($${fmtPrice(result.Pstar)}), it stops price from clearing the market.`;
+    }
+    if (key === 'shortage') {
+      return `At $${fmtPrice(result.Pc)}, consumers demand ${fmtQty(result.qd)} units but producers only supply ${fmtQty(result.qs)} units, leaving a shortage of ${fmtQty(result.gap)} units.`;
+    }
+  } else if (result.mode === 'free') {
+    if (key === 'cs') {
+      return `At free-market equilibrium ($P_e = $${fmtPrice(result.Pstar)}), consumer surplus is maximized without artificial shortages.`;
+    }
+    if (key === 'ps') {
+      return `At free-market equilibrium ($P_e = $${fmtPrice(result.Pstar)}), producer surplus is maximized without price suppression.`;
+    }
+  }
+  return null;
+}
+
+function getStatValue(key, result) {
+  if (!result) return null;
+  if (key === 'cs' && result.CS != null) return fmtMoney(result.CS);
+  if (key === 'ps' && result.PS != null) return fmtMoney(result.PS);
+  if (key === 'dwl' && result.DWL != null) return fmtMoney(result.DWL);
+  if (key === 'ceiling' && result.Pc != null) return fmtPrice(result.Pc);
+  if (key === 'shortage' && result.gap != null) return `${fmtQty(result.gap)} units`;
+  if (key === 'tax-revenue' && result.govRevenue != null) return fmtMoney(result.govRevenue);
+  if (key === 'subsidy-cost' && result.govCost != null) return fmtMoney(result.govCost);
+  return null;
+}
+
 // Wires hover-pop and click-to-explain behavior onto a market chart SVG. Safe to call once
 // per chart element — it listens on the SVG itself (event delegation), so it keeps working
 // across re-renders even though renderMarketChart() tears down and rebuilds the chart's
@@ -75,7 +134,7 @@ export function attachRegionExplainers(svg) {
       popover = null;
     }
     if (activeRegion) {
-      activeRegion.classList.remove('region-active');
+      svg.querySelectorAll('.region-active').forEach((el) => el.classList.remove('region-active'));
       activeRegion = null;
     }
   }
@@ -84,7 +143,7 @@ export function attachRegionExplainers(svg) {
     const pad = 12;
     // Measure after appending so offsetWidth/Height are real, then clamp into the viewport
     // so a click near an edge never renders the card partly off-screen.
-    const w = el.offsetWidth, h = el.offsetHeight;
+    const w = el.offsetWidth || 300, h = el.offsetHeight || 180;
     let left = clientX + pad, top = clientY + pad;
     if (left + w > window.innerWidth - pad) left = clientX - w - pad;
     if (top + h > window.innerHeight - pad) top = clientY - h - pad;
@@ -99,43 +158,120 @@ export function attachRegionExplainers(svg) {
     if (!info) return;
     closePopover();
     activeRegion = regionEl;
-    activeRegion.classList.add('region-active');
+
+    // Highlight all matching elements for this region key (e.g. shaded polygon and badge)
+    svg.querySelectorAll(`[data-region="${key}"]`).forEach((el) => el.classList.add('region-active'));
 
     popover = document.createElement('div');
-    popover.className = 'region-popover';
+    popover.className = `region-popover region-popover--${key}`;
     popover.setAttribute('role', 'dialog');
+    popover.setAttribute('aria-labelledby', 'region-popover-title');
+
+    const result = svg._lastResult;
+    const badgeLabel = REGION_BADGES[key] || key.toUpperCase();
+    const statVal = getStatValue(key, result);
+    const contextNote = getContextNote(key, result);
+
+    const header = document.createElement('div');
+    header.className = 'region-popover__header';
+
+    const pill = document.createElement('span');
+    pill.className = `region-popover__pill region-popover__pill--${key}`;
+    pill.textContent = badgeLabel;
+
     const heading = document.createElement('h4');
+    heading.id = 'region-popover-title';
     heading.textContent = info.title;
-    const body = document.createElement('p');
-    body.textContent = info.text;
+
     const close = document.createElement('button');
     close.className = 'region-popover__close';
     close.type = 'button';
     close.setAttribute('aria-label', 'Close');
     close.textContent = '×';
     close.addEventListener('click', closePopover);
-    popover.append(close, heading, body);
+
+    header.append(pill, heading, close);
+    popover.appendChild(header);
+
+    if (statVal) {
+      const statRow = document.createElement('div');
+      statRow.className = 'region-popover__stat';
+      const k = document.createElement('span');
+      k.className = 'k';
+      k.textContent = 'Current value';
+      const v = document.createElement('span');
+      v.className = 'v';
+      v.textContent = statVal;
+      statRow.append(k, v);
+      popover.appendChild(statRow);
+    }
+
+    const body = document.createElement('p');
+    body.className = 'region-popover__def';
+    body.textContent = info.text;
+    popover.appendChild(body);
+
+    if (contextNote) {
+      const callout = document.createElement('div');
+      callout.className = `region-popover__callout region-popover__callout--${key}`;
+      const calloutTitle = document.createElement('div');
+      calloutTitle.className = 'callout-title';
+      calloutTitle.textContent = result && result.mode === 'ceiling' ? 'Under this price ceiling' : 'In this market';
+      const calloutP = document.createElement('p');
+      calloutP.textContent = contextNote;
+      callout.append(calloutTitle, calloutP);
+      popover.appendChild(callout);
+    }
+
     document.body.appendChild(popover);
+
+    if (clientX == null || clientY == null) {
+      const rect = regionEl.getBoundingClientRect ? regionEl.getBoundingClientRect() : { left: 100, top: 100, width: 40, height: 20 };
+      clientX = rect.left + rect.width / 2;
+      clientY = rect.top + rect.height / 2;
+    }
     positionPopover(popover, clientX, clientY);
   }
 
   svg.addEventListener('pointerover', (e) => {
     const region = findRegion(e.target);
-    if (region) region.classList.add('region-hover');
+    if (region) {
+      const key = region.dataset.region;
+      svg.querySelectorAll(`[data-region="${key}"]`).forEach((el) => el.classList.add('region-hover'));
+    }
   });
   svg.addEventListener('pointerout', (e) => {
     const region = findRegion(e.target);
-    if (region) region.classList.remove('region-hover');
+    if (region) {
+      const key = region.dataset.region;
+      svg.querySelectorAll(`[data-region="${key}"]`).forEach((el) => el.classList.remove('region-hover'));
+    }
   });
 
   svg.addEventListener('click', (e) => {
     const region = findRegion(e.target);
     if (!region) return;
     const key = region.dataset.region;
-    if (activeRegion === region) {
+    if (activeRegion && activeRegion.dataset.region === key) {
       closePopover();
     } else {
       openPopover(region, key, e.clientX, e.clientY);
+    }
+  });
+
+  svg.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const region = findRegion(e.target);
+      if (region) {
+        e.preventDefault();
+        const key = region.dataset.region;
+        const rect = region.getBoundingClientRect ? region.getBoundingClientRect() : { left: 100, top: 100, width: 40, height: 20 };
+        if (activeRegion && activeRegion.dataset.region === key) {
+          closePopover();
+        } else {
+          openPopover(region, key, rect.left + rect.width / 2, rect.top + rect.height / 2);
+        }
+      }
     }
   });
 
