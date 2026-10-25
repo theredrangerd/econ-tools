@@ -694,6 +694,9 @@ input[type="range"]::-moz-range-thumb {
    notices it's interactive before they click; the fill scales from its own center via
    fill-box rather than the viewBox origin, so it grows outward evenly in place. */
 .market-chart .region { cursor: pointer; }
+/* Clean / IB perfect: regions are plain shading (regionExplainers.js adds no hover/active
+   classes at those levels, so only the pointer needs resetting). */
+.market-chart:not([data-detail="full"]) .region { cursor: default; }
 .market-chart .region--fill {
   transform-box: fill-box;
   transform-origin: center;

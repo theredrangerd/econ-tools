@@ -119,7 +119,12 @@ export function attachRegionExplainers(svg) {
   let popover = null;
   let activeRegion = null;
 
+  // Explainers belong to the Full explanation detail level only (marketChart.js stamps the
+  // level on the SVG each render); at Clean / IB perfect the regions are plain shading.
+  const active = () => (svg.dataset.detail ?? 'full') === 'full';
+
   function findRegion(target) {
+    if (!active()) return null;
     return target && target.closest ? target.closest('[data-region]') : null;
   }
 
@@ -281,4 +286,11 @@ export function attachRegionExplainers(svg) {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closePopover();
   });
+
+  return {
+    close() {
+      closePopover();
+      svg.querySelectorAll('.region-hover').forEach((el) => el.classList.remove('region-hover'));
+    },
+  };
 }
