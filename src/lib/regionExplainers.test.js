@@ -50,3 +50,36 @@ describe('attachRegionExplainers at every detail level', () => {
     expect(svg.querySelector('.region-active')).toBeNull();
   });
 });
+
+describe('explainer context notes', () => {
+  const base = { demand: 140, supply: 20, slopeD: 1, slopeS: 1 };
+
+  // Opens every clickable region in turn and returns each popover's text.
+  function allPopoverText(intervention) {
+    document.body.innerHTML = '';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'market-chart');
+    document.body.appendChild(svg);
+    renderMarketChart(svg, computeMarket({ ...base, intervention }), { showSurplusLabels: true });
+    const explainers = attachRegionExplainers(svg);
+    const keys = [...new Set([...svg.querySelectorAll('[data-region]')].map((n) => n.dataset.region))];
+    return keys.map((key) => {
+      svg.querySelector(`[data-region="${key}"]`).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      const text = document.querySelector('.region-popover')?.textContent ?? '';
+      explainers.close();
+      return text;
+    });
+  }
+
+  it.each([
+    ['a binding ceiling', { type: 'ceiling', price: 50 }],
+    ['the free market', { type: 'none' }],
+  ])('prints prices with a single dollar sign and no raw symbols under %s', (_, intervention) => {
+    const texts = allPopoverText(intervention);
+    expect(texts.some((t) => /\$\d/.test(t))).toBe(true);
+    for (const t of texts) {
+      expect(t).not.toContain('$$');
+      expect(t).not.toContain('P_e');
+    }
+  });
+});

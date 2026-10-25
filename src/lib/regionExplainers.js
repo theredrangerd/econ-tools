@@ -74,26 +74,26 @@ function getContextNote(key, result) {
   if (!result) return null;
   if (result.mode === 'ceiling') {
     if (key === 'cs') {
-      return `Consumers who manage to purchase at the legal ceiling price ($${fmtPrice(result.Pc)}) gain surplus transferred from producers. However, because suppliers only provide ${fmtQty(result.qs)} units, other willing buyers face a shortage of ${fmtQty(result.gap)} units.`;
+      return `Consumers who manage to purchase at the legal ceiling price (${fmtPrice(result.Pc)}) gain surplus transferred from producers. However, because suppliers only provide ${fmtQty(result.qs)} units, other willing buyers face a shortage of ${fmtQty(result.gap)} units.`;
     }
     if (key === 'ps') {
-      return `Producers receive only the capped price of $${fmtPrice(result.Pc)} and cut back production to ${fmtQty(result.qs)} units, sharply reducing producer surplus.`;
+      return `Producers receive only the capped price of ${fmtPrice(result.Pc)} and cut back production to ${fmtQty(result.qs)} units, sharply reducing producer surplus.`;
     }
     if (key === 'dwl') {
       return `Restricting output to ${fmtQty(result.qs)} units prevents mutually beneficial trades between ${fmtQty(result.qs)} and ${fmtQty(result.Qstar)} units that buyers and sellers wanted to make. This lost welfare disappears completely from society.`;
     }
     if (key === 'ceiling') {
-      return `A legal maximum price of $${fmtPrice(result.Pc)}. Set below the market equilibrium ($${fmtPrice(result.Pstar)}), it stops price from clearing the market.`;
+      return `A legal maximum price of ${fmtPrice(result.Pc)}. Set below the market equilibrium (${fmtPrice(result.Pstar)}), it stops price from clearing the market.`;
     }
     if (key === 'shortage') {
-      return `At $${fmtPrice(result.Pc)}, consumers demand ${fmtQty(result.qd)} units but producers only supply ${fmtQty(result.qs)} units, leaving a shortage of ${fmtQty(result.gap)} units.`;
+      return `At ${fmtPrice(result.Pc)}, consumers demand ${fmtQty(result.qd)} units but producers only supply ${fmtQty(result.qs)} units, leaving a shortage of ${fmtQty(result.gap)} units.`;
     }
   } else if (result.mode === 'free') {
     if (key === 'cs') {
-      return `At free-market equilibrium ($P_e = $${fmtPrice(result.Pstar)}), consumer surplus is maximized without artificial shortages.`;
+      return `At free-market equilibrium (Pe = ${fmtPrice(result.Pstar)}), consumer surplus is maximized without artificial shortages.`;
     }
     if (key === 'ps') {
-      return `At free-market equilibrium ($P_e = $${fmtPrice(result.Pstar)}), producer surplus is maximized without price suppression.`;
+      return `At free-market equilibrium (Pe = ${fmtPrice(result.Pstar)}), producer surplus is maximized without price suppression.`;
     }
   }
   return null;
