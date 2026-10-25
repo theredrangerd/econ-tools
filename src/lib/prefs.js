@@ -47,6 +47,7 @@ export function hasSeenTour(win = window) {
   return v === undefined || v === '1';
 }
 
+// Returns whether the flag was actually saved.
 export function markTourSeen(win = window) {
-  write(win, TOUR_KEY, '1');
+  return write(win, TOUR_KEY, '1');
 }

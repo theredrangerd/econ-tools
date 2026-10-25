@@ -93,6 +93,13 @@ describe('initGraphChrome', () => {
     expect(document.querySelector('.tour-bubble').textContent).toContain('Step 1 of 3');
   });
 
+  it('does not auto-start when storage can be read but not written', () => {
+    const chrome = make();
+    const win = { localStorage: { getItem: () => null, setItem: () => { throw new Error('quota'); } }, location: { search: '' } };
+    maybeAutoStartTour(chrome, win);
+    expect(document.querySelector('.tour-bubble')).toBeNull();
+  });
+
   it('does not auto-start when storage is blocked', () => {
     const chrome = make();
     maybeAutoStartTour(chrome, blockedWin());

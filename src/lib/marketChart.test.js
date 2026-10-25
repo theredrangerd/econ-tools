@@ -454,6 +454,23 @@ describe('renderMarketChart', () => {
       expect(ticks().some((t) => t.getAttribute('visibility') !== 'hidden')).toBe(true);
     });
 
+    it('ib writes the full burden names on a wide chart with a large tax', () => {
+      renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 40 } }), { detail: 'ib' });
+      expect(areaNames()).toEqual(expect.arrayContaining(['consumer burden', 'producer burden']));
+    });
+
+    it('ib writes government spending in full on a large subsidy', () => {
+      renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'subsidy', mode: 'specific', amount: 40 } }), { detail: 'ib' });
+      expect(areaNames()).toContain('government spending');
+    });
+
+    it('ib still names thin tax bands (shrunk short form) rather than dropping them', () => {
+      renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 20 } }), { detail: 'ib' });
+      const names = areaNames();
+      expect(names.some((n) => n === 'consumer burden' || n === 'CB')).toBe(true);
+      expect(names.some((n) => n === 'producer burden' || n === 'PB')).toBe(true);
+    });
+
     it('ib hides tick numbers even when no trade happens', () => {
       const r = computeMarket({ demand: 40, supply: 80, slopeD: 1, slopeS: 1, intervention: { type: 'none' } });
       renderMarketChart(svg, r, { detail: 'ib' });

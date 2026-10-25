@@ -31,10 +31,10 @@ export function initGraphChrome(doc, { chartHead, steps, onDetailChange }) {
 }
 
 // Called by the page after its first render, so the tour's targets are laid out. Marked
-// seen before it starts: a student who closes the tab mid-tour isn't shown it again.
+// seen before it starts: a student who closes the tab mid-tour isn't shown it again. If the
+// flag can't be saved (storage reads but won't write), skip it rather than nag every load.
 export function maybeAutoStartTour(chrome, win = window) {
-  if (hasSeenTour(win)) return;
-  markTourSeen(win);
+  if (hasSeenTour(win) || !markTourSeen(win)) return;
   chrome.startTour();
 }
 
