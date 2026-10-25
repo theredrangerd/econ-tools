@@ -6,15 +6,24 @@ import { getFamilyNav } from '../components/familyNav.js';
 import { wireShiftAndSlopeInputs, updateShiftAndSlopeLabels, wireInterventionToggle, readCurveParams, marketFits, fillSharedStats, NO_TRADE_NOTE } from '../lib/pageControls.js';
 import { attachRegionExplainers } from '../lib/regionExplainers.js';
 import { FEEDBACK_FORM_URL } from '../lib/feedback.js';
+import { initGraphChrome, maybeAutoStartTour, interventionTourSteps } from '../components/graphChrome.js';
 
 // Shared controller for the price ceiling and price floor pages, which differ only in the
 // intervention type, their element ids (`#<type>-toggle`, `#<type>-slider`, `#<type>-val`),
 // and wording. Separate pages per CLAUDE.md (the regions differ); one implementation.
-export function initPriceControlPage(doc, { slug, title, type, bindingPill, gapNote, notBindingNote, showRegionLabels = false }) {
+export function initPriceControlPage(doc, { slug, title, type, bindingPill, gapNote, notBindingNote, showRegionLabels = false, tour }) {
   const { backHref, backLabel, siblings } = getFamilyNav(slug);
   renderMiniHeader(doc.querySelector('#mini-header'), { title, backHref, backLabel, siblings });
 
   const chart = doc.querySelector('#chart');
+  // Detail gear + walkthrough. Created before the first render so it can read the level.
+  let explainers;
+  const chrome = initGraphChrome(doc, {
+    chartHead: doc.querySelector('.chart-head'),
+    steps: (detail) => interventionTourSteps({ ...tour, clickableRegions: true }, detail),
+    onDetailChange: () => { explainers?.close(); render(); },
+  });
+
   const toggle = doc.querySelector(`#${type}-toggle`);
   const slider = doc.querySelector(`#${type}-slider`);
 
@@ -41,7 +50,7 @@ export function initPriceControlPage(doc, { slug, title, type, bindingPill, gapN
     const intervention = fraction > 0 ? { type, price: displayPrice } : { type: 'none' };
     const result = computeMarket({ ...market, intervention });
 
-    renderMarketChart(chart, result, { showSurplusLabels: showRegionLabels });
+    renderMarketChart(chart, result, { showSurplusLabels: showRegionLabels, detail: chrome.getDetail() });
 
     setStatusPill(doc.querySelector('#status-pill'), result.mode === type ? bindingPill : 'Free market', result.mode);
 
@@ -64,6 +73,7 @@ export function initPriceControlPage(doc, { slug, title, type, bindingPill, gapN
   toggleCtl = wireInterventionToggle(toggle, render);
 
   render();
-  attachRegionExplainers(chart);
+  explainers = attachRegionExplainers(chart);
+  maybeAutoStartTour(chrome);
   doc.querySelector('#feedback-form').src = FEEDBACK_FORM_URL;
 }
