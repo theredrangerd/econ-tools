@@ -41,7 +41,7 @@ export function initSubsidyPage(doc) {
     const intervention = subsidyFraction > 0 ? { type: 'subsidy', amount: amount * subsidyFraction } : { type: 'none' };
     const result = computeMarket({ ...market, intervention });
 
-    renderMarketChart(chart, result);
+    renderMarketChart(chart, result, { showSurplusLabels: true });
 
     setStatusPill(doc.querySelector('#status-pill'), subsidyOn ? 'Subsidy applied' : 'Free market', result.mode);
     doc.querySelector('#stat-price-consumer').textContent = result.noTrade ? '—' : fmtPrice(result.Pc);

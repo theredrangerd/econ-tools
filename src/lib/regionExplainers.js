@@ -45,13 +45,9 @@ export const REGION_INFO = {
     title: 'Government Tax Revenue',
     text: 'The total revenue the government collects from the tax — the tax per unit multiplied by the quantity still traded after the tax.',
   },
-  'subsidy-consumer': {
-    title: 'Consumer Benefit',
-    text: 'The portion of the subsidy that lowers the price consumers pay. How much of the benefit lands here rather than with producers depends on how responsive (elastic) demand is relative to supply.',
-  },
-  'subsidy-producer': {
-    title: 'Producer Benefit',
-    text: 'The portion of the subsidy that raises the price producers receive. How much of the benefit lands here rather than with consumers depends on how responsive (elastic) supply is relative to demand.',
+  'subsidy-overlap': {
+    title: 'CS and PS overlap',
+    text: 'The subsidy band counts as surplus twice: consumers get surplus from the lower price they pay, and producers get surplus from the higher price they receive. The overlap is paid for by the government, which is why its cost is subtracted when judging total welfare.',
   },
   'subsidy-cost': {
     title: 'Government Spending',
@@ -67,12 +63,11 @@ export const REGION_BADGES = {
   floor: 'Pmin',
   shortage: 'Shortage',
   'excess-supply': 'Excess supply',
-  'tax-consumer': 'Tax (consumer)',
-  'tax-producer': 'Tax (producer)',
+  'tax-consumer': 'CB',
+  'tax-producer': 'PB',
   'tax-revenue': 'Tax rev',
-  'subsidy-consumer': 'Sub (consumer)',
-  'subsidy-producer': 'Sub (producer)',
-  'subsidy-cost': 'Gov cost',
+  'subsidy-overlap': 'CS ∩ PS',
+  'subsidy-cost': 'Gov',
 };
 
 function getContextNote(key, result) {

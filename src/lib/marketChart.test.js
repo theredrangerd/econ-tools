@@ -160,44 +160,120 @@ describe('renderMarketChart', () => {
     expect(svg.querySelectorAll('circle.control-point')).toHaveLength(1);
   });
 
-  it('names the tax prices Pc/Pp on the axis and the burdens inside their bands, not on the lines', () => {
-    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 40 } }));
+  it('names the tax prices Pc/Pp on the axis and the burdens as CB/PB chips, not on the lines', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 40 } }), { showSurplusLabels: true });
     expect(symbols(svg).sort()).toEqual(['Pc', 'Pe', 'Pp', 'Q1', 'Qe']);
-    expect(svg.querySelector('[data-region="tax-consumer"] .band-label').textContent).toBe('Consumer burden');
-    expect(svg.querySelector('[data-region="tax-producer"] .band-label').textContent).toBe('Producer burden');
+    expect(svg.querySelector('.region-badge--tax-consumer .region-badge__text').textContent).toBe('CB');
+    expect(svg.querySelector('.region-badge--tax-producer .region-badge__text').textContent).toBe('PB');
+    expect(svg.querySelector('.band-label')).toBeNull();
     expect(svg.textContent).not.toMatch(/Burden|Incidence/);
   });
 
-  it('skips a band label when the band is too thin to hold it', () => {
-    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 2 } }));
-    expect(svg.querySelector('.band-label')).toBeNull();
+  it('shows the CS/PS overlap on a subsidy as its own shade, with no chips and no opaque backing', () => {
+    const r = computeMarket({ ...base, intervention: { type: 'subsidy', mode: 'specific', amount: 40 } });
+    renderMarketChart(svg, r, { showSurplusLabels: true });
+    const halves = [...svg.querySelectorAll('polygon.overlap-fill')].map((n) => n.getAttribute('fill'));
+    expect(halves).toEqual(['url(#overlapStripesAbove)', 'url(#overlapStripesBelow)']);
+    expect(svg.querySelector('polygon.wedge-backing')).toBeNull();
+    const ys = r.overlapPoly.map(([, p]) => p);
+    expect(Math.min(...ys)).toBeCloseTo(r.Pc);
+    expect(Math.max(...ys)).toBeCloseTo(r.Pp);
+  });
+
+  it('names the subsidy areas with chips and dimensions the per-unit subsidy at Q1', () => {
+    const r = computeMarket({ ...base, intervention: { type: 'subsidy', mode: 'specific', amount: 40 } });
+    renderMarketChart(svg, r, { showSurplusLabels: true });
+    const names = [...svg.querySelectorAll('.region-badge:not(.region-badge--plain) .region-badge__text')].map((n) => n.textContent);
+    expect(names).toEqual(expect.arrayContaining(['CS', 'PS', 'Gov']));
+    expect(svg.querySelector('.area-label')).toBeNull();
+    expect(svg.querySelector('.region-badge--subsidy-amount .region-badge__text').textContent).toBe('$40');
+    const bracketX = +svg.querySelector('.subsidy-bracket line').getAttribute('x1');
+    expect(bracketX).toBeGreaterThan(+svg.querySelector('line.demand-curve').getAttribute('x1'));
+  });
+
+  it('draws no subsidy bracket for a tax or the free market', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 40 } }));
+    expect(svg.querySelector('.subsidy-bracket')).toBeNull();
+  });
+
+  it('skips a wedge chip when the band is too thin to hold it', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 2 } }), { showSurplusLabels: true });
+    expect(svg.querySelector('.region-badge--tax-consumer')).toBeNull();
+  });
+
+  it('layers a hidden full-CS and full-PS pop over the subsidy stripes, sharing the surplus regions', () => {
+    const r = computeMarket({ ...base, intervention: { type: 'subsidy', amount: 20 } });
+    renderMarketChart(svg, r);
+    const fills = [...svg.querySelector('g.fills').children];
+    const stripes = fills.findIndex((g) => g.dataset.region === 'subsidy-overlap');
+    for (const id of ['cs', 'ps']) {
+      const pop = svg.querySelector(`g.region-pop--${id}`);
+      expect(pop.dataset.region).toBe(id);
+      expect(fills.indexOf(pop)).toBeGreaterThan(stripes);
+      expect(pop.querySelector(`polygon.${id}-pop-fill`).getAttribute('points'))
+        .toBe(svg.querySelector(`polygon.${id}-fill`).getAttribute('points'));
+    }
+  });
+
+  it('draws no pop layers outside a subsidy', () => {
+    const r = computeMarket({ ...base, intervention: { type: 'tax', amount: 20 } });
+    renderMarketChart(svg, r);
+    expect(svg.querySelector('.region-pop')).toBeNull();
+  });
+
+  it('keeps a ceiling/floor name inside the plot when its line sits on the bottom edge', () => {
+    const r = computeMarket({ ...base, intervention: { type: 'ceiling', price: 0 } });
+    renderMarketChart(svg, r);
+    const lineY = +svg.querySelector('line.wedge-line').getAttribute('y1');
+    // Below the line would be the tick-label row, so the name flips above it.
+    expect(+svg.querySelector('text.line-label').getAttribute('y')).toBeLessThan(lineY);
+  });
+
+  it('keeps the S1/S2 names apart when both supply lines end together', () => {
+    const r = computeMarket({ demand: 80, supply: 20, slopeD: 0.5, slopeS: 0.2, intervention: { type: 'subsidy', amount: 20 } });
+    renderMarketChart(svg, r);
+    const [s1, s2] = ['S1', 'S2'].map((t) => [...svg.querySelectorAll('text')].find((n) => n.textContent.replace(/\s/g, '') === t));
+    expect(Math.abs(+s1.getAttribute('y') - +s2.getAttribute('y'))).toBeGreaterThan(14);
+  });
+
+  it('never lets two chips overlap', () => {
+    for (const intervention of [{ type: 'tax', mode: 'specific', amount: 40 }, { type: 'subsidy', mode: 'specific', amount: 40 }, { type: 'ceiling', price: 20 }, { type: 'floor', price: 100 }]) {
+      renderMarketChart(svg, computeMarket({ ...base, intervention }), { showSurplusLabels: true });
+      const boxes = [...svg.querySelectorAll('.region-badge')].map((g) => {
+        const [, x, y] = g.getAttribute('transform').match(/translate\(([-\d.]+), ([-\d.]+)\)/).map(Number);
+        const pill = g.querySelector('.region-badge__pill');
+        return { x0: x - pill.getAttribute('width') / 2, x1: x + +pill.getAttribute('width') / 2, y0: y - pill.getAttribute('height') / 2, y1: y + +pill.getAttribute('height') / 2 };
+      });
+      boxes.forEach((a, i) => boxes.slice(i + 1).forEach((b) => {
+        expect(a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0).toBe(false);
+      }));
+    }
   });
 
   const symbolEl = (svg, name) => [...svg.querySelectorAll('text.axis-symbol')].find((t) => t.textContent === name);
   const fontSize = (svg, name) => +symbolEl(svg, name).getAttribute('font-size');
 
-  it('shrinks Pc/Pp toward Pe for a small tax, keeping every symbol on its own line and Pe full size', () => {
-    const r = computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 6 } });
-    renderMarketChart(svg, r);
-    expect(fontSize(svg, 'Pe')).toBe(16);
-    expect(fontSize(svg, 'Pc')).toBeGreaterThan(0);
-    expect(fontSize(svg, 'Pc')).toBeLessThan(16);
-    expect(fontSize(svg, 'Pp')).toBeLessThan(16);
-    // not pushed aside: Pc stays above Pe by exactly the gap between their price lines
-    const y = (name) => +symbolEl(svg, name).getAttribute('y');
-    expect(y('Pe') - y('Pc')).toBeLessThan(13);
+  const labelBox = (svg, name) => {
+    const y = +symbolEl(svg, name).getAttribute('y');
+    return { top: y - 0.7 * 16, bottom: y + 0.3 * 16 };
+  };
+
+  it('keeps Pc/Pp/Pe full size and clear of each other for a small tax, with leaders to the true lines', () => {
+    for (const amount of [1, 2, 6]) {
+      renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount } }));
+      for (const n of ['Pe', 'Pc', 'Pp']) expect(fontSize(svg, n)).toBe(16);
+      const boxes = ['Pe', 'Pc', 'Pp'].map((n) => labelBox(svg, n)).sort((a, b) => a.top - b.top);
+      expect(boxes[1].top).toBeGreaterThanOrEqual(boxes[0].bottom);
+      expect(boxes[2].top).toBeGreaterThanOrEqual(boxes[1].bottom);
+      expect(svg.querySelectorAll('line.axis-leader').length).toBe(2);
+    }
   });
 
-  it('shows Pc/Pp at full size once the wedge is wide enough', () => {
-    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 20 } }));
+  it('draws no leaders once the wedge is wide enough that labels sit on their own lines', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 40 } }));
     expect(fontSize(svg, 'Pc')).toBe(16);
     expect(fontSize(svg, 'Pp')).toBe(16);
-  });
-
-  it('drops Pc/Pp entirely once they are within a few px of Pe', () => {
-    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 2 } }));
-    expect(symbols(svg)).not.toContain('Pc');
-    expect(symbols(svg)).not.toContain('Pp');
+    expect(svg.querySelectorAll('line.axis-leader')).toHaveLength(0);
   });
 
   it('drops Pc/Pp/Q1 entirely at a zero tax or subsidy, leaving only Pe/Qe', () => {
@@ -293,6 +369,18 @@ describe('renderMarketChart', () => {
     expect(psBadge).not.toBeNull();
     expect(dwlBadge).not.toBeNull();
     expect(dwlBadge.querySelector('.region-badge__text').textContent).toBe('DWL');
+  });
+
+  it('shrinks badges to fit squeezed regions instead of overflowing them', () => {
+    const width = (opts) => {
+      renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'ceiling', price: opts } }), { showSurplusLabels: true });
+      const pill = svg.querySelector('.region-badge--ps .region-badge__pill');
+      return pill ? +pill.getAttribute('width') : 0;
+    };
+    const roomy = width(50);
+    const squeezed = width(8);
+    expect(roomy).toBeGreaterThan(0);
+    expect(squeezed).toBeLessThan(roomy);
   });
 
   it('omits surplus badges by default when showSurplusLabels is false', () => {

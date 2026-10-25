@@ -26,6 +26,16 @@ IB Economics students and teachers. Two ways people land on the site, and both n
 - The homepage has a search bar so a student can find "the triangle graph" or "minimum wage thing" without knowing the syllabus taxonomy.
 - Units and topic families that aren't built yet still show up on the site (not hidden), pointing to a "work in progress" page with an embedded feedback form, so the site is honest about what's live rather than overpromising.
 
+## Rule for graphs with elasticity readouts
+
+Any graph with PED/PES readouts must treat them as **point elasticity at the free-market equilibrium** (`P*/(slope·Q*)`, via `pointElasticities()`), never as a word derived from the slope. Three things follow from this, and they are intended behaviour, not bugs:
+
+- **The elasticity sliders fix each curve's slope, not its elasticity.** On a linear curve, elasticity also depends on where you are on the curve (the P/Q ratio).
+- **Shifting a curve moves the equilibrium, so the readouts can change.** Shifting supply slides the equilibrium along demand, which has a large positive intercept, so P*/Q* changes and *both* PED and PES change with it.
+- **Shifting demand leaving the readouts unchanged is a coincidence of the defaults.** The default supply curve runs through the origin, where P/Q equals the slope everywhere, so P*/Q* stays put as the equilibrium slides along it. Once supply has been shifted or its elasticity slider moved, supply no longer passes through the origin and demand shifts change the readouts too.
+
+Don't "fix" this by pinning the readout, and don't write UI copy that implies elasticity is constant under shifts. The curves pivot around the fixed anchor `(PIVOT_Q, PIVOT_P)`, which is the equilibrium only at zero shift. If a page ever needs elasticity to stay fixed under shifts, that is a change to the slider model in the spec (see "Slider model"), so flag it first.
+
 ## Current status
 
 The homepage and site chrome are built. Individual graph pages are being built out unit by unit, starting with Microeconomics, in the order the content is actually taught in class — Government Intervention first (price ceiling, price floor, tax, subsidy), then Market Failure, then a Demand & Supply/Elasticity backfill, then Theory of the Firm (Higher Level only) later in the year.

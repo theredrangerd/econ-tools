@@ -65,7 +65,7 @@ export function initIndirectTaxPage(doc) {
 
     const result = computeMarket({ ...market, intervention });
 
-    renderMarketChart(chart, result);
+    renderMarketChart(chart, result, { showSurplusLabels: true });
 
     setStatusPill(doc.querySelector('#status-pill'), taxOn ? 'Tax applied' : 'Free market', result.mode);
     // A tax big enough to close the market leaves no traded price to report.

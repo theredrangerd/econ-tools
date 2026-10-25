@@ -42,6 +42,21 @@ function dwlPolyFor(Q, Pd, Smin, slopeS, Qstar) {
   return [[Q, Pd(Q)], ...supplyPath(Smin, slopeS, Q, Qstar)];
 }
 
+// Clips a polygon to the half-plane where side(point) >= 0 (Sutherland–Hodgman, one edge).
+export function clipPoly(poly, side) {
+  const out = [];
+  poly.forEach((cur, i) => {
+    const prev = poly[(i + poly.length - 1) % poly.length];
+    const sc = side(cur), sp = side(prev);
+    if ((sc >= 0) !== (sp >= 0)) {
+      const t = sp / (sp - sc);
+      out.push([prev[0] + t * (cur[0] - prev[0]), prev[1] + t * (cur[1] - prev[1])]);
+    }
+    if (sc >= 0) out.push(cur);
+  });
+  return out;
+}
+
 function freeMarketResult(base) {
   const { Qstar, Pstar, Dmax, Smin, slopeS, Pd } = base;
   const csPoly = csPolyFor(Dmax, Pd, Qstar, Pstar);
@@ -151,10 +166,24 @@ function subsidyResult(base, intervention) {
   // capture (price received rose) — this is what actually varies with relative elasticity.
   const consumerWedgePoly = [[0, Pc], [Q, Pc], [Q, Pstar], [0, Pstar]];
   const producerWedgePoly = [[0, Pstar], [Q, Pstar], [Q, Pp], [0, Pp]];
+  // CS reaches down to Pc and PS up to Pp, so they overlap inside the subsidy band: the
+  // part of the band under demand and above (original) supply. Welfare counts it twice,
+  // which is exactly why the government's payment has to be subtracted.
+  const overlapPoly = clipPoly(
+    clipPoly(wedgePoly, ([q, p]) => Pd(q) - p),
+    ([q, p]) => p - Ps(q),
+  );
 
   return {
     ...base,
     mode: 'subsidy',
+    overlapPoly,
+    // The parts of CS/PS that lie outside the overlap band, where their area labels go.
+    csOnlyPoly: clipPoly(csPoly, ([, p]) => p - Pp),
+    psOnlyPoly: clipPoly(psPoly, ([, p]) => Pc - p),
+    // Split at the pre-subsidy price Pe: the chart stripes the halves in opposite directions.
+    overlapAbovePoly: clipPoly(overlapPoly, ([, p]) => p - Pstar),
+    overlapBelowPoly: clipPoly(overlapPoly, ([, p]) => Pstar - p),
     Q, Pc, Pp, gap: 0,
     CS: shoelaceArea(csPoly), PS: shoelaceArea(psPoly),
     DWL: dwlPoly ? shoelaceArea(dwlPoly) : 0,

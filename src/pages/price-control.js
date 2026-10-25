@@ -41,7 +41,7 @@ export function initPriceControlPage(doc, { slug, title, type, bindingPill, gapN
     const intervention = fraction > 0 ? { type, price: displayPrice } : { type: 'none' };
     const result = computeMarket({ ...market, intervention });
 
-    renderMarketChart(chart, result, { showSurplusLabels: slug === 'price-ceiling' || showRegionLabels });
+    renderMarketChart(chart, result, { showSurplusLabels: showRegionLabels });
 
     setStatusPill(doc.querySelector('#status-pill'), result.mode === type ? bindingPill : 'Free market', result.mode);
 

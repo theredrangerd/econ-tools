@@ -65,7 +65,7 @@ describe('initSubsidyPage', () => {
   it('draws a wedge fill rectangle for the government cost once toggled on', () => {
     document.querySelector('#subsidy-toggle').checked = true;
     document.querySelector('#subsidy-toggle').dispatchEvent(new Event('change'));
-    expect(document.querySelector('#chart polygon.wedge-fill')).not.toBeNull();
+    expect(document.querySelector('#chart polygon.wedge-outline')).not.toBeNull();
   });
 
   it('shows the true point elasticity at equilibrium, rising as the elasticity slider is dragged right (flatter)', () => {
