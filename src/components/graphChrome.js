@@ -39,8 +39,9 @@ export function maybeAutoStartTour(chrome, win = window) {
 }
 
 // The standard walkthrough for an intervention page (price ceiling, floor, tax, subsidy).
-// The "tap a shaded area" step only appears when tapping actually does something.
-export function interventionTourSteps({ policyName, sliderNoun, clickableRegions }, detail) {
+// The "tap a shaded area" step only appears on pages whose regions are clickable (they stay
+// clickable at every detail level).
+export function interventionTourSteps({ policyName, sliderNoun, clickableRegions }) {
   return [
     {
       target: '.toggle-row--primary',
@@ -52,7 +53,7 @@ export function interventionTourSteps({ policyName, sliderNoun, clickableRegions
       title: 'Drag anything.',
       text: `These sliders move the ${sliderNoun}, shift demand and supply, and change how steep the curves are. Everything updates live.`,
     },
-    ...(clickableRegions && detail === 'full' ? [{
+    ...(clickableRegions ? [{
       target: '#chart',
       title: 'Tap a shaded area',
       text: 'to see what it means and how big it is.',

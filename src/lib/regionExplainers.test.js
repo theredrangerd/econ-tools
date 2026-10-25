@@ -21,7 +21,7 @@ describe('REGION_INFO wording', () => {
   });
 });
 
-describe('attachRegionExplainers and the detail level', () => {
+describe('attachRegionExplainers at every detail level', () => {
   const base = { demand: 140, supply: 20, slopeD: 1, slopeS: 1 };
   let svg;
 
@@ -35,10 +35,10 @@ describe('attachRegionExplainers and the detail level', () => {
   }
   const clickCs = () => svg.querySelector('[data-region="cs"]').dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
-  it('opens no explainer when the chart is not at full explanation', () => {
-    setup('clean');
+  it.each(['clean', 'ib'])('still opens an explainer at %s', (detail) => {
+    setup(detail);
     clickCs();
-    expect(document.querySelector('.region-popover')).toBeNull();
+    expect(document.querySelector('.region-popover')).not.toBeNull();
   });
 
   it('opens an explainer at full and close() removes it', () => {

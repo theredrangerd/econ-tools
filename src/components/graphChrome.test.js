@@ -17,9 +17,12 @@ describe('interventionTourSteps', () => {
     expect(steps[3].title).toBe('Too busy? Change the detail.');
   });
 
-  it('drops the shaded-area step when the chart is not clickable', () => {
-    expect(interventionTourSteps(ceilingTour, 'ib').map((s) => s.target)).not.toContain('#chart');
-    expect(interventionTourSteps(ceilingTour, 'clean')).toHaveLength(3);
+  it('keeps the shaded-area step at every detail level, since regions stay clickable', () => {
+    expect(interventionTourSteps(ceilingTour, 'ib').map((s) => s.target)).toContain('#chart');
+    expect(interventionTourSteps(ceilingTour, 'clean')).toHaveLength(4);
+  });
+
+  it('drops the shaded-area step for a page without clickable regions', () => {
     expect(interventionTourSteps({ ...ceilingTour, clickableRegions: false }, 'full')).toHaveLength(3);
   });
 });
@@ -85,12 +88,12 @@ describe('initGraphChrome', () => {
     expect(document.querySelector('.tour-bubble').textContent).toContain('Step 1 of 4');
   });
 
-  it('a first visit through a ?detail=ib link shows IB perfect and a three-step tour', () => {
+  it('a first visit through a ?detail=ib link shows IB perfect and the full four-step tour', () => {
     history.replaceState(null, '', '/?detail=ib');
     const chrome = make();
     expect(document.querySelector('input[name="detail-level"][value="ib"]').checked).toBe(true);
     maybeAutoStartTour(chrome);
-    expect(document.querySelector('.tour-bubble').textContent).toContain('Step 1 of 3');
+    expect(document.querySelector('.tour-bubble').textContent).toContain('Step 1 of 4');
   });
 
   it('does not auto-start when storage can be read but not written', () => {

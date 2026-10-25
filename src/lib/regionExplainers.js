@@ -119,12 +119,9 @@ export function attachRegionExplainers(svg) {
   let popover = null;
   let activeRegion = null;
 
-  // Explainers belong to the Full explanation detail level only (marketChart.js stamps the
-  // level on the SVG each render); at Clean / IB perfect the regions are plain shading.
-  const active = () => (svg.dataset.detail ?? 'full') === 'full';
-
+  // Works at every detail level: Clean / IB perfect drop the chips, but tapping a shaded
+  // area still explains it.
   function findRegion(target) {
-    if (!active()) return null;
     return target && target.closest ? target.closest('[data-region]') : null;
   }
 

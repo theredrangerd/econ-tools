@@ -42,7 +42,7 @@ This is not a homepage/site-intro onboarding. A proper homepage intro is explici
   3. Chart — "Tap a shaded area to see what it means and how big it is."
   4. Settings gear — "Too busy? Change the detail. This gear switches between full explanation and an IB-perfect exam diagram."
 - Step 3 must be accurate for the page: if a page has no clickable regions, that step changes or drops.
-- *Claude's call:* step 3 is shown only when region explainers are actually active, i.e. the page has clickable regions **and** the current detail level is Full explanation. At Clean / IB perfect (including a first visit via a `?detail=ib` deep link) it is skipped, so the tour is 3 steps. The tour does not switch the detail level.
+- Step 3 is shown whenever the page has clickable regions, at every detail level (user's decision, 2026-10-25: shaded areas stay clickable at Clean and IB perfect). The tour does not switch the detail level.
 - *Claude's call:* the tour module is generic — each page supplies its own step list (target selector + text), and the four Government Intervention pages share a helper that builds the standard four. This is required because the tour runs on the first visit to *any* graph page, including future families (e.g. Elasticity, which has no intervention toggle).
 - Replay button position: fixed bottom-left of the viewport, on every graph page (user's decision).
 
@@ -63,7 +63,7 @@ This is not a homepage/site-intro onboarding. A proper homepage intro is explici
 | Shortage / Excess supply bracket + label | ✓ | ✓ | ✓ |
 | Shaded regions (CS, PS, DWL, tax/subsidy wedges) | ✓ | ✓ | ✓ |
 | Region chips (CS, PS, DWL, CB, PB, Gov pills) | ✓ clickable | — | — |
-| Click/hover explainer popovers | ✓ | — | — |
+| Click/hover explainer popovers (tap a shaded area) | ✓ | ✓ | ✓ (user's decision 2026-10-25: stays clickable at every level) |
 | Plain-text area names written on the shading (CS, PS, "welfare loss") | — | — | ✓ |
 | Numbers on the chart (subsidy-amount chip, numeric axis tick values) | ✓ | ✓ | — (user agreed: no numbers on the diagram; whether a bare "0" at the origin stays is the builder's call) |
 
@@ -71,7 +71,7 @@ This is not a homepage/site-intro onboarding. A proper homepage intro is explici
 - Tax: keep the consumer/producer incidence split shading (IB answers routinely show consumer burden and producer burden as the two parts of the tax-revenue rectangle). Plain names: "consumer burden", "producer burden", "welfare loss"; CS/PS as on price controls. Curve labels stay as the code has them (S1 / S2 — IB accepts S2 or S1+tax).
 - Subsidy: keep the government-spending band and the CS/PS overlap stripes (shading, not text). Plain names: "government spending", "welfare loss", CS, PS. Pc / Pp / Q1 stay.
 - Long names may not fit small regions; shrink-to-fit like today's chips, falling back to a short form (e.g. "WL") or omitting — builder's call.
-- Detail level is a `renderMarketChart` option contract for now; other renderers (e.g. future `elasticityChart.js`) adopt it when built — *Claude's call*. Clean/IB perfect also disable the clickable `data-region` fills, not just the chips.
+- Detail level is a `renderMarketChart` option contract for now; other renderers (e.g. future `elasticityChart.js`) adopt it when built — *Claude's call*.
 
 **IB perfect definition** (from IB revision sources — no official markscheme specifies area marking; lettered areas A/B/C are a textbook habit, not an exam requirement, so not used): Price/Quantity axes labelled; D and S labelled; free-market Pe/Qe; ceiling/floor price with Qs and Qd and the gap labelled "shortage"/"excess supply"; CS, PS shaded and named; triangle shaded and named **"welfare loss"**; no numbers or explanations on the diagram. Sources: ibonomics.org price-ceiling and price-floor pages; ibdemystified.com price-controls notes; tuitiongenius.com price-controls model essay; owltutors.co.uk and revisiondojo.com diagram tips.
 
