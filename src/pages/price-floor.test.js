@@ -5,7 +5,7 @@ function buildDom() {
   document.body.innerHTML = `
     <div id="mini-header"></div>
     <svg id="chart" class="market-chart"></svg>
-    <span id="status-pill"></span>
+    <div class="chart-head"><span id="status-pill"></span></div>
     <input id="demand-slider" type="range" min="-50" max="50" step="1" value="0">
     <span id="demand-val"></span>
     <input id="supply-slider" type="range" min="-50" max="50" step="1" value="0">

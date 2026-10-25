@@ -618,18 +618,19 @@ function drawSubsidyBracket(layer, result) {
 
 // Where a tax/subsidy wedge band's chip goes: the band's left end, mid-height. The curves
 // cross the band's right end (at Q), so the left end is the part of the band they never touch.
-function wedgeChipCenter(poly, text, avoid) {
+// `fit` overrides the chip's size for other labels (IB perfect's plain area names).
+function wedgeChipCenter(poly, text, avoid, fit = {}) {
   if (!poly || poly.length < 4) return null;
   const pts = poly.map(([q, p]) => [sx(q), sy(p)]);
   const ys = pts.map((pt) => pt[1]);
-  const halfW = (text.length > 2 ? 40 : 34) / 2;
+  const halfW = fit.halfW ?? (text.length > 2 ? 40 : 34) / 2;
   const y = (Math.min(...ys) + Math.max(...ys)) / 2;
   // Start at the band's left end and step right until a label or chip isn't in the way,
   // keeping the first spot where the chip fits full size (or else the largest fit seen).
   const xEnd = Math.max(...pts.map((pt) => pt[0]));
   let best = { x: pts[0][0] + halfW + 10, y, scale: null };
   for (let x = best.x; x <= xEnd - halfW; x += 12) {
-    const scale = badgeFitScale(pts, x, y, { halfW, avoid });
+    const scale = badgeFitScale(pts, x, y, { ...fit, halfW, avoid });
     if (scale === 1) return { x, y, scale };
     if (scale != null && (best.scale == null || scale > best.scale)) best = { x, y, scale };
   }
@@ -668,6 +669,52 @@ function drawSurplusBadges(layer, result) {
   layer.appendChild(badgeLayer);
 }
 
+// IB perfect: the areas named in plain text, as a student would write them on an exam
+// diagram — no pill, not clickable. Each name falls back to its short form when the full
+// one doesn't fit its region, and is left off if neither does.
+const AREA_NAME_PX = 7;   // rough advance width per character at 13px
+const AREA_NAME_HALF_H = 9;
+// Names may shrink a little to fit a thin band (exam diagrams name them regardless) but no
+// further, so they stay readable on a projector.
+const AREA_NAME_MIN_SCALE = 0.8;
+function drawAreaNames(layer, result) {
+  const g = el('g', {}, 'area-names');
+  const placed = [...placedLabels];
+  const halfW = (text) => (text.length * AREA_NAME_PX + 4) / 2;
+  const place = (forms, centerFor) => {
+    for (const text of forms) {
+      const c = centerFor(text);
+      if (!c || c.scale == null) continue;
+      const k = c.scale;
+      const t = el('text', { x: c.x.toFixed(1), y: c.y.toFixed(1), 'text-anchor': 'middle', 'dominant-baseline': 'central' }, 'area-name');
+      if (k < 1) t.setAttribute('style', `font-size: ${(13 * k).toFixed(1)}px`);
+      t.textContent = text;
+      g.appendChild(t);
+      const rect = { x0: c.x - halfW(text) * k, x1: c.x + halfW(text) * k, y0: c.y - AREA_NAME_HALF_H * k, y1: c.y + AREA_NAME_HALF_H * k };
+      placed.push(rect);
+      placedLabels.push(rect);
+      return;
+    }
+  };
+  const fit = (text) => ({ halfW: halfW(text), halfH: AREA_NAME_HALF_H, min: AREA_NAME_MIN_SCALE });
+  const inPoly = (poly) => (text) => polygonCentroid(poly, placed, fit(text));
+  const inWedge = (poly) => (text) => wedgeChipCenter(poly, text, placed, fit(text));
+  if (result.mode === 'tax') {
+    place(['consumer burden', 'CB'], inWedge(result.consumerWedgePoly));
+    place(['producer burden', 'PB'], inWedge(result.producerWedgePoly));
+  }
+  if (result.mode === 'subsidy') place(['government spending', 'Gov'], inWedge(result.wedgePoly));
+  const surplus = [
+    [['CS'], result.csOnlyPoly || result.csPoly],
+    [['PS'], result.psOnlyPoly || result.psPoly],
+    [['welfare loss', 'WL'], result.dwlPoly],
+  ];
+  for (const [forms, poly] of surplus) {
+    if (poly && poly.length >= 3) place(forms, inPoly(poly));
+  }
+  layer.appendChild(g);
+}
+
 // Redraws at the new pixel size whenever the card changes width (window resize, the
 // columns stacking at the mobile breakpoint), replaying the last result.
 function watchSize(svg) {
@@ -698,6 +745,10 @@ function ensureDynamicLayer(svg) {
 export function renderMarketChart(svg, result, options = {}) {
   svg._lastResult = result;
   svg._lastOptions = options;
+  // 'full' = every chip and explainer; 'clean' = no chips; 'ib' = exactly what an exam
+  // diagram shows (plain area names, no numbers). See the onboarding/detail-settings spec.
+  const detail = options.detail ?? 'full';
+  svg.dataset.detail = detail;
   watchSize(svg);
   const layer = ensureDynamicLayer(svg);
   while (layer.firstChild) layer.removeChild(layer.firstChild);
@@ -856,10 +907,12 @@ export function renderMarketChart(svg, result, options = {}) {
     }
 
     const showSurplusLabels = options.showSurplusLabels ?? result.showSurplusLabels ?? false;
-    if (showSurplusLabels) {
+    if (detail === 'full' && showSurplusLabels) {
       drawSurplusBadges(layer, result);
     }
-    if (result.mode === 'subsidy') drawSubsidyBracket(layer, result);
+    // The bracket exists only to carry the per-unit amount, so IB perfect (no numbers) drops both.
+    if (result.mode === 'subsidy' && detail !== 'ib') drawSubsidyBracket(layer, result);
+    if (detail === 'ib') drawAreaNames(layer, result);
   }
 
   if (result.noTrade) {
@@ -867,4 +920,7 @@ export function renderMarketChart(svg, result, options = {}) {
   } else {
     drawAxisSymbols(svg, layer, result);
   }
+  // No numbers on an exam diagram: drawAxisSymbols sets tick visibility per render, so
+  // this has to run after it.
+  if (detail === 'ib') svg.querySelectorAll('.tick-label').forEach((tick) => tick.setAttribute('visibility', 'hidden'));
 }

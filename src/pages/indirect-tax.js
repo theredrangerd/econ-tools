@@ -6,12 +6,21 @@ import { getFamilyNav } from '../components/familyNav.js';
 import { wireShiftAndSlopeInputs, updateShiftAndSlopeLabels, wireInterventionToggle, readCurveParams, marketFits, guardSliders, settleDown, fillSharedStats, NO_TRADE_NOTE } from '../lib/pageControls.js';
 import { attachRegionExplainers } from '../lib/regionExplainers.js';
 import { FEEDBACK_FORM_URL } from '../lib/feedback.js';
+import { initGraphChrome, maybeAutoStartTour, interventionTourSteps } from '../components/graphChrome.js';
 
 export function initIndirectTaxPage(doc) {
   const { backHref, backLabel, siblings } = getFamilyNav('indirect-tax');
   renderMiniHeader(doc.querySelector('#mini-header'), { title: 'Indirect tax', backHref, backLabel, siblings });
 
   const chart = doc.querySelector('#chart');
+  // Detail gear + walkthrough. Created before the first render so it can read the level.
+  let explainers;
+  const chrome = initGraphChrome(doc, {
+    chartHead: doc.querySelector('.chart-head'),
+    steps: (detail) => interventionTourSteps({ policyName: 'tax', sliderNoun: 'tax', clickableRegions: true }, detail),
+    onDetailChange: () => { explainers?.close(); render(); },
+  });
+
   const taxToggle = doc.querySelector('#tax-toggle');
   const modeSpecific = doc.querySelector('#tax-mode-specific');
   const modeAdvalorem = doc.querySelector('#tax-mode-advalorem');
@@ -65,7 +74,7 @@ export function initIndirectTaxPage(doc) {
 
     const result = computeMarket({ ...market, intervention });
 
-    renderMarketChart(chart, result, { showSurplusLabels: true });
+    renderMarketChart(chart, result, { showSurplusLabels: true, detail: chrome.getDetail() });
 
     setStatusPill(doc.querySelector('#status-pill'), taxOn ? 'Tax applied' : 'Free market', result.mode);
     // A tax big enough to close the market leaves no traded price to report.
@@ -102,6 +111,7 @@ export function initIndirectTaxPage(doc) {
   toggleCtl = wireInterventionToggle(taxToggle, render, { beforeOn: settleActiveSlider });
 
   render();
-  attachRegionExplainers(chart);
+  explainers = attachRegionExplainers(chart);
+  maybeAutoStartTour(chrome);
   doc.querySelector('#feedback-form').src = FEEDBACK_FORM_URL;
 }

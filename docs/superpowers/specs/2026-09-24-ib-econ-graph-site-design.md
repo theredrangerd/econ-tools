@@ -212,6 +212,10 @@ An adversarial pass over the four Government Intervention pages found these new 
 - Linked from its family page and indexed by the homepage search.
 - Feedback form accessible per the existing site-wide pattern.
 
+## Onboarding + detail settings (agreed 2026-10-25)
+
+Every graph page has a one-time, skippable spotlight walkthrough (replayable from a fixed bottom-left button) and a gear on the chart card switching between Full explanation, Clean and IB perfect. Full design: `docs/superpowers/specs/2026-10-25-graph-onboarding-and-detail-settings-design.md`.
+
 ## Open / not yet designed
 
 - Individual graph page template's exact layout details beyond the structural approach above and the intervention-toggle rule now decided (sidebar panel grouping, stat-grid layout, etc.) — still fine to finalize opportunistically as new families are built rather than specified exhaustively upfront.
