@@ -389,4 +389,75 @@ describe('renderMarketChart', () => {
     expect(svg.querySelector('.region-badge--ps')).toBeNull();
     expect(svg.querySelector('.region-badge--dwl')).toBeNull();
   });
+
+  describe('detail levels', () => {
+    const ceiling = () => computeMarket({ ...base, intervention: { type: 'ceiling', price: 50 } });
+    const tax = () => computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 30 } });
+    const subsidy = () => computeMarket({ ...base, intervention: { type: 'subsidy', mode: 'specific', amount: 40 } });
+    const areaNames = () => [...svg.querySelectorAll('.area-name')].map((n) => n.textContent);
+    const ticks = () => [...svg.querySelectorAll('.tick-label')];
+
+    it('full keeps the chips and draws no plain area names', () => {
+      renderMarketChart(svg, ceiling(), { showSurplusLabels: true, detail: 'full' });
+      expect(svg.querySelectorAll('.region-badge').length).toBeGreaterThan(0);
+      expect(svg.querySelector('.area-name')).toBeNull();
+      expect(svg.dataset.detail).toBe('full');
+    });
+
+    it('defaults to full when no detail option is given', () => {
+      renderMarketChart(svg, ceiling(), { showSurplusLabels: true });
+      expect(svg.dataset.detail).toBe('full');
+      expect(svg.querySelectorAll('.region-badge').length).toBeGreaterThan(0);
+    });
+
+    it('clean drops the region chips but keeps tick numbers', () => {
+      renderMarketChart(svg, ceiling(), { showSurplusLabels: true, detail: 'clean' });
+      expect(svg.querySelector('.region-badge--cs')).toBeNull();
+      expect(svg.querySelector('.region-badge--ps')).toBeNull();
+      expect(svg.querySelector('.region-badge--dwl')).toBeNull();
+      expect(svg.querySelector('.area-name')).toBeNull();
+      expect(ticks().some((t) => t.getAttribute('visibility') !== 'hidden')).toBe(true);
+    });
+
+    it('ib names CS, PS and the welfare loss in plain text and hides every tick number', () => {
+      renderMarketChart(svg, ceiling(), { showSurplusLabels: true, detail: 'ib' });
+      expect(svg.querySelector('.region-badge')).toBeNull();
+      const names = areaNames();
+      expect(names).toEqual(expect.arrayContaining(['CS', 'PS']));
+      expect(names.some((n) => n === 'welfare loss' || n === 'WL')).toBe(true);
+      expect(ticks().length).toBeGreaterThan(0);
+      expect(ticks().every((t) => t.getAttribute('visibility') === 'hidden')).toBe(true);
+    });
+
+    it('ib names the consumer and producer burden on a tax', () => {
+      renderMarketChart(svg, tax(), { showSurplusLabels: true, detail: 'ib' });
+      const names = areaNames();
+      expect(names.some((n) => n === 'consumer burden' || n === 'CB')).toBe(true);
+      expect(names.some((n) => n === 'producer burden' || n === 'PB')).toBe(true);
+    });
+
+    it('ib names government spending on a subsidy and drops the per-unit amount chip', () => {
+      renderMarketChart(svg, subsidy(), { showSurplusLabels: true, detail: 'ib' });
+      expect(svg.querySelector('.region-badge--subsidy-amount')).toBeNull();
+      expect(areaNames().some((n) => n === 'government spending' || n === 'Gov')).toBe(true);
+    });
+
+    it('clean keeps the subsidy per-unit amount chip', () => {
+      renderMarketChart(svg, subsidy(), { showSurplusLabels: true, detail: 'clean' });
+      expect(svg.querySelector('.region-badge--subsidy-amount')).not.toBeNull();
+    });
+
+    it('switching ib back to full removes area names and brings tick numbers back', () => {
+      renderMarketChart(svg, ceiling(), { showSurplusLabels: true, detail: 'ib' });
+      renderMarketChart(svg, ceiling(), { showSurplusLabels: true, detail: 'full' });
+      expect(svg.querySelector('.area-name')).toBeNull();
+      expect(ticks().some((t) => t.getAttribute('visibility') !== 'hidden')).toBe(true);
+    });
+
+    it('ib hides tick numbers even when no trade happens', () => {
+      const r = computeMarket({ demand: 40, supply: 80, slopeD: 1, slopeS: 1, intervention: { type: 'none' } });
+      renderMarketChart(svg, r, { detail: 'ib' });
+      expect(ticks().every((t) => t.getAttribute('visibility') === 'hidden')).toBe(true);
+    });
+  });
 });

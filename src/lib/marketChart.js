@@ -588,7 +588,7 @@ function drawRegionBadge(layer, { id, text, center, colorVar, textVar = colorVar
 // is exactly the vertical gap between the original and subsidised supply curves at Q1, so it
 // tracks the new equilibrium as the sliders move. The amount sits in a chip beside it that
 // shrinks with the gap, and drops out when the gap or the room to the plot edge is too small.
-function drawSubsidyBracket(layer, result) {
+function drawSubsidyBracket(layer, result, { showAmount = true } = {}) {
   const amount = result.Pp - result.Pc;
   if (!(amount > 0)) return;
   const x = sx(result.Q) + 12;
@@ -600,6 +600,7 @@ function drawSubsidyBracket(layer, result) {
   g.appendChild(el('line', { x1: x - 4, y1: yTop, x2: x + 4, y2: yTop, ...stroke }));
   g.appendChild(el('line', { x1: x - 4, y1: yBot, x2: x + 4, y2: yBot, ...stroke }));
   layer.appendChild(g);
+  if (!showAmount) return;
   const text = fmtMoney(amount);
   const halfW = (text.length * 8 + 14) / 2;
   const k = Math.min(1, (yBot - yTop - 2 * BADGE_PAD) / 22);
@@ -668,6 +669,51 @@ function drawSurplusBadges(layer, result) {
   layer.appendChild(badgeLayer);
 }
 
+// IB perfect: the areas named in plain text, as a student would write them on an exam
+// diagram — no pill, not clickable. Each name falls back to its short form when the full
+// one doesn't fit its region, and is left off if neither does.
+const AREA_NAME_PX = 7;   // rough advance width per character at 13px
+const AREA_NAME_HALF_H = 9;
+function drawAreaNames(layer, result) {
+  const g = el('g', {}, 'area-names');
+  const placed = [...placedLabels];
+  const halfW = (text) => (text.length * AREA_NAME_PX + 4) / 2;
+  const place = (forms, centerFor) => {
+    for (const text of forms) {
+      const c = centerFor(text);
+      if (!c || c.scale !== 1) continue;
+      const t = el('text', { x: c.x.toFixed(1), y: c.y.toFixed(1), 'text-anchor': 'middle', 'dominant-baseline': 'central' }, 'area-name');
+      t.textContent = text;
+      g.appendChild(t);
+      const rect = { x0: c.x - halfW(text), x1: c.x + halfW(text), y0: c.y - AREA_NAME_HALF_H, y1: c.y + AREA_NAME_HALF_H };
+      placed.push(rect);
+      placedLabels.push(rect);
+      return;
+    }
+  };
+  const inPoly = (poly) => (text) => polygonCentroid(poly, placed, { halfW: halfW(text), halfH: AREA_NAME_HALF_H });
+  const inWedge = (poly) => (text) => {
+    const c = wedgeChipCenter(poly, text, placed);
+    if (!c) return null;
+    const pts = poly.map(([q, p]) => [sx(q), sy(p)]);
+    return { ...c, scale: badgeFitScale(pts, c.x, c.y, { halfW: halfW(text), halfH: AREA_NAME_HALF_H, avoid: placed }) };
+  };
+  if (result.mode === 'tax') {
+    place(['consumer burden', 'CB'], inWedge(result.consumerWedgePoly));
+    place(['producer burden', 'PB'], inWedge(result.producerWedgePoly));
+  }
+  if (result.mode === 'subsidy') place(['government spending', 'Gov'], inWedge(result.wedgePoly));
+  const surplus = [
+    [['CS'], result.csOnlyPoly || result.csPoly],
+    [['PS'], result.psOnlyPoly || result.psPoly],
+    [['welfare loss', 'WL'], result.dwlPoly],
+  ];
+  for (const [forms, poly] of surplus) {
+    if (poly && poly.length >= 3) place(forms, inPoly(poly));
+  }
+  layer.appendChild(g);
+}
+
 // Redraws at the new pixel size whenever the card changes width (window resize, the
 // columns stacking at the mobile breakpoint), replaying the last result.
 function watchSize(svg) {
@@ -698,6 +744,10 @@ function ensureDynamicLayer(svg) {
 export function renderMarketChart(svg, result, options = {}) {
   svg._lastResult = result;
   svg._lastOptions = options;
+  // 'full' = every chip and explainer; 'clean' = no chips; 'ib' = exactly what an exam
+  // diagram shows (plain area names, no numbers). See the onboarding/detail-settings spec.
+  const detail = options.detail ?? 'full';
+  svg.dataset.detail = detail;
   watchSize(svg);
   const layer = ensureDynamicLayer(svg);
   while (layer.firstChild) layer.removeChild(layer.firstChild);
@@ -856,10 +906,11 @@ export function renderMarketChart(svg, result, options = {}) {
     }
 
     const showSurplusLabels = options.showSurplusLabels ?? result.showSurplusLabels ?? false;
-    if (showSurplusLabels) {
+    if (detail === 'full' && showSurplusLabels) {
       drawSurplusBadges(layer, result);
     }
-    if (result.mode === 'subsidy') drawSubsidyBracket(layer, result);
+    if (result.mode === 'subsidy') drawSubsidyBracket(layer, result, { showAmount: detail !== 'ib' });
+    if (detail === 'ib') drawAreaNames(layer, result);
   }
 
   if (result.noTrade) {
@@ -867,4 +918,7 @@ export function renderMarketChart(svg, result, options = {}) {
   } else {
     drawAxisSymbols(svg, layer, result);
   }
+  // No numbers on an exam diagram: drawAxisSymbols sets tick visibility per render, so
+  // this has to run after it.
+  if (detail === 'ib') svg.querySelectorAll('.tick-label').forEach((tick) => tick.setAttribute('visibility', 'hidden'));
 }

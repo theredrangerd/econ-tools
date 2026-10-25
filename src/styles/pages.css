@@ -688,6 +688,7 @@ input[type="range"]::-moz-range-thumb {
 .market-chart .line-label { font-size: 13px; font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
 .market-chart .line-label--muted { font-weight: 500; }
 .market-chart .bracket-label { font-size: 13px; font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.market-chart .area-name { font-size: 13px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }
 
 /* Click-to-explain regions (regionExplainers.js): hover "pops" the region so a student
    notices it's interactive before they click; the fill scales from its own center via
