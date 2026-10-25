@@ -436,14 +436,16 @@ describe('renderMarketChart', () => {
       expect(names.some((n) => n === 'producer burden' || n === 'PB')).toBe(true);
     });
 
-    it('ib names government spending on a subsidy and drops the per-unit amount chip', () => {
+    it('ib names government spending on a subsidy and drops the per-unit amount chip and its bracket', () => {
       renderMarketChart(svg, subsidy(), { showSurplusLabels: true, detail: 'ib' });
+      expect(svg.querySelector('.subsidy-bracket')).toBeNull();
       expect(svg.querySelector('.region-badge--subsidy-amount')).toBeNull();
       expect(areaNames().some((n) => n === 'government spending' || n === 'Gov')).toBe(true);
     });
 
     it('clean keeps the subsidy per-unit amount chip', () => {
       renderMarketChart(svg, subsidy(), { showSurplusLabels: true, detail: 'clean' });
+      expect(svg.querySelector('.subsidy-bracket')).not.toBeNull();
       expect(svg.querySelector('.region-badge--subsidy-amount')).not.toBeNull();
     });
 

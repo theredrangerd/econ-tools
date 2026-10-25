@@ -24,7 +24,16 @@ describe('mountDetailSettings', () => {
   it('labels the three levels in order', () => {
     const labels = [...popover().querySelectorAll('label')].map((l) => l.textContent.trim());
     expect(labels).toEqual(['Full explanation', 'Clean', 'IB perfect']);
-    expect(popover().textContent).toContain('IB perfect = exactly what an exam diagram needs.');
+  });
+
+  it('describes whichever level is selected', () => {
+    const hint = () => popover().querySelector('.detail-popover__hint').textContent;
+    expect(hint()).toContain('Clean =');
+    ctl.setLevel('ib');
+    expect(hint()).toContain('IB perfect = exactly what an exam diagram needs.');
+    radio('full').checked = true;
+    radio('full').dispatchEvent(new Event('change', { bubbles: true }));
+    expect(hint()).toContain('Full explanation = fully annotated');
   });
 
   it('opens on click and reports a new level, staying open', () => {

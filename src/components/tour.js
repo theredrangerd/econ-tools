@@ -6,8 +6,22 @@ const EDGE = 12;       // min gap between the bubble and the viewport edge
 const GAP = 12;        // gap between the target and the bubble
 const SPOT_PAD = 6;    // spotlight padding around the target
 
+// A selector may match several elements (e.g. every panel that holds a slider); the step then
+// spotlights their combined box. Returns null when nothing matches.
 function resolve(doc, target) {
-  return typeof target === 'string' ? doc.querySelector(target) : target || null;
+  if (typeof target !== 'string') return target || null;
+  const els = [...doc.querySelectorAll(target)];
+  return els.length ? els : null;
+}
+
+function boxOf(el) {
+  if (!Array.isArray(el)) return el.getBoundingClientRect();
+  const rects = el.map((e) => e.getBoundingClientRect());
+  const left = Math.min(...rects.map((r) => r.left));
+  const top = Math.min(...rects.map((r) => r.top));
+  const right = Math.max(...rects.map((r) => r.right));
+  const bottom = Math.max(...rects.map((r) => r.bottom));
+  return { left, top, right, bottom, width: right - left, height: bottom - top };
 }
 
 function reducedMotion(win) {
@@ -72,7 +86,7 @@ export function startTour(doc, steps, { onDone } = {}) {
   let index = 0;
 
   function position() {
-    const rect = live[index].el.getBoundingClientRect();
+    const rect = boxOf(live[index].el);
     Object.assign(spotlight.style, {
       left: `${rect.left - SPOT_PAD}px`,
       top: `${rect.top - SPOT_PAD}px`,
@@ -101,8 +115,9 @@ export function startTour(doc, steps, { onDone } = {}) {
       if (last) finish();
       else { index += 1; show(); }
     });
-    if (typeof step.el.scrollIntoView === 'function') {
-      step.el.scrollIntoView({ block: 'center', behavior: reducedMotion(win) ? 'auto' : 'smooth' });
+    const anchor = Array.isArray(step.el) ? step.el[0] : step.el;
+    if (typeof anchor.scrollIntoView === 'function') {
+      anchor.scrollIntoView({ block: 'center', behavior: reducedMotion(win) ? 'auto' : 'smooth' });
     }
     position();
     bubble.querySelector('.tour-next').focus({ preventScroll: true });

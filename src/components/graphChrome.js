@@ -49,7 +49,8 @@ export function interventionTourSteps({ policyName, sliderNoun, clickableRegions
       text: `Flip this switch to impose the ${policyName} on the free market, and watch the graph change.`,
     },
     {
-      target: '.sidebar',
+      // Only the panels that hold sliders — not the "Real world examples" panel.
+      target: '.sidebar .panel:has(input[type="range"])',
       title: 'Drag anything.',
       text: `These sliders move the ${sliderNoun}, shift demand and supply, and change how steep the curves are. Everything updates live.`,
     },
@@ -60,8 +61,8 @@ export function interventionTourSteps({ policyName, sliderNoun, clickableRegions
     }] : []),
     {
       target: '.detail-gear',
-      title: 'Too busy? Change the detail.',
-      text: 'This gear switches between full explanation and an IB-perfect exam diagram.',
+      title: 'Change how much you see.',
+      text: 'This gear switches between a fully annotated diagram and IB perfect, the version to replicate on exams.',
     },
   ];
 }

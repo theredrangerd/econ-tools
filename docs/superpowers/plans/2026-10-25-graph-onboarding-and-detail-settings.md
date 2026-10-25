@@ -201,7 +201,7 @@
     1. target `.toggle-row--primary`, title `Turn the policy on and off.`, text `` `Flip this switch to impose the ${policyName} on the free market, and watch the graph change.` ``
     2. target `.sidebar`, title `Drag anything.`, text `` `These sliders move the ${sliderNoun}, shift demand and supply, and change how steep the curves are. Everything updates live.` ``
     3. target `#chart`, title `Tap a shaded area`, text `to see what it means and how big it is.`
-    4. target `.detail-gear`, title `Too busy? Change the detail.`, text `This gear switches between full explanation and an IB-perfect exam diagram.`
+    4. target `.detail-gear`, title `Change how much you see.`, text `This gear switches between a fully annotated diagram and IB perfect, the version to replicate on exams.`
 
 - [ ] **Step 1: Write failing tests** (`beforeEach`: `localStorage.clear()`, reset the URL, body = `<div class="chart-head"></div><div class="toggle-row--primary"></div><aside class="sidebar"></aside><svg id="chart"></svg>`):
   - `interventionTourSteps({ policyName:'price ceiling', sliderNoun:'ceiling', clickableRegions:true }, 'full')` → 4 steps; step 1 text contains `impose the price ceiling`. The same call with `'ib'` → 3 steps and no `#chart` target.

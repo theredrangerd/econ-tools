@@ -588,7 +588,7 @@ function drawRegionBadge(layer, { id, text, center, colorVar, textVar = colorVar
 // is exactly the vertical gap between the original and subsidised supply curves at Q1, so it
 // tracks the new equilibrium as the sliders move. The amount sits in a chip beside it that
 // shrinks with the gap, and drops out when the gap or the room to the plot edge is too small.
-function drawSubsidyBracket(layer, result, { showAmount = true } = {}) {
+function drawSubsidyBracket(layer, result) {
   const amount = result.Pp - result.Pc;
   if (!(amount > 0)) return;
   const x = sx(result.Q) + 12;
@@ -600,7 +600,6 @@ function drawSubsidyBracket(layer, result, { showAmount = true } = {}) {
   g.appendChild(el('line', { x1: x - 4, y1: yTop, x2: x + 4, y2: yTop, ...stroke }));
   g.appendChild(el('line', { x1: x - 4, y1: yBot, x2: x + 4, y2: yBot, ...stroke }));
   layer.appendChild(g);
-  if (!showAmount) return;
   const text = fmtMoney(amount);
   const halfW = (text.length * 8 + 14) / 2;
   const k = Math.min(1, (yBot - yTop - 2 * BADGE_PAD) / 22);
@@ -911,7 +910,8 @@ export function renderMarketChart(svg, result, options = {}) {
     if (detail === 'full' && showSurplusLabels) {
       drawSurplusBadges(layer, result);
     }
-    if (result.mode === 'subsidy') drawSubsidyBracket(layer, result, { showAmount: detail !== 'ib' });
+    // The bracket exists only to carry the per-unit amount, so IB perfect (no numbers) drops both.
+    if (result.mode === 'subsidy' && detail !== 'ib') drawSubsidyBracket(layer, result);
     if (detail === 'ib') drawAreaNames(layer, result);
   }
 

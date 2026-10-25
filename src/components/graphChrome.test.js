@@ -9,12 +9,18 @@ function blockedWin() {
 }
 
 describe('interventionTourSteps', () => {
+  it('highlights only sidebar panels that hold sliders, not the examples panel', () => {
+    document.body.innerHTML = '<aside class="sidebar"><section class="panel"><input type="range"></section><section class="panel"><input type="checkbox"></section><section class="panel examples-panel"></section></aside>';
+    const sel = interventionTourSteps(ceilingTour, 'full')[1].target;
+    expect(document.querySelectorAll(sel)).toHaveLength(1);
+  });
+
   it('has four steps at full, naming the policy and the slider', () => {
     const steps = interventionTourSteps(ceilingTour, 'full');
-    expect(steps.map((s) => s.target)).toEqual(['.toggle-row--primary', '.sidebar', '#chart', '.detail-gear']);
+    expect(steps.map((s) => s.target)).toEqual(['.toggle-row--primary', '.sidebar .panel:has(input[type="range"])', '#chart', '.detail-gear']);
     expect(steps[0].text).toBe('Flip this switch to impose the price ceiling on the free market, and watch the graph change.');
     expect(steps[1].text).toBe('These sliders move the ceiling, shift demand and supply, and change how steep the curves are. Everything updates live.');
-    expect(steps[3].title).toBe('Too busy? Change the detail.');
+    expect(steps[3].title).toBe('Change how much you see.');
   });
 
   it('keeps the shaded-area step at every detail level, since regions stay clickable', () => {
@@ -43,7 +49,7 @@ describe('initGraphChrome', () => {
   beforeEach(() => {
     localStorage.clear();
     history.replaceState(null, '', '/');
-    document.body.innerHTML = '<div class="chart-head"></div><div class="toggle-row--primary"></div><aside class="sidebar"></aside><svg id="chart"></svg>';
+    document.body.innerHTML = '<div class="chart-head"></div><div class="toggle-row--primary"></div><aside class="sidebar"><section class="panel"><input type="range"></section></aside><svg id="chart"></svg>';
     onDetailChange = vi.fn();
   });
 

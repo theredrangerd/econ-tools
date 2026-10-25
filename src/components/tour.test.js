@@ -38,6 +38,17 @@ describe('startTour', () => {
     expect(onDone).toHaveBeenCalledTimes(1);
   });
 
+  it('spotlights the combined box of every element a selector matches', () => {
+    document.body.innerHTML = '<p class="m"></p><p class="m"></p><p class="other"></p>';
+    const [m1, m2] = document.querySelectorAll('.m');
+    stubRect(m1, { left: 100, top: 100, width: 200, height: 40 });
+    stubRect(m2, { left: 100, top: 150, width: 200, height: 60 });
+    startTour(document, [{ target: '.m', title: 'x', text: 'y' }], { onDone });
+    const spot = document.querySelector('.tour-spotlight');
+    expect(spot.style.top).toBe('94px');
+    expect(spot.style.height).toBe('122px');
+  });
+
   it('drops steps whose target is missing', () => {
     startTour(document, [steps[0], { target: '#nope', title: 'x', text: 'y' }, steps[1]], { onDone });
     expect(bubble().textContent).toContain('Step 1 of 2');
