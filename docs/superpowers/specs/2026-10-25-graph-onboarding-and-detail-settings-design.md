@@ -66,7 +66,8 @@ This is not a homepage/site-intro onboarding. A proper homepage intro is explici
 | Region chips (CS, PS, DWL, CB, PB, Gov pills) | ✓ clickable | — | — |
 | Click/hover explainer popovers (tap a shaded area) | ✓ | ✓ | ✓ (user's decision 2026-10-25: stays clickable at every level) |
 | Plain-text area names written on the shading (CS, PS, "welfare loss") | — | — | ✓ |
-| Numbers on the chart (subsidy-amount chip, numeric axis tick values) | ✓ | ✓ | — (user agreed: no numbers on the diagram; whether a bare "0" at the origin stays is the builder's call) |
+| Subsidy-amount chip + its dimension bar (a per-unit number) | ✓ | — (user's decision 2026-10-26: Clean means no chips of any kind) | —
+| Numeric axis tick values | ✓ | ✓ | — (user agreed: no numbers on the diagram; whether a bare "0" at the origin stays is the builder's call) |
 
 **Tax and subsidy pages at IB perfect** (*Claude's call*, from IB revision sources — savemyexams, studyib.net, tutor2u, tutorchase, cognito; user asked Claude to research rather than decide):
 - Tax: keep the consumer/producer incidence split shading (IB answers routinely show consumer burden and producer burden as the two parts of the tax-revenue rectangle). Plain names: "consumer burden", "producer burden", "welfare loss"; CS/PS as on price controls. Curve labels stay as the code has them (S1 / S2 — IB accepts S2 or S1+tax).
@@ -75,6 +76,8 @@ This is not a homepage/site-intro onboarding. A proper homepage intro is explici
 - Detail level is a `renderMarketChart` option contract for now; other renderers (e.g. future `elasticityChart.js`) adopt it when built — *Claude's call*.
 
 **IB perfect definition** (from IB revision sources — no official markscheme specifies area marking; lettered areas A/B/C are a textbook habit, not an exam requirement, so not used): Price/Quantity axes labelled; D and S labelled; free-market Pe/Qe; ceiling/floor price with Qs and Qd and the gap labelled "shortage"/"excess supply"; CS, PS shaded and named; triangle shaded and named **"welfare loss"**; no numbers or explanations on the diagram. Sources: ibonomics.org price-ceiling and price-floor pages; ibdemystified.com price-controls notes; tuitiongenius.com price-controls model essay; owltutors.co.uk and revisiondojo.com diagram tips.
+
+**Known failure mode (2026-10-26): a numeric annotation that isn't a "region chip" slipped into Clean.** The subsidy per-unit amount chip and its bracket survived at Clean because the rule was read as "Clean = no *region* chips". Clean means **no chips or number annotations of any kind**; only axis tick values remain. Rule for every future graph/renderer: any new annotation that carries a computed number (per-unit amount, tax rate, quantity, revenue figure, ...) is `full`-only. Gate it on `detail === 'full'`, never `detail !== 'ib'`, and add a Clean assertion to the renderer's tests.
 
 ## Constraints
 

@@ -742,6 +742,7 @@ input[type="range"]::-moz-range-thumb {
 .market-chart .tick-label { fill: var(--ink-secondary); font-size: 13px; font-variant-numeric: tabular-nums; }
 .market-chart .curve-label { font-size: 14px; font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
 .market-chart .axis-symbol { fill: var(--ink); font-weight: 600; }
+.market-chart .eq-label { font-size: 15px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
 .market-chart .axis-symbol--ref { paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
 /* Halo in the chart background colour so guide lines passing behind a label don't cut through it. */
 .market-chart .line-label { font-size: 13px; font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }

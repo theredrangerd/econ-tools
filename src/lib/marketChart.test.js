@@ -21,6 +21,51 @@ describe('renderMarketChart', () => {
     expect(svg.querySelectorAll('line.supply-curve')).toHaveLength(1);
   });
 
+  describe('equilibrium labels (e1 / e2)', () => {
+    const eqLabels = () => [...svg.querySelectorAll('.eq-label')].map((t) => t.dataset.eq);
+
+    it('labels only e1 on a free market', () => {
+      renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'none' } }));
+      expect(eqLabels()).toEqual(['1']);
+      expect(svg.querySelector('.eq-label').textContent).toBe('e1');
+    });
+
+    it('labels only e1 under a price ceiling or floor (no new equilibrium)', () => {
+      renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'ceiling', price: 50 } }));
+      expect(eqLabels()).toEqual(['1']);
+      renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'floor', price: 110 } }));
+      expect(eqLabels()).toEqual(['1']);
+    });
+
+    it('adds e2 when a tax or subsidy moves the equilibrium', () => {
+      renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 20 } }));
+      expect(eqLabels()).toEqual(['1', '2']);
+      renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'subsidy', amount: 15 } }));
+      expect(eqLabels()).toEqual(['1', '2']);
+    });
+
+    it('drops e2 at a zero tax, where it would sit on e1', () => {
+      renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 0 } }));
+      expect(eqLabels()).toEqual(['1']);
+    });
+
+    it('keeps e1 at a fixed offset from its point while demand shifts (no jitter)', () => {
+      const offset = (demand) => {
+        renderMarketChart(svg, computeMarket({ ...base, demand, intervention: { type: 'none' } }));
+        const dot = [...svg.querySelectorAll('circle')].find((c) => c.getAttribute('fill') === 'var(--ink)');
+        const lbl = svg.querySelector('.eq-label');
+        return [+lbl.getAttribute('x') - +dot.getAttribute('cx'), +lbl.getAttribute('y') - +dot.getAttribute('cy')].map((v) => v.toFixed(1));
+      };
+      const first = offset(120);
+      for (let demand = 121; demand <= 160; demand++) expect(offset(demand)).toEqual(first);
+    });
+
+    it('keeps the labels at the IB perfect detail level', () => {
+      renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'tax', mode: 'specific', amount: 20 } }), { detail: 'ib' });
+      expect(eqLabels()).toEqual(['1', '2']);
+    });
+  });
+
   it('draws a CS and PS fill polygon when trade occurs', () => {
     const result = computeMarket({ ...base, intervention: { type: 'none' } });
     renderMarketChart(svg, result);
@@ -443,8 +488,11 @@ describe('renderMarketChart', () => {
       expect(areaNames().some((n) => n === 'government spending' || n === 'Gov')).toBe(true);
     });
 
-    it('clean keeps the subsidy per-unit amount chip', () => {
+    it('clean drops the subsidy per-unit amount chip and its bracket; full keeps both', () => {
       renderMarketChart(svg, subsidy(), { showSurplusLabels: true, detail: 'clean' });
+      expect(svg.querySelector('.subsidy-bracket')).toBeNull();
+      expect(svg.querySelector('.region-badge--subsidy-amount')).toBeNull();
+      renderMarketChart(svg, subsidy(), { showSurplusLabels: true, detail: 'full' });
       expect(svg.querySelector('.subsidy-bracket')).not.toBeNull();
       expect(svg.querySelector('.region-badge--subsidy-amount')).not.toBeNull();
     });

@@ -715,6 +715,80 @@ function drawAreaNames(layer, result) {
   layer.appendChild(g);
 }
 
+// IB convention: the equilibrium point is named e1, and a second equilibrium e2 appears only
+// when the intervention moves it (a tax or subsidy that still trades). A ceiling/floor leaves
+// the market in disequilibrium at the control price, so it gets no e2.
+//
+// Placement is computed, not searched: every line through the point (both curves, and the
+// dashed guide/price lines) is a ray, the label goes on the bisector of the widest gap
+// between neighbouring rays, and just far enough out to clear both rays bounding it. That
+// moves continuously with the sliders. An earlier version tried a ring of fixed spots and
+// took the first clear one, which made the label flick between spots on every slider step
+// (a 1px curve move changed which marginal spot was "clear").
+// Half-extents of "e" + its hanging subscript (the text is drawn so its ink is centred on
+// the computed point, see EQ_BASELINE), the dot's radius, and the clearance kept from both.
+const EQ_HALF_W = 8, EQ_HALF_H = 7, EQ_PAD = 3, EQ_DOT_R = 5, EQ_BASELINE = 2;
+// A gap opening rightward wins a near-tie, so e1 stays on the free-market side by default.
+const EQ_RIGHT_BONUS = 0.15; // radians
+function eqLabelCenter(pt, rays) {
+  const angs = rays.map((r) => ((r % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)).sort((m, n) => m - n);
+  let best = null;
+  angs.forEach((a0, i) => {
+    const a1 = i + 1 < angs.length ? angs[i + 1] : angs[0] + 2 * Math.PI;
+    const gap = a1 - a0;
+    if (gap < 1e-3) return;
+    const mid = a0 + gap / 2;
+    const score = gap + (Math.cos(mid) > 0.2 ? EQ_RIGHT_BONUS : 0);
+    if (!best || score > best.score) best = { score, gap, mid };
+  });
+  const h = Math.min(best.gap / 2, Math.PI / 2);
+  // Distance from the label's centre to each bounding ray is t·sin(h); it must exceed the
+  // label box's half-extent measured along that ray's normal.
+  let t = 0;
+  for (const edge of [best.mid - h, best.mid + h]) {
+    const nx = -Math.sin(edge), ny = Math.cos(edge);
+    t = Math.max(t, (EQ_HALF_W * Math.abs(nx) + EQ_HALF_H * Math.abs(ny) + EQ_PAD) / Math.max(Math.sin(h), 0.15));
+  }
+  // ...and the label must clear the dot itself, which matters when the gap is wide (flat
+  // curves) and the rays alone would let it sit right on top of the point.
+  const bx = Math.cos(best.mid), by = Math.sin(best.mid);
+  t = Math.max(t, EQ_HALF_W * Math.abs(bx) + EQ_HALF_H * Math.abs(by) + EQ_DOT_R + EQ_PAD);
+  t = Math.min(t, 50);
+  return {
+    x: clampN(pt.x + t * bx, M.left + EQ_HALF_W, M.left + plotW - EQ_HALF_W),
+    y: clampN(pt.y + t * by, M.top + EQ_HALF_H, M.top + plotH - EQ_HALF_H),
+  };
+}
+
+function drawEquilibriumLabels(layer, result, segs) {
+  const dir = ([x1, y1, x2, y2]) => Math.atan2(y2 - y1, x2 - x1);
+  const both = (seg) => [dir(seg), dir(seg) + Math.PI];
+  const LEFT = Math.PI, RIGHT = 0, DOWN = Math.PI / 2, UP = -Math.PI / 2;
+  // e1: both curves, plus the dashed guides to Pe (left) and Qe (down).
+  const points = [{ sub: '1', x: sx(result.Qstar), y: sy(result.Pstar), opacity: 1, rays: [...both(segs.d), ...both(segs.s), LEFT, DOWN] }];
+  if (hasOpenWedge(result)) {
+    const x = sx(result.Q), y = sy(result.Pc);
+    // e2 grows out of e1 as the intervention tweens on, rather than popping in on top of it.
+    const d = Math.hypot(x - points[0].x, y - points[0].y);
+    const opacity = Math.min(1, Math.max(0, (d - 8) / 16));
+    // e2 sits on D and S2, where the Pc line (wedge outline to the left, price line to the
+    // right) crosses the drop line to Q1. A subsidy's wedge box also has its edge running up
+    // to Pp, and its dimension line just up and to the right (drawSubsidyBracket).
+    const rays = [...both(segs.d), ...both(segs.s2), LEFT, RIGHT, DOWN];
+    if (result.mode === 'subsidy') rays.push(UP, -Math.PI / 4);
+    if (opacity > 0) points.push({ sub: '2', x, y, opacity, rays });
+  }
+  for (const pt of points) {
+    const c = eqLabelCenter(pt, pt.rays);
+    layer.appendChild(subscriptLabel('e', pt.sub, {
+      x: (c.x - 7).toFixed(1), y: (c.y + EQ_BASELINE).toFixed(1), 'data-eq': pt.sub,
+      ...(pt.opacity < 1 ? { opacity: pt.opacity.toFixed(2) } : {}),
+    }, 'eq-label'));
+    // Registered so the surplus chips placed afterwards step around it.
+    placedLabels.push({ x0: c.x - EQ_HALF_W, x1: c.x + EQ_HALF_W, y0: c.y - EQ_HALF_H, y1: c.y + EQ_HALF_H });
+  }
+}
+
 // Redraws at the new pixel size whenever the card changes width (window resize, the
 // columns stacking at the mobile breakpoint), replaying the last result.
 function watchSize(svg) {
@@ -906,12 +980,15 @@ export function renderMarketChart(svg, result, options = {}) {
       layer.appendChild(el('circle', { cx: sx(result.Q), cy: sy(result.Pc), r: 4, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': 1.8 }));
     }
 
+    drawEquilibriumLabels(layer, result, { d: screenSeg(dSeg), s: screenSeg(sSeg), s2: s2Seg && screenSeg(s2Seg) });
+
     const showSurplusLabels = options.showSurplusLabels ?? result.showSurplusLabels ?? false;
     if (detail === 'full' && showSurplusLabels) {
       drawSurplusBadges(layer, result);
     }
-    // The bracket exists only to carry the per-unit amount, so IB perfect (no numbers) drops both.
-    if (result.mode === 'subsidy' && detail !== 'ib') drawSubsidyBracket(layer, result);
+    // The bracket exists only to carry the per-unit amount, so Clean and IB perfect (no
+    // chips, no numbers on the diagram) drop both.
+    if (result.mode === 'subsidy' && detail === 'full') drawSubsidyBracket(layer, result);
     if (detail === 'ib') drawAreaNames(layer, result);
   }
 
