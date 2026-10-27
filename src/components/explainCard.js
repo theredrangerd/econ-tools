@@ -43,6 +43,7 @@ export function mountExplainCard(container, {
 
   function paint() {
     const step = steps[current];
+    slider.value = String(getContext().amount);
     count.textContent = `Step ${current + 1} of ${steps.length}`;
     paintText();
     sliderRow.hidden = !step.slider;

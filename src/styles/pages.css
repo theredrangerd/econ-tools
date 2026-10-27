@@ -1204,3 +1204,14 @@ input[type="range"]::-moz-range-thumb {
 @media (prefers-reduced-motion: reduce) {
   .explain-dot, .explain-btn { transition: none; }
 }
+
+/* Subsidy page: Explain is one column (chart + step card); Play hides the step card. */
+body[data-mode] .chart-head { flex-wrap: wrap; }
+.legend .item[hidden] { display: none; }
+body[data-mode="explain"] .layout { grid-template-columns: minmax(0, 1fr); }
+body[data-mode="explain"] .sidebar,
+body[data-mode="explain"] #outcome-panel,
+body[data-mode="explain"] .legend,
+body[data-mode="explain"] .view-switch,
+body[data-mode="explain"] .focus-bar { display: none; }
+body[data-mode="play"] #explain-card { display: none; }

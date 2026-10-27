@@ -38,6 +38,19 @@ describe('explain card', () => {
     expect(onRender).toHaveBeenCalledWith(SUBSIDY_STEPS[2], { animate: false });
     expect(onAmount.mock.invocationCallOrder[0]).toBeLessThan(onRender.mock.invocationCallOrder[0]);
   });
+  it('refresh re-syncs the slider to the amount from getContext', () => {
+    document.body.innerHTML = '<section id="explain-card"></section>';
+    container = document.getElementById('explain-card');
+    let amount = 20;
+    card = mountExplainCard(container, {
+      steps: SUBSIDY_STEPS, amount,
+      getContext: () => ({ amount, result: { Q: 55, govCost: 1100 } }),
+      onRender, onAmount, onFinish,
+    });
+    amount = 35;
+    card.refresh();
+    expect(container.querySelector('.explain-slider').value).toBe('35');
+  });
   it('last step offers Try it in Play', () => {
     card.goTo(10);
     btn('Try it in Play →').click();

@@ -975,7 +975,9 @@ function curveName(text, base, sub, attrs) {
 
 export function renderMarketChart(svg, result, options = {}) {
   svg._lastResult = result;
-  svg._lastOptions = options;
+  // The resize replay redraws the same picture, so it must not replay the entry animation.
+  const { enter: _enter, grow: _grow, ...replayOptions } = options;
+  svg._lastOptions = replayOptions;
   // 'full' = every chip and explainer; 'clean' = no chips; 'ib' = exactly what an exam
   // diagram shows (plain area names, no numbers). See the onboarding/detail-settings spec.
   const detail = options.detail ?? 'full';

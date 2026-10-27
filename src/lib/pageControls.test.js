@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { readCurveParams, guardSliders, marketFits, elasticityInfoHref } from './pageControls.js';
+import { readCurveParams, guardSliders, marketFits, elasticityInfoHref, DEFAULT_MARKET } from './pageControls.js';
 import { computeMarket, pointElasticities } from './marketEngine.js';
 
 function slider(value, { min = -50, max = 50, step = 1 } = {}) {
@@ -127,5 +127,15 @@ describe('guardSliders', () => {
 describe('elasticityInfoHref', () => {
   it('routes to the Elasticity family, which is the shared WIP stub until that family is built', () => {
     expect(elasticityInfoHref()).toMatch(/units\/wip\.html\?unit=elasticity$/);
+  });
+});
+
+describe('DEFAULT_MARKET', () => {
+  it('is the market readCurveParams gives at all-zero sliders', () => {
+    expect(DEFAULT_MARKET).toEqual(readCurveParams(sliders(0, 0, 0, 0)).market);
+    expect(DEFAULT_MARKET.demand).toBeCloseTo(160);
+    expect(DEFAULT_MARKET.supply).toBeCloseTo(0);
+    expect(DEFAULT_MARKET.slopeD).toBeCloseTo(4 / 3);
+    expect(DEFAULT_MARKET.slopeS).toBeCloseTo(4 / 3);
   });
 });

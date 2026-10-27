@@ -10,10 +10,11 @@ import { initGraphChrome, interventionTourSteps } from '../components/graphChrom
 
 // Detail settings + walkthrough on every Government Intervention page, against the real markup.
 const PAGES = [
-  { file: 'price-ceiling.html', init: initPriceCeilingPage, toggle: '#ceiling-toggle', policy: 'impose the price ceiling' },
-  { file: 'price-floor.html', init: initPriceFloorPage, toggle: '#floor-toggle', policy: 'impose the price floor' },
-  { file: 'indirect-tax.html', init: initIndirectTaxPage, toggle: '#tax-toggle', policy: 'impose the tax' },
-  { file: 'subsidy.html', init: initSubsidyPage, toggle: '#subsidy-toggle', policy: 'impose the subsidy' },
+  { file: 'price-ceiling.html', init: initPriceCeilingPage, toggle: '#ceiling-toggle', policy: 'impose the price ceiling', gear: true },
+  { file: 'price-floor.html', init: initPriceFloorPage, toggle: '#floor-toggle', policy: 'impose the price floor', gear: true },
+  { file: 'indirect-tax.html', init: initIndirectTaxPage, toggle: '#tax-toggle', policy: 'impose the tax', gear: true },
+  // The subsidy page swaps the gear for its own IB perfect / Explorer view switch.
+  { file: 'subsidy.html', init: initSubsidyPage, toggle: '#subsidy-toggle', policy: 'impose the subsidy', gear: false },
 ];
 
 function loadPage(file) {
@@ -28,16 +29,16 @@ const pick = (v) => {
   r.dispatchEvent(new Event('change', { bubbles: true }));
 };
 
-describe.each(PAGES)('$file: detail settings and walkthrough', ({ file, init, toggle, policy }) => {
+describe.each(PAGES)('$file: detail settings and walkthrough', ({ file, init, toggle, policy, gear }) => {
   beforeEach(() => {
     localStorage.clear();
     history.replaceState(null, '', '/');
     loadPage(file);
   });
 
-  it('adds the gear to the chart head, the replay button, and a 4-step first-visit tour', () => {
+  it('adds the gear (or view switch) to the chart head, the replay button, and a 4-step first-visit tour', () => {
     init(document);
-    expect(document.querySelector('.chart-head .detail-gear')).not.toBeNull();
+    expect(document.querySelector(gear ? '.chart-head .detail-gear' : '.chart-head .view-switch')).not.toBeNull();
     expect(document.querySelector('.tour-replay')).not.toBeNull();
     const bubble = document.querySelector('.tour-bubble');
     expect(bubble.textContent).toContain('Step 1 of 4');
@@ -58,13 +59,23 @@ describe.each(PAGES)('$file: detail settings and walkthrough', ({ file, init, to
     expect(chart.querySelector('.region-badge')).toBeNull();
   });
 
-  it('re-renders the chart when the detail level changes', () => {
+  it.runIf(gear)('re-renders the chart when the detail level changes', () => {
     init(document);
     const chart = document.querySelector('#chart');
     expect(chart.dataset.detail).toBe('full');
     pick('clean');
     expect(chart.dataset.detail).toBe('clean');
   });
+});
+
+it('subsidy.html: ignores the saved detail level and always draws at IB', () => {
+  localStorage.clear();
+  localStorage.setItem('econ.detail', 'full');
+  history.replaceState(null, '', '/');
+  loadPage('subsidy.html');
+  initSubsidyPage(document);
+  expect(document.querySelector('.detail-gear')).toBeNull();
+  expect(document.querySelector('#chart').dataset.detail).toBe('ib');
 });
 
 describe('price ceiling: changing detail closes an open explainer', () => {

@@ -554,6 +554,12 @@ describe('renderMarketChart', () => {
       renderMarketChart(svg, subsidy(), { detail: 'clean', layers: ['demand', 'supply', 'supply2'] });
       expect(svg.querySelector('.layer-enter')).toBeNull();
     });
+    it('does not keep enter/grow for the resize replay, so a resize never replays the entry animation', () => {
+      renderMarketChart(svg, subsidy(), { detail: 'clean', layers: ['demand', 'supply', 'supply2'], enter: ['supply2'], grow: ['supply2'] });
+      expect(svg._lastOptions).toEqual({ detail: 'clean', layers: ['demand', 'supply', 'supply2'] });
+      renderMarketChart(svg, svg._lastResult, svg._lastOptions);
+      expect(svg.querySelector('.layer-enter, .layer-grow')).toBeNull();
+    });
     it('uses captions for S1, S2 and the bracket', () => {
       renderMarketChart(svg, subsidy(), { detail: 'clean', layers: ['demand', 'supply', 'supply2', 'subsidyBracket'],
         captions: { s1: 'S1 = what it costs to make', s2: 'S2 = what customers need to pay', bracket: '$20 paid by government' } });
