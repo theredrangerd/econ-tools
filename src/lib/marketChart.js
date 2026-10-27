@@ -171,10 +171,17 @@ export function resolveLayers(result, { detail = 'full', layers, focus = null, s
   if (hasOpenWedge(result)) { on.add('eq2'); on.add('prices'); on.add('wedgeBox'); }
   // A binding ceiling/floor, or the muted line of one that doesn't bind.
   if (isPriceControl(result) || (!hasOpenWedge(result) && result.requestedControl)) on.add('control');
-  on.add('cs');
-  on.add('ps');
+  // IB perfect subsidy: the free-market triangles plus the two marginal bands, never the
+  // translucent CS/PS with striped overlap an exam diagram doesn't draw.
+  const ibSubsidy = result.mode === 'subsidy' && detail === 'ib';
+  if (ibSubsidy) {
+    for (const name of ['csTriangle', 'psTriangle', 'marginalCs', 'marginalPs']) on.add(name);
+  } else {
+    on.add('cs');
+    on.add('ps');
+    if (result.mode === 'subsidy') on.add('overlap');
+  }
   if (result.mode === 'tax') on.add('taxWedges');
-  if (result.mode === 'subsidy') on.add('overlap');
   if (result.dwlPoly) on.add('dwl');
   if (detail === 'full' && showSurplusLabels) on.add('badges');
   if (result.mode === 'subsidy' && detail === 'full') on.add('subsidyBracket');
@@ -737,7 +744,7 @@ const AREA_NAME_HALF_H = 9;
 // Names may shrink a little to fit a thin band (exam diagrams name them regardless) but no
 // further, so they stay readable on a projector.
 const AREA_NAME_MIN_SCALE = 0.8;
-function drawAreaNames(layer, result) {
+function drawAreaNames(layer, result, areaLabels = 'full') {
   const g = el('g', {}, 'area-names');
   const placed = [...placedLabels];
   const halfW = (text) => (text.length * AREA_NAME_PX + 4) / 2;
@@ -763,12 +770,43 @@ function drawAreaNames(layer, result) {
     place(['consumer burden', 'CB'], inWedge(result.consumerWedgePoly));
     place(['producer burden', 'PB'], inWedge(result.producerWedgePoly));
   }
-  if (result.mode === 'subsidy') place(['government spending', 'Gov'], inWedge(result.wedgePoly));
-  const surplus = [
-    [['CS'], result.csOnlyPoly || result.csPoly],
-    [['PS'], result.psOnlyPoly || result.psPoly],
-    [['welfare loss', 'WL'], result.dwlPoly],
-  ];
+  const isSubsidy = result.mode === 'subsidy';
+  // Subsidy names follow the area-label setting: full names everything, half only the
+  // marginal bands, none nothing. Other modes ignore it.
+  const names = isSubsidy ? areaLabels : 'full';
+  if (names === 'none') { layer.appendChild(tag(g, 'areaNames')); return; }
+  if (isSubsidy && names === 'full' && result.wedgePoly) {
+    // Just right of the box, centred between Pc and Pp; dropped if it leaves the plot or
+    // runs into another label.
+    const y = (sy(result.Pc) + sy(result.Pp)) / 2;
+    const x = sx(result.Q) + 12;
+    for (const text of ['government spending', 'Gov']) {
+      const w = text.length * AREA_NAME_PX + 4;
+      const rect = { x0: x, x1: x + w, y0: y - AREA_NAME_HALF_H, y1: y + AREA_NAME_HALF_H };
+      if (rect.x1 > M.left + plotW) continue;
+      if (placed.some((r) => rect.x0 < r.x1 && rect.x1 > r.x0 && rect.y0 < r.y1 && rect.y1 > r.y0)) continue;
+      const t = el('text', { x: x.toFixed(1), y: y.toFixed(1), 'text-anchor': 'start', 'dominant-baseline': 'central' }, 'area-name');
+      t.textContent = text;
+      g.appendChild(t);
+      placed.push(rect);
+      placedLabels.push(rect);
+      break;
+    }
+  }
+  const surplus = [];
+  if (!isSubsidy) {
+    surplus.push([['CS'], result.csOnlyPoly || result.csPoly], [['PS'], result.psOnlyPoly || result.psPoly]);
+  } else if (names === 'full') {
+    surplus.push(
+      [['CS'], layerOn.has('csTriangle') ? result.csTrianglePoly : (result.csOnlyPoly || result.csPoly)],
+      [['PS'], layerOn.has('psTriangle') ? result.psTrianglePoly : (result.psOnlyPoly || result.psPoly)],
+    );
+  }
+  if (names === 'full') surplus.push([['welfare loss', 'WL'], result.dwlPoly]);
+  if (isSubsidy) {
+    if (layerOn.has('marginalCs')) surplus.push([['marginal CS', 'mCS'], result.marginalCsPoly]);
+    if (layerOn.has('marginalPs')) surplus.push([['marginal PS', 'mPS'], result.marginalPsPoly]);
+  }
   for (const [forms, poly] of surplus) {
     if (poly && poly.length >= 3) place(forms, inPoly(poly));
   }
@@ -932,6 +970,19 @@ export function renderMarketChart(svg, result, options = {}) {
       psG.appendChild(el('polygon', { points: pts(result.psPoly), fill: 'var(--supply-fill)' }, 'ps-fill'));
       fills.appendChild(tag(psG, 'ps'));
     }
+    // IB perfect subsidy: the free-market triangles, then the two marginal bands over an
+    // opaque backing. Degenerate (zero-amount) polygons are skipped, so no NaN or empty shapes.
+    const bandFill = (layerName, region, poly, fill, backing, cls) => {
+      if (!on.has(layerName) || !(poly && poly.length >= 3)) return;
+      const g = el('g', { 'data-region': region }, 'region region--fill');
+      if (backing) g.appendChild(el('polygon', { points: pts(poly), fill: 'var(--surface)' }, 'wedge-backing'));
+      g.appendChild(el('polygon', { points: pts(poly), fill }, cls));
+      fills.appendChild(tag(g, layerName));
+    };
+    bandFill('csTriangle', 'cs', result.csTrianglePoly, 'var(--demand-fill)', false, 'cs-fill');
+    bandFill('psTriangle', 'ps', result.psTrianglePoly, 'var(--supply-fill)', false, 'ps-fill');
+    bandFill('marginalCs', 'marginal-cs', result.marginalCsPoly, 'var(--demand-alt-fill)', true, 'wedge-fill wedge-fill--consumer');
+    bandFill('marginalPs', 'marginal-ps', result.marginalPsPoly, 'var(--supply-alt-fill)', true, 'wedge-fill wedge-fill--producer');
     if (result.mode === 'tax' || result.mode === 'subsidy') {
       // The wedge is split at the pre-intervention price into a consumer-incidence portion
       // (tinted with the demand color) and a producer-incidence portion (tinted with the
@@ -1091,7 +1142,7 @@ export function renderMarketChart(svg, result, options = {}) {
     // perfect (no chips, no numbers on the diagram) drop both. A caption from the caller
     // is drawn at any detail level.
     if (result.mode === 'subsidy' && on.has('subsidyBracket')) drawSubsidyBracket(layer, result, captions.bracket, detail);
-    if (on.has('areaNames')) drawAreaNames(layer, result);
+    if (on.has('areaNames')) drawAreaNames(layer, result, options.areaLabels ?? 'full');
   }
 
   if (result.noTrade) {

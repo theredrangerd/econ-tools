@@ -509,9 +509,10 @@ describe('renderMarketChart', () => {
       expect(areaNames()).toEqual(expect.arrayContaining(['consumer burden', 'producer burden']));
     });
 
-    it('ib writes government spending in full on a large subsidy', () => {
+    it('ib names government spending beside the box on a large subsidy', () => {
       renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'subsidy', mode: 'specific', amount: 40 } }), { detail: 'ib' });
-      expect(areaNames()).toContain('government spending');
+      // Named just right of the box: in full if it fits the plot, else the short form.
+      expect(areaNames().some((n) => n === 'government spending' || n === 'Gov')).toBe(true);
     });
 
     it('ib still names thin tax bands (shrunk short form) rather than dropping them', () => {
@@ -559,5 +560,38 @@ describe('renderMarketChart', () => {
       expect(svg.textContent).toContain('S1 = what it costs to make');
       expect(svg.textContent).toContain('$20 paid by government');
     });
+  });
+});
+
+describe('IB perfect subsidy', () => {
+  let svg;
+  beforeEach(() => { svg = makeSvg(); });
+  const r = () => computeMarket({ ...base, intervention: { type: 'subsidy', amount: 20 } });
+  const names = () => [...svg.querySelectorAll('.area-name')].map((t) => t.textContent);
+  it('shades the triangles and marginal bands, with no overlap stripes', () => {
+    renderMarketChart(svg, r(), { detail: 'ib' });
+    expect(svg.querySelector('[data-region="subsidy-overlap"]')).toBeNull();
+    expect(svg.querySelector('[data-region="marginal-cs"] polygon')).not.toBeNull();
+    expect(svg.querySelector('[data-region="marginal-ps"] polygon')).not.toBeNull();
+    expect(svg.querySelector('[data-region="dwl"]')).not.toBeNull();
+    expect(svg.querySelector('[data-region="subsidy-cost"]')).not.toBeNull();
+  });
+  it('names every area at areaLabels full', () => {
+    renderMarketChart(svg, r(), { detail: 'ib', areaLabels: 'full' });
+    expect(names()).toEqual(expect.arrayContaining(['CS', 'PS']));
+    // The welfare-loss triangle is small, so it may use its short form (WL).
+    expect(names().some((n) => n === 'welfare loss' || n === 'WL')).toBe(true);
+    expect(names().some((n) => /marginal CS|mCS/.test(n))).toBe(true);
+  });
+  it('names only the marginal bands at half, and nothing at none', () => {
+    renderMarketChart(svg, r(), { detail: 'ib', areaLabels: 'half' });
+    expect(names().every((n) => /marginal|^m(CS|PS)$/.test(n))).toBe(true);
+    renderMarketChart(svg, r(), { detail: 'ib', areaLabels: 'none' });
+    expect(names()).toEqual([]);
+  });
+  it('leaves Full and Clean subsidy shading as before', () => {
+    renderMarketChart(svg, r(), { detail: 'clean' });
+    expect(svg.querySelector('[data-region="subsidy-overlap"]')).not.toBeNull();
+    expect(svg.querySelector('[data-region="marginal-cs"]')).toBeNull();
   });
 });
