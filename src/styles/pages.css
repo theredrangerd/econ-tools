@@ -788,6 +788,15 @@ input[type="range"]::-moz-range-thumb {
   stroke-width: 3;
   filter: brightness(1.35);
 }
+
+/* Entry animations for named chart layers (marketChart.js `enter` / `grow` options): set
+   only on the render that brings a layer in, so later slider re-renders don't replay them.
+   A fill group's grow sits on its shapes, apart from the group's own hover-scale transform. */
+.market-chart .layer-enter { animation: layer-enter 400ms ease-out both; }
+.market-chart .layer-grow { transform-box: fill-box; transform-origin: left center; animation: layer-grow 400ms ease-out 400ms both; }
+@keyframes layer-enter { from { opacity: 0; } }
+@keyframes layer-grow { from { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .market-chart .layer-enter, .market-chart .layer-grow { animation: none; } }
 /* The government's rectangle is outline-only, so a thicker stroke alone barely registers:
    grow the whole box a little as well, so it's clear which area the chip/click refers to. */
 .market-chart .region--line[data-region="subsidy-cost"],

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { computeMarket } from './marketEngine.js';
-import { renderMarketChart } from './marketChart.js';
+import { renderMarketChart, resolveLayers } from './marketChart.js';
 
 function makeSvg() {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -525,6 +525,39 @@ describe('renderMarketChart', () => {
       const r = computeMarket({ demand: 40, supply: 80, slopeD: 1, slopeS: 1, intervention: { type: 'none' } });
       renderMarketChart(svg, r, { detail: 'ib' });
       expect(ticks().every((t) => t.getAttribute('visibility') === 'hidden')).toBe(true);
+    });
+  });
+
+  describe('layers', () => {
+    const subsidy = () => computeMarket({ ...base, intervention: { type: 'subsidy', amount: 20 } });
+    it('resolveLayers reproduces today\'s default set for a full-detail subsidy', () => {
+      expect([...resolveLayers(subsidy(), { detail: 'full', showSurplusLabels: true })].sort()).toEqual(
+        ['badges', 'cs', 'demand', 'dwl', 'eq1', 'eq2', 'overlap', 'prices', 'ps', 'subsidyBracket', 'supply', 'supply2', 'wedgeBox'].sort());
+    });
+    it('draws only the listed layers', () => {
+      renderMarketChart(svg, subsidy(), { detail: 'clean', layers: ['demand'] });
+      expect(svg.querySelectorAll('line.demand-curve')).toHaveLength(1);
+      expect(svg.querySelector('line.supply-curve')).toBeNull();
+      expect(svg.querySelector('[data-region="cs"]')).toBeNull();
+      expect(svg.querySelector('.axis-symbol')).toBeNull();          // no eq1 → no Pe/Qe
+    });
+    it('ties axis symbols to their layers', () => {
+      renderMarketChart(svg, subsidy(), { detail: 'clean', layers: ['demand', 'supply', 'supply2', 'eq1', 'eq2'] });
+      const subs = [...svg.querySelectorAll('.axis-symbol')].map((t) => t.textContent);
+      expect(subs).toEqual(expect.arrayContaining(['Pe', 'Qe', 'Q1']));
+      expect(subs).not.toContain('Pc');
+    });
+    it('marks entering and growing layers only on the render that asks', () => {
+      renderMarketChart(svg, subsidy(), { detail: 'clean', layers: ['demand', 'supply', 'supply2'], enter: ['supply2'] });
+      expect(svg.querySelector('[data-layer="supply2"].layer-enter, [data-layer="supply2"] .layer-enter')).not.toBeNull();
+      renderMarketChart(svg, subsidy(), { detail: 'clean', layers: ['demand', 'supply', 'supply2'] });
+      expect(svg.querySelector('.layer-enter')).toBeNull();
+    });
+    it('uses captions for S1, S2 and the bracket', () => {
+      renderMarketChart(svg, subsidy(), { detail: 'clean', layers: ['demand', 'supply', 'supply2', 'subsidyBracket'],
+        captions: { s1: 'S1 = what it costs to make', s2: 'S2 = what customers need to pay', bracket: '$20 paid by government' } });
+      expect(svg.textContent).toContain('S1 = what it costs to make');
+      expect(svg.textContent).toContain('$20 paid by government');
     });
   });
 });
