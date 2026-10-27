@@ -6,6 +6,7 @@ import { initPriceCeilingPage } from './price-ceiling.js';
 import { initPriceFloorPage } from './price-floor.js';
 import { initIndirectTaxPage } from './indirect-tax.js';
 import { initSubsidyPage } from './subsidy.js';
+import { initGraphChrome, interventionTourSteps } from '../components/graphChrome.js';
 
 // Detail settings + walkthrough on every Government Intervention page, against the real markup.
 const PAGES = [
@@ -76,5 +77,42 @@ describe('price ceiling: changing detail closes an open explainer', () => {
     expect(document.querySelector('.region-popover')).not.toBeNull();
     pick('clean');
     expect(document.querySelector('.region-popover')).toBeNull();
+  });
+});
+
+describe('graph chrome options', () => {
+  const stepOpts = { policyName: 'subsidy', sliderNoun: 'subsidy', clickableRegions: true };
+
+  it('detailSettings: false mounts no gear and reports the IB level', () => {
+    localStorage.clear();
+    document.body.innerHTML = '<div id="head"></div>';
+    const chrome = initGraphChrome(document, {
+      chartHead: document.getElementById('head'), steps: () => [], onDetailChange: () => {}, detailSettings: false,
+    });
+    expect(document.querySelector('.detail-gear')).toBeNull();
+    expect(chrome.getDetail()).toBe('ib');
+  });
+
+  it('mounts the gear by default', () => {
+    localStorage.clear();
+    document.body.innerHTML = '<div id="head"></div>';
+    initGraphChrome(document, { chartHead: document.getElementById('head'), steps: () => [], onDetailChange: () => {} });
+    expect(document.querySelector('.detail-gear')).not.toBeNull();
+  });
+
+  it('viewSwitch: true ends the tour on the view switch instead of the gear', () => {
+    const steps = interventionTourSteps({ ...stepOpts, viewSwitch: true });
+    const last = steps[steps.length - 1];
+    expect(last).toEqual({
+      target: '.view-switch',
+      title: 'Switch views.',
+      text: 'IB perfect is the diagram to draw in an exam; Explorer lets you highlight one area at a time.',
+    });
+    expect(steps.some((s) => s.target === '.detail-gear')).toBe(false);
+  });
+
+  it('defaults still end the tour on the gear', () => {
+    const steps = interventionTourSteps(stepOpts);
+    expect(steps[steps.length - 1].target).toBe('.detail-gear');
   });
 });
