@@ -1,11 +1,13 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { initSubsidyPage, SUBSIDY_AREA_LABELS } from './subsidy.js';
 
 function buildDom() {
   document.body.innerHTML = `
     <div id="mini-header"></div>
-    <div class="chart-head"><span id="status-pill"></span></div>
-    <svg id="chart" class="market-chart"></svg>
+    <section class="chart-card">
+      <div class="chart-head"><span id="status-pill"></span></div>
+      <svg id="chart" class="market-chart"></svg>
+    </section>
     <div class="legend">
       ${['demand', 'supply', 'cs', 'ps', 'marginal-cs', 'marginal-ps', 'overlap', 'gov', 'dwl'].map((k) => `<span class="item" data-legend="${k}"></span>`).join('')}
     </div>
@@ -268,6 +270,39 @@ describe('initSubsidyPage — Explain and Play', () => {
     expect($('#chart').dataset.detail).toBe('ib');
     expect($('#chart line.supply-curve')).not.toBeNull();
     expect($('#chart [data-region="dwl"]')).not.toBeNull();
+  });
+
+  describe('keeping the step card on screen', () => {
+    const setup = (cardBottom) => {
+      initSubsidyPage(document, fakeWin('subsidy.html#play'));
+      const chartCard = $('.chart-card');
+      chartCard.scrollIntoView = vi.fn();
+      $('#explain-card').getBoundingClientRect = () => ({ top: cardBottom - 200, bottom: cardBottom, left: 0, right: 0, width: 0, height: 200 });
+      return chartCard;
+    };
+
+    it('scrolls the chart card to the top when a step change leaves the step card below the viewport', () => {
+      const chartCard = setup(window.innerHeight + 50);
+      $('.mode-switch input[value="explain"]').click();
+      expect(chartCard.scrollIntoView).toHaveBeenCalledWith(expect.objectContaining({ block: 'start' }));
+      chartCard.scrollIntoView.mockClear();
+      button('Next').click();
+      expect(chartCard.scrollIntoView).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not scroll when the step card already fits, nor on a slider tick', () => {
+      const chartCard = setup(window.innerHeight - 10);
+      $('.mode-switch input[value="explain"]').click();
+      button('Next').click();
+      expect(chartCard.scrollIntoView).not.toHaveBeenCalled();
+      $('#explain-card').getBoundingClientRect = () => ({ bottom: window.innerHeight + 50 });
+      button('Next').click();
+      chartCard.scrollIntoView.mockClear();
+      const slider = $('.explain-slider');
+      slider.value = '30';
+      slider.dispatchEvent(new Event('input'));
+      expect(chartCard.scrollIntoView).not.toHaveBeenCalled();
+    });
   });
 
   it('fills the marginal CS / PS tiles from the engine, $0 with the subsidy off', () => {

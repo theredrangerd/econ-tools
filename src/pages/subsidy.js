@@ -131,6 +131,19 @@ export function initSubsidyPage(doc, win = window) {
     return { amount: +subsidySlider.value, result: explainResult(step) };
   }
 
+  // Layout A reads like a slideshow: on a step change, if the step card has dropped below the
+  // viewport, bring the chart card to the top so chart + card share one screen. Slider ticks
+  // never scroll.
+  function keepStepCardInView() {
+    const view = doc.defaultView;
+    const chartCard = doc.querySelector('.chart-card');
+    const stepCard = doc.querySelector('#explain-card');
+    if (mode !== 'explain' || !view || typeof chartCard?.scrollIntoView !== 'function') return;
+    if (stepCard.getBoundingClientRect().bottom <= view.innerHeight) return;
+    const reduceMotion = view.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    chartCard.scrollIntoView({ block: 'start', behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
+
   function renderExplain(step, { animate }) {
     if (mode !== 'explain') return;
     const ctx = explainContext(step);
@@ -151,7 +164,11 @@ export function initSubsidyPage(doc, win = window) {
     min: +subsidySlider.min,
     max: +subsidySlider.max,
     getContext: () => explainContext(SUBSIDY_STEPS[card ? card.index() : 0]),
-    onRender: (step, opts) => { explainers?.close(); renderExplain(step, opts); },
+    onRender: (step, opts) => {
+      explainers?.close();
+      renderExplain(step, opts);
+      if (opts.animate) keepStepCardInView();
+    },
     onAmount: (amount) => { subsidySlider.value = String(amount); },
     isValidAmount: (amount) => marketFits(DEFAULT_MARKET, { type: 'subsidy', amount }),
     onFinish() {

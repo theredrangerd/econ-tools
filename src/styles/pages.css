@@ -1209,9 +1209,23 @@ input[type="range"]::-moz-range-thumb {
 body[data-mode] .chart-head { flex-wrap: wrap; }
 .legend .item[hidden] { display: none; }
 body[data-mode="explain"] .layout { grid-template-columns: minmax(0, 1fr); }
-/* Narrow enough that chart + step card fit one screen, like a slideshow; the chart redraws
-   to its rendered width. */
-body[data-mode="explain"] .main-col { width: 100%; max-width: 760px; margin-inline: auto; }
+/* Sized from the viewport height so the chart card + step card fit one screen (subsidy.js
+   scrolls the chart card to the top on each step), like a slideshow. The chart redraws to its
+   rendered width at 3:2 (marketChart sizeChart) for charts 560px and wider; narrower ones get
+   relatively taller, so their height stays ~350-380px, and shrinking the column below that
+   buys almost nothing while the step text wraps onto more lines. --explain-chrome-h is tuned in
+   the browser: at 1200x666 it gives a ~600px column where the tallest step needs 654px, 12px of
+   slack, and keeps about that slack on taller screens. Below ~666px tall the pair can't share
+   one screen at any width; the 362px floor keeps the chart at least ~320px wide. */
+body[data-mode="explain"] {
+  --explain-chrome-h: 264px;
+}
+body[data-mode="explain"] .explain-card { padding-block: 12px; gap: 8px; }
+body[data-mode="explain"] .main-col {
+  width: 100%;
+  max-width: max(362px, min(760px, calc((100svh - var(--explain-chrome-h)) * 1.5)));
+  margin-inline: auto;
+}
 /* The pill only tracks Play's toggle, so in Explain it would contradict the step. */
 body[data-mode="explain"] #status-pill,
 body[data-mode="explain"] .sidebar,
