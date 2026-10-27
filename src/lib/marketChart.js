@@ -163,9 +163,38 @@ export const LAYERS = Object.freeze([
   'subsidyBracket', 'badges', 'areaNames', 'focusChip',
 ]);
 
-// `focus` is accepted for the subsidy Explorer view; it doesn't change the default set yet.
+// The Explorer view's single highlighted area (subsidy page).
+export const FOCUS_IDS = Object.freeze(['cs', 'ps', 'overlap', 'gov', 'dwl']);
+
+// What a focus draws: its polygon, chip label/value, and chip colour. Overlap, gov and DWL
+// only exist when the result has them, so on a free market they yield no fill and no chip.
+function focusSpec(result, focus) {
+  const isSubsidy = result.mode === 'subsidy';
+  const specs = {
+    cs: { poly: result.csPoly, label: 'CS', value: result.CS, colorVar: 'demand' },
+    ps: { poly: result.psPoly, label: 'PS', value: result.PS, colorVar: 'supply' },
+    overlap: { poly: isSubsidy ? result.overlapPoly : null, label: 'Overlap', value: result.overlapArea, colorVar: 'ink' },
+    gov: { poly: isSubsidy ? result.wedgePoly : null, label: 'Gov', value: result.govCost, colorVar: 'gov' },
+    dwl: { poly: result.dwlPoly, label: 'DWL', value: result.DWL, colorVar: 'dwl-line' },
+  };
+  return specs[focus] ?? null;
+}
+
 export function resolveLayers(result, { detail = 'full', layers, focus = null, showSurplusLabels = false } = {}) {
   if (layers) return new Set(layers);
+  if (focus && FOCUS_IDS.includes(focus)) {
+    const on = new Set(['demand', 'supply', 'eq1']);
+    if (shiftedSupplyParams(result)) on.add('supply2');
+    if (hasOpenWedge(result)) { on.add('eq2'); on.add('prices'); }
+    const hasPoly = focusSpec(result, focus)?.poly?.length >= 3;
+    if (hasPoly) {
+      on.add(focus === 'gov' ? 'govFill' : focus);
+      if (focus === 'gov') on.add('wedgeBox');
+      const spec = focusSpec(result, focus);
+      if (spec.value > 0.005) on.add('focusChip');
+    }
+    return on;
+  }
   const on = new Set(['demand', 'supply', 'eq1']);
   if (shiftedSupplyParams(result)) on.add('supply2');
   if (hasOpenWedge(result)) { on.add('eq2'); on.add('prices'); on.add('wedgeBox'); }
@@ -736,6 +765,19 @@ function drawSurplusBadges(layer, result) {
   layer.appendChild(tag(badgeLayer, 'badges'));
 }
 
+// Explorer focus: one value chip on the focused area, in its own group (not the surplus
+// badges) so a focused view never carries the badge set. It is a label, not a region.
+function drawFocusChip(layer, result, focus) {
+  const spec = focusSpec(result, focus);
+  if (!spec || !(spec.value > 0.005)) return;
+  const text = `${spec.label} ${fmtMoney(spec.value)}`;
+  const c = polygonCentroid(spec.poly, placedLabels, { halfW: (text.length * 8 + 14) / 2 });
+  if (!c) return;
+  const g = el('g', {}, 'focus-chip');
+  drawRegionBadge(g, { id: focus, text, center: { ...c, scale: c.scale ?? 1 }, colorVar: spec.colorVar, title: spec.label, plain: true });
+  layer.appendChild(tag(g, 'focusChip'));
+}
+
 // IB perfect: the areas named in plain text, as a student would write them on an exam
 // diagram — no pill, not clickable. Each name falls back to its short form when the full
 // one doesn't fit its region, and is left off if neither does.
@@ -952,6 +994,8 @@ export function renderMarketChart(svg, result, options = {}) {
   layerEnter = new Set(options.enter ?? []);
   layerGrow = new Set(options.grow ?? []);
   const captions = options.captions ?? {};
+  const focusId = FOCUS_IDS.includes(options.focus) ? options.focus : null;
+  if (focusId) svg.dataset.focus = focusId; else delete svg.dataset.focus;
 
   if (!result.noTrade) {
     // All shaded regions go in one group clipped to the plot area, so a region whose true
@@ -1046,6 +1090,11 @@ export function renderMarketChart(svg, result, options = {}) {
       dwlG.appendChild(el('polygon', { points: pts(result.dwlPoly), fill: 'none', stroke: 'var(--dwl-line)', 'stroke-width': 1.8 }, 'dwl-outline'));
       fills.appendChild(tag(dwlG, 'dwl'));
     }
+    if (on.has('govFill') && result.wedgePoly && result.wedgePoly.length >= 3) {
+      const govG = el('g', { 'data-region': 'subsidy-cost' }, 'region region--fill');
+      govG.appendChild(el('polygon', { points: pts(result.wedgePoly), fill: 'var(--gov-fill)' }, 'gov-fill'));
+      fills.appendChild(tag(govG, 'govFill'));
+    }
   }
 
   const shifted = shiftedSupplyParams(result);
@@ -1058,7 +1107,7 @@ export function renderMarketChart(svg, result, options = {}) {
     layer.appendChild(tag(el('line', {
       x1: sx(sSeg[0][0]), y1: sy(sSeg[0][1]), x2: sx(sSeg[1][0]), y2: sy(sSeg[1][1]),
       stroke: 'var(--supply)', 'stroke-width': shifted ? 1.6 : 2.5, 'stroke-linecap': 'round',
-      ...(shifted ? { 'stroke-dasharray': '6,4', 'stroke-opacity': '0.55' } : {}),
+      ...(shifted ? { 'stroke-dasharray': '6,4', 'stroke-opacity': focusId ? '0.35' : '0.55' } : {}),
     }, 'supply-curve'), 'supply'));
   }
 
@@ -1117,7 +1166,8 @@ export function renderMarketChart(svg, result, options = {}) {
     if (on.has('eq1')) {
       layer.appendChild(tag(el('line', { x1: sx(result.Qstar), y1: sy(result.Pstar), x2: sx(result.Qstar), y2: M.top + plotH, stroke: 'var(--ink-muted)', 'stroke-width': 1, 'stroke-dasharray': '3,3' }), 'eq1'));
       layer.appendChild(tag(el('line', { x1: M.left, y1: sy(result.Pstar), x2: sx(result.Qstar), y2: sy(result.Pstar), stroke: 'var(--ink-muted)', 'stroke-width': 1, 'stroke-dasharray': '3,3' }), 'eq1'));
-      layer.appendChild(tag(el('circle', { cx: sx(result.Qstar), cy: sy(result.Pstar), r: 4.5, fill: 'var(--ink)' }), 'eq1'));
+      const e1Focus = focusId && !hasOpenWedge(result);
+      layer.appendChild(tag(el('circle', { cx: sx(result.Qstar), cy: sy(result.Pstar), r: e1Focus ? 8 : 4.5, fill: 'var(--ink)' }, e1Focus ? 'eq-dot--focus' : undefined), 'eq1'));
     }
 
     drawWedgeLines(layer, result);
@@ -1132,7 +1182,7 @@ export function renderMarketChart(svg, result, options = {}) {
       }
     } else if (hasOpenWedge(result) && on.has('eq2')) {
       layer.appendChild(tag(el('line', { x1: sx(result.Q), y1: sy(result.Pc), x2: sx(result.Q), y2: M.top + plotH, stroke: 'var(--ink-muted)', 'stroke-width': 1, 'stroke-dasharray': '1,3' }), 'eq2'));
-      layer.appendChild(tag(el('circle', { cx: sx(result.Q), cy: sy(result.Pc), r: 4, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': 1.8 }), 'eq2'));
+      layer.appendChild(tag(el('circle', { cx: sx(result.Q), cy: sy(result.Pc), r: focusId ? 8 : 4, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': 1.8 }, focusId ? 'eq-dot--focus' : undefined), 'eq2'));
     }
 
     drawEquilibriumLabels(layer, result, { d: screenSeg(dSeg), s: screenSeg(sSeg), s2: s2Seg && screenSeg(s2Seg) });
@@ -1142,6 +1192,7 @@ export function renderMarketChart(svg, result, options = {}) {
     // perfect (no chips, no numbers on the diagram) drop both. A caption from the caller
     // is drawn at any detail level.
     if (result.mode === 'subsidy' && on.has('subsidyBracket')) drawSubsidyBracket(layer, result, captions.bracket, detail);
+    if (on.has('focusChip')) drawFocusChip(layer, result, focusId);
     if (on.has('areaNames')) drawAreaNames(layer, result, options.areaLabels ?? 'full');
   }
 

@@ -595,3 +595,30 @@ describe('IB perfect subsidy', () => {
     expect(svg.querySelector('[data-region="marginal-cs"]')).toBeNull();
   });
 });
+
+describe('focus', () => {
+  let svg;
+  beforeEach(() => { svg = makeSvg(); });
+  const r = (amount = 20) => computeMarket({ ...base, intervention: { type: amount ? 'subsidy' : 'none', amount } });
+  it('removes every other shaded area', () => {
+    renderMarketChart(svg, r(), { detail: 'ib', focus: 'cs' });
+    const regions = [...svg.querySelectorAll('.fills [data-region]')].map((g) => g.dataset.region);
+    expect(new Set(regions)).toEqual(new Set(['cs']));
+  });
+  it('fades S1 and enlarges e2', () => {
+    renderMarketChart(svg, r(), { detail: 'ib', focus: 'cs' });
+    expect(svg.querySelector('line.supply-curve').getAttribute('stroke-opacity')).toBe('0.35');
+    expect(svg.querySelectorAll('.eq-dot--focus')).toHaveLength(1);
+    expect(svg.querySelector('.eq-dot--focus').getAttribute('r')).toBe('8');
+  });
+  it("shows one chip with the focused area's dollar amount", () => {
+    renderMarketChart(svg, r(), { detail: 'ib', focus: 'gov' });
+    expect(svg.textContent).toContain('Gov $1,400');
+    expect(svg.querySelectorAll('.surplus-badges, .area-name')).toHaveLength(0);
+  });
+  it('draws nothing to highlight for gov on a free market', () => {
+    renderMarketChart(svg, r(0), { detail: 'ib', focus: 'gov' });
+    expect(svg.querySelector('.fills [data-region]')).toBeNull();
+    expect(svg.textContent).not.toContain('Gov $');
+  });
+});
