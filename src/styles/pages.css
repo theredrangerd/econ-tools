@@ -1234,3 +1234,57 @@ body[data-mode="explain"] .legend,
 body[data-mode="explain"] .view-switch,
 body[data-mode="explain"] .focus-bar { display: none; }
 body[data-mode="play"] #explain-card { display: none; }
+
+/* Split tile: the Subsidy tile becomes an Explain / Play pair in the same grid footprint. */
+.bento__tile[hidden] { display: none; }
+.bento__split {
+  grid-column: span 2;
+  grid-row: span 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  min-width: 0;
+}
+.bento__mode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid var(--dwl-line);
+  background-color: color-mix(in srgb, var(--surface) 88%, var(--dwl-fill));
+  background-size: cover;
+  background-position: center 62%;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--ink);
+  text-decoration: none;
+  animation: bento-split-in 300ms ease-out both;
+}
+.bento__mode::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--surface) 62%, transparent);
+  z-index: 0;
+}
+.bento__mode:hover::before,
+.bento__mode:focus-visible::before {
+  background: color-mix(in srgb, var(--dwl-fill) 85%, transparent);
+}
+.bento__mode:focus-visible { outline: 2px solid var(--dwl-line); outline-offset: 2px; }
+.bento__mode > * { position: relative; z-index: 1; }
+.bento__mode { isolation: isolate; }
+@keyframes bento-split-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bento__mode { animation: none; }
+}
+@media (max-width: 720px) {
+  .bento__split { grid-column: span 2; }
+}

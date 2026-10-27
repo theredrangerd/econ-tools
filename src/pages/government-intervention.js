@@ -23,6 +23,7 @@ export function initGovernmentInterventionPage(doc) {
     name: diagram.name,
     status: diagram.status,
     level: diagram.level,
+    modes: diagram.modes,
     tier: 'medium',
     href: diagramHref(unit, family, diagram),
   }));
