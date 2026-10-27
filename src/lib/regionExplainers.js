@@ -51,7 +51,15 @@ export const REGION_INFO = {
   },
   'subsidy-cost': {
     title: 'Government Spending',
-    text: 'The government pays the subsidy on every unit sold. That money ends up in three places: lower prices for consumers (marginal CS), higher prices for producers (marginal PS), and a welfare loss nobody gets.',
+    text: 'The total the government pays: the subsidy per unit multiplied by the quantity sold.',
+  },
+  'cs-original': {
+    title: 'Consumer Surplus (before the subsidy)',
+    text: 'The consumer surplus at the free-market price Pe: the area under demand and above Pe. The subsidy adds the marginal CS band beneath it.',
+  },
+  'ps-original': {
+    title: 'Producer Surplus (before the subsidy)',
+    text: 'The producer surplus at the free-market price Pe: the area above supply (S1) and below Pe. The subsidy adds the marginal PS band above it.',
   },
   'marginal-cs': {
     title: 'Marginal Consumer Surplus',
@@ -78,6 +86,8 @@ export const REGION_BADGES = {
   'subsidy-cost': 'Gov',
   'marginal-cs': 'mCS',
   'marginal-ps': 'mPS',
+  'cs-original': 'CS',
+  'ps-original': 'PS',
 };
 
 function getContextNote(key, result) {
@@ -125,6 +135,8 @@ function getStatValue(key, result) {
   if (key === 'subsidy-cost' && result.govCost != null) return fmtMoney(result.govCost);
   if (key === 'marginal-cs' && result.marginalCS != null) return fmtMoney(result.marginalCS);
   if (key === 'marginal-ps' && result.marginalPS != null) return fmtMoney(result.marginalPS);
+  if (key === 'cs-original' && result.csTriangleArea != null) return fmtMoney(result.csTriangleArea);
+  if (key === 'ps-original' && result.psTriangleArea != null) return fmtMoney(result.psTriangleArea);
   return null;
 }
 

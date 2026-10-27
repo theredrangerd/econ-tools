@@ -992,12 +992,14 @@ input[type="range"]::-moz-range-thumb {
   color: var(--ink-secondary);
   border: 1px solid var(--hairline-2);
 }
-.region-popover__pill--cs {
+.region-popover__pill--cs,
+.region-popover__pill--cs-original {
   background: var(--demand-fill);
   color: var(--demand);
   border-color: var(--demand);
 }
-.region-popover__pill--ps {
+.region-popover__pill--ps,
+.region-popover__pill--ps-original {
   background: var(--supply-fill);
   color: var(--supply);
   border-color: var(--supply);
@@ -1232,7 +1234,8 @@ body[data-mode="explain"] .sidebar,
 body[data-mode="explain"] #outcome-panel,
 body[data-mode="explain"] .legend,
 body[data-mode="explain"] .view-switch,
-body[data-mode="explain"] .focus-bar { display: none; }
+body[data-mode="explain"] .focus-bar,
+body[data-mode="explain"] .tour-replay { display: none; }
 body[data-mode="play"] #explain-card { display: none; }
 
 /* Split tile: the Subsidy tile becomes an Explain / Play pair in the same grid footprint. */

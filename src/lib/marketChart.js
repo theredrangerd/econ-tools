@@ -773,7 +773,7 @@ function drawFocusChip(layer, result, focus) {
   const text = `${spec.label} ${fmtMoney(spec.value)}`;
   const c = polygonCentroid(spec.poly, placedLabels, { halfW: (text.length * 8 + 14) / 2 });
   if (!c) return;
-  const g = el('g', {}, 'focus-chip');
+  const g = el('g', {}, 'chart-focus-chip');
   drawRegionBadge(g, { id: focus, text, center: { ...c, scale: c.scale ?? 1 }, colorVar: spec.colorVar, title: spec.label, plain: true });
   layer.appendChild(tag(g, 'focusChip'));
 }
@@ -817,7 +817,7 @@ function drawAreaNames(layer, result, areaLabels = 'full') {
   // marginal bands, none nothing. Other modes ignore it.
   const names = isSubsidy ? areaLabels : 'full';
   if (names === 'none') { layer.appendChild(tag(g, 'areaNames')); return; }
-  if (isSubsidy && names === 'full' && result.wedgePoly) {
+  if (isSubsidy && names === 'full' && result.govCost > 0.005) {
     // Just right of the box, centred between Pc and Pp; dropped if it leaves the plot or
     // runs into another label.
     const y = (sy(result.Pc) + sy(result.Pp)) / 2;
@@ -1025,8 +1025,10 @@ export function renderMarketChart(svg, result, options = {}) {
       g.appendChild(el('polygon', { points: pts(poly), fill }, cls));
       fills.appendChild(tag(g, layerName));
     };
-    bandFill('csTriangle', 'cs', result.csTrianglePoly, 'var(--demand-fill)', false, 'cs-fill');
-    bandFill('psTriangle', 'ps', result.psTrianglePoly, 'var(--supply-fill)', false, 'ps-fill');
+    // The triangles are the surplus before the subsidy (bounded by Pe), so they get their own
+    // regions: tapping one explains and values the pre-subsidy CS/PS, not the subsidised one.
+    bandFill('csTriangle', 'cs-original', result.csTrianglePoly, 'var(--demand-fill)', false, 'cs-fill');
+    bandFill('psTriangle', 'ps-original', result.psTrianglePoly, 'var(--supply-fill)', false, 'ps-fill');
     bandFill('marginalCs', 'marginal-cs', result.marginalCsPoly, 'var(--demand-alt-fill)', true, 'wedge-fill wedge-fill--consumer');
     bandFill('marginalPs', 'marginal-ps', result.marginalPsPoly, 'var(--supply-alt-fill)', true, 'wedge-fill wedge-fill--producer');
     if (result.mode === 'tax' || result.mode === 'subsidy') {

@@ -37,6 +37,10 @@ describe('initSubsidyPage against the real page markup', () => {
     expect(document.querySelector('#family-nav')).toBeNull();
   });
 
+  it('names the dashed box "Government spending" in the legend', () => {
+    expect(document.querySelector('.legend [data-legend="gov"]').textContent.trim()).toBe('Government spending');
+  });
+
   it('has the Explain card, the outcome panel id and every legend key', () => {
     expect(document.querySelector('#explain-card')).not.toBeNull();
     expect(document.querySelector('#outcome-panel')).not.toBeNull();

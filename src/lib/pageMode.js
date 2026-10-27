@@ -7,12 +7,15 @@ import { FOCUS_IDS } from './marketChart.js';
 
 const VIEW_PARAM = 'view';
 const FOCUS_PARAM = 'focus';
+// The subsidy page has no detail levels; an old link's ?detail= is dropped on the next write.
+const STALE_PARAMS = ['detail'];
 
 export function readMode(win = window) {
   return win.location.hash === '#explain' ? 'explain' : 'play';
 }
 
 function replaceUrl(win, params, hash) {
+  STALE_PARAMS.forEach((name) => params.delete(name));
   const qs = params.toString();
   try {
     win.history.replaceState(null, '', `${win.location.pathname}${qs ? `?${qs}` : ''}${hash}`);

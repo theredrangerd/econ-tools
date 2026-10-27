@@ -69,3 +69,17 @@ describe('play view params', () => {
     expect(w.history.replaceState).toHaveBeenLastCalledWith(null, '', '/p.html?view=explorer&focus=dwl#play');
   });
 });
+
+describe('stale detail param', () => {
+  it('writeMode drops a leftover detail param and keeps the rest', () => {
+    const w = fakeWin('https://x.test/p.html?detail=full&view=explorer');
+    writeMode('play', w);
+    expect(w.location.search).toBe('?view=explorer');
+  });
+  it('writePlayView drops a leftover detail param', () => {
+    const w = fakeWin('https://x.test/p.html?detail=ib#play');
+    writePlayView({ view: 'ib', focus: null }, w);
+    expect(w.location.search).toBe('');
+    expect(w.location.hash).toBe('#play');
+  });
+});

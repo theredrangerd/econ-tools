@@ -237,6 +237,11 @@ describe('subsidy marginal surplus', () => {
     expect(r.csTrianglePoly).toEqual([[0, 140], [60, 80], [60, 80], [0, 80]]);
     expect(r.psTrianglePoly.length).toBeGreaterThanOrEqual(3);
   });
+  it('measures the free-market CS and PS triangle areas', () => {
+    const r = sub(20);
+    expect(r.csTriangleArea).toBeCloseTo(1800);
+    expect(r.psTriangleArea).toBeCloseTo(1800);
+  });
   it('measures marginal CS and PS under the curves, not the wedge rectangles', () => {
     const r = sub(20);
     expect(r.marginalCS).toBeCloseTo(650);

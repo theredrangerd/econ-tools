@@ -162,6 +162,19 @@ const toggleOn = () => { $('#subsidy-toggle').checked = true; $('#subsidy-toggle
 describe('initSubsidyPage — Explain and Play', () => {
   beforeEach(() => { buildDom(); });
 
+  it('does not start the tour in Explain, then starts it on the first switch to Play', () => {
+    localStorage.clear();
+    try {
+      initSubsidyPage(document, fakeWin('subsidy.html#explain'));
+      expect(document.querySelector('.tour-bubble')).toBeNull();
+      $('.mode-switch input[value="play"]').click();
+      expect(document.querySelector('.tour-bubble')).not.toBeNull();
+    } finally {
+      document.querySelectorAll('.tour-bubble, .tour-backdrop, .tour-spotlight').forEach((n) => n.remove());
+      localStorage.clear();
+    }
+  });
+
   it('exports the area-label setting', () => {
     expect(SUBSIDY_AREA_LABELS).toBe('full');
   });

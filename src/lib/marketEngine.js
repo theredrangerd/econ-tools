@@ -177,6 +177,8 @@ function subsidyResult(base, intervention) {
   const polyArea = (poly) => (poly.length < 3 ? 0 : shoelaceArea(poly));
   const marginalCsPoly = clipPoly(csPoly, ([, p]) => Pstar - p);
   const marginalPsPoly = clipPoly(psPoly, ([, p]) => p - Pstar);
+  const csTrianglePoly = csPolyFor(Dmax, Pd, Qstar, Pstar);
+  const psTrianglePoly = psPolyFor(Smin, slopeS, Qstar, Pstar);
 
   return {
     ...base,
@@ -184,8 +186,9 @@ function subsidyResult(base, intervention) {
     // Free-market CS/PS triangles, plus the slices of the subsidised CS/PS that lie beyond
     // Pe: marginal CS is the extra consumer surplus under demand below Pe, marginal PS the
     // extra producer surplus above Pe. Marginal CS + PS + DWL = government spending.
-    csTrianglePoly: csPolyFor(Dmax, Pd, Qstar, Pstar),
-    psTrianglePoly: psPolyFor(Smin, slopeS, Qstar, Pstar),
+    csTrianglePoly, psTrianglePoly,
+    csTriangleArea: polyArea(csTrianglePoly),
+    psTriangleArea: polyArea(psTrianglePoly),
     marginalCsPoly, marginalPsPoly,
     marginalCS: polyArea(marginalCsPoly),
     marginalPS: polyArea(marginalPsPoly),

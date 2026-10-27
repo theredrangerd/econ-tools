@@ -24,6 +24,8 @@ export function enableTileSplit(tile, modes) {
   }
 
   tile.addEventListener('click', (e) => {
+    // Cmd/Ctrl/Shift/Alt or a non-primary button: let the browser open the bare page as asked.
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     e.preventDefault();
     if (split) return;
     openingEvent = e;

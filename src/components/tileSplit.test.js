@@ -30,6 +30,17 @@ describe('enableTileSplit', () => {
     expect(document.activeElement).toBe(links[0]);
   });
 
+  it.each([
+    ['meta', { metaKey: true }], ['ctrl', { ctrlKey: true }], ['shift', { shiftKey: true }],
+    ['alt', { altKey: true }], ['middle-button', { button: 1 }],
+  ])('lets a %s click navigate instead of splitting', (_, mods) => {
+    const e = new MouseEvent('click', { bubbles: true, cancelable: true, ...mods });
+    tile.dispatchEvent(e);
+    expect(e.defaultPrevented).toBe(false);
+    expect(document.querySelector('.bento__split')).toBeNull();
+    expect(tile.hidden).toBe(false);
+  });
+
   it('ignores a second activation', () => {
     click();
     click();

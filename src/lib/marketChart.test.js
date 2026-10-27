@@ -589,6 +589,17 @@ describe('IB perfect subsidy', () => {
     expect(names().some((n) => n === 'welfare loss' || n === 'WL')).toBe(true);
     expect(names().some((n) => /marginal CS|mCS/.test(n))).toBe(true);
   });
+  it('gives the free-market triangles their own regions, not the post-subsidy CS/PS', () => {
+    renderMarketChart(svg, r(), { detail: 'ib' });
+    expect(svg.querySelector('[data-region="cs-original"] polygon')).not.toBeNull();
+    expect(svg.querySelector('[data-region="ps-original"] polygon')).not.toBeNull();
+    expect(svg.querySelector('[data-region="cs"]')).toBeNull();
+    expect(svg.querySelector('[data-region="ps"]')).toBeNull();
+  });
+  it('does not name government spending when the subsidy is $0', () => {
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'subsidy', amount: 0 } }), { detail: 'ib', areaLabels: 'full' });
+    expect(names().some((n) => n === 'government spending' || n === 'Gov')).toBe(false);
+  });
   it('names only the marginal bands at half, and nothing at none', () => {
     renderMarketChart(svg, r(), { detail: 'ib', areaLabels: 'half' });
     expect(names().every((n) => /marginal|^m(CS|PS)$/.test(n))).toBe(true);
@@ -621,6 +632,9 @@ describe('focus', () => {
     renderMarketChart(svg, r(), { detail: 'ib', focus: 'gov' });
     expect(svg.textContent).toContain('Gov $1,400');
     expect(svg.querySelectorAll('.surplus-badges, .area-name')).toHaveLength(0);
+    // Its own class, so it never collides with the focus-bar buttons.
+    expect(svg.querySelectorAll('.chart-focus-chip')).toHaveLength(1);
+    expect(svg.querySelector('.focus-chip')).toBeNull();
   });
   it('draws nothing to highlight for gov on a free market', () => {
     renderMarketChart(svg, r(0), { detail: 'ib', focus: 'gov' });

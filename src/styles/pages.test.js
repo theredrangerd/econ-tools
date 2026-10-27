@@ -40,7 +40,7 @@ describe('shared pages stylesheet', () => {
     const hideRule = css.match(/((?:body\[data-mode="explain"\] [^,{]+,\s*)+body\[data-mode="explain"\] [^,{]+)\{\s*display:\s*none;\s*\}/);
     expect(hideRule).not.toBeNull();
     const hidden = hideRule[1].split(',').map((sel) => sel.trim().replace('body[data-mode="explain"] ', ''));
-    expect(hidden).toEqual(expect.arrayContaining(['.sidebar', '#outcome-panel', '.legend', '.view-switch', '.focus-bar', '#status-pill']));
+    expect(hidden).toEqual(expect.arrayContaining(['.sidebar', '#outcome-panel', '.legend', '.view-switch', '.focus-bar', '#status-pill', '.tour-replay']));
     // The Explain column is sized from the viewport height so chart + step card fit one screen.
     expect(css).toMatch(/body\[data-mode="explain"\] \.main-col\s*\{[^}]*max-width:\s*max\(362px,\s*min\(760px,\s*calc\(\(100svh - var\(--explain-chrome-h\)\) \* 1\.5\)\)\);[^}]*margin-inline:\s*auto;/);
   });
