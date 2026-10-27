@@ -34,4 +34,13 @@ describe('shared pages stylesheet', () => {
     expect(css).toContain('header.top');
     expect(css).toContain('header.top .eyebrow');
   });
+
+  it('hides the Play-only chrome in Explain, status pill included, and caps the Explain column', () => {
+    const css = readPagesCss();
+    const hideRule = css.match(/((?:body\[data-mode="explain"\] [^,{]+,\s*)+body\[data-mode="explain"\] [^,{]+)\{\s*display:\s*none;\s*\}/);
+    expect(hideRule).not.toBeNull();
+    const hidden = hideRule[1].split(',').map((sel) => sel.trim().replace('body[data-mode="explain"] ', ''));
+    expect(hidden).toEqual(expect.arrayContaining(['.sidebar', '#outcome-panel', '.legend', '.view-switch', '.focus-bar', '#status-pill']));
+    expect(css).toMatch(/body\[data-mode="explain"\] \.main-col\s*\{[^}]*max-width:\s*760px;[^}]*margin-inline:\s*auto;/);
+  });
 });

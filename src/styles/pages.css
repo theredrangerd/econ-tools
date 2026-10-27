@@ -1209,6 +1209,11 @@ input[type="range"]::-moz-range-thumb {
 body[data-mode] .chart-head { flex-wrap: wrap; }
 .legend .item[hidden] { display: none; }
 body[data-mode="explain"] .layout { grid-template-columns: minmax(0, 1fr); }
+/* Narrow enough that chart + step card fit one screen, like a slideshow; the chart redraws
+   to its rendered width. */
+body[data-mode="explain"] .main-col { width: 100%; max-width: 760px; margin-inline: auto; }
+/* The pill only tracks Play's toggle, so in Explain it would contradict the step. */
+body[data-mode="explain"] #status-pill,
 body[data-mode="explain"] .sidebar,
 body[data-mode="explain"] #outcome-panel,
 body[data-mode="explain"] .legend,
