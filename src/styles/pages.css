@@ -1186,3 +1186,21 @@ input[type="range"]::-moz-range-thumb {
   color: var(--accent);
   font-weight: 700;
 }
+
+/* Explain mode step card (subsidy page) */
+.explain-card { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border-left: 3px solid var(--accent, var(--demand)); }
+.explain-card__count { margin: 0; font-size: 12px; color: var(--ink-secondary); letter-spacing: .04em; text-transform: uppercase; }
+.explain-card h3 { margin: 0; font-size: 18px; }
+.explain-card__text { margin: 0; line-height: 1.5; }
+.explain-card__slider[hidden] { display: none; }
+.explain-slider { width: 100%; }
+.explain-card__nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.explain-card__dots { display: flex; gap: 6px; }
+.explain-dot { width: 10px; height: 10px; padding: 0; border-radius: 50%; border: 1px solid var(--ink-secondary); background: transparent; cursor: pointer; transition: background .2s; }
+.explain-dot[aria-current="step"] { background: var(--accent, var(--demand)); border-color: var(--accent, var(--demand)); }
+.explain-btn { font: inherit; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--ink-secondary); background: transparent; color: inherit; cursor: pointer; transition: background .2s; }
+.explain-btn:disabled { opacity: .4; cursor: default; }
+.explain-btn--primary { background: var(--accent, var(--demand)); border-color: var(--accent, var(--demand)); color: #fff; }
+@media (prefers-reduced-motion: reduce) {
+  .explain-dot, .explain-btn { transition: none; }
+}
