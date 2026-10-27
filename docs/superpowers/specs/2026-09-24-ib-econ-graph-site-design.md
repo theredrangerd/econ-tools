@@ -217,6 +217,8 @@ An adversarial pass over the four Government Intervention pages found these new 
 
 Every graph page has a one-time, skippable spotlight walkthrough (replayable from a fixed bottom-left button) and a gear on the chart card switching between Full explanation, Clean and IB perfect. Full design: `docs/superpowers/specs/2026-10-25-graph-onboarding-and-detail-settings-design.md`.
 
+Update 2026-10-27: the subsidy page is the pilot of Explain/Play modes (guided walkthrough + sandbox) and replaces the gear with an IB perfect | Explorer view switch; the renderer draws by named layers. See `docs/superpowers/specs/2026-10-27-subsidy-explain-and-play-design.md`.
+
 ## Open / not yet designed
 
 - Individual graph page template's exact layout details beyond the structural approach above and the intervention-toggle rule now decided (sidebar panel grouping, stat-grid layout, etc.) — still fine to finalize opportunistically as new families are built rather than specified exhaustively upfront.

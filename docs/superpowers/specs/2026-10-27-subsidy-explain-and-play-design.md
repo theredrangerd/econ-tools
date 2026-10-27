@@ -1,6 +1,6 @@
 # Subsidy page: Explain and Play modes — design
 
-Date: 2026-10-27. Status: draft, pending the site owner's approval.
+Date: 2026-10-27. Status: implemented (2026-10-27).
 Scope: **the subsidy page only.** Every other graph page keeps working exactly as today. Whatever we learn here gets carried to the other pages later as a separate piece of work.
 
 Related: the main site spec (`2026-09-24-ib-econ-graph-site-design.md`), the detail-settings/onboarding spec (`2026-10-25-graph-onboarding-and-detail-settings-design.md`), and Ms. Patel's open requests in `docs/teacher-feedback.md`. This design covers request 1 (marginal CS/PS), part of request 4 (the government spending box) and the subsidy part of request 3 (IB perfect labels).

@@ -2,6 +2,8 @@
 
 Date: 2026-10-25. Status: agreed in conversation; builder check done (calls made after it are marked *Claude's call*).
 
+> **Update 2026-10-27:** the subsidy page no longer has the detail gear in Play mode. An IB perfect | Explorer view switch replaces it, and the tour's last step targets `.view-switch`. See `2026-10-27-subsidy-explain-and-play-design.md`. The gear and detail levels below still apply to every other graph page.
+
 ## Intent and the why
 
 The Government Intervention pages (price ceiling, price floor, indirect tax, subsidy) need to be usable by a student **on their own**. The realistic first visit: a teacher has already taught the graph in class, then projects or shares the page and says "use this to revise, review, and tinker." The teacher (especially teachers other than the site's author) will not explain how the page works. So the page has to teach itself — but only lightly, because most of it (sliders, toggles) is intuitive. The one genuinely non-obvious thing is the **detail setting**, which is new.
