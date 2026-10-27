@@ -1,6 +1,6 @@
-// A bento tile that, on click, splits into one link per mode (Explain / Play).
+// A bento tile that, on click, splits into one link per mode. `modes` is the
+// { mode, label, href } list from diagramModeLinks.
 // The tile's own href stays the bare page, so it still works without JS.
-const MODE_LABELS = { explain: 'Explain', play: 'Play' };
 
 export function enableTileSplit(tile, modes) {
   let split = null;
@@ -33,14 +33,13 @@ export function enableTileSplit(tile, modes) {
     tile.classList.forEach((c) => {
       if (c !== 'bento__tile') split.classList.add(c);
     });
-    const base = tile.getAttribute('href');
-    modes.forEach((mode) => {
+    modes.forEach(({ mode, label: text, href }) => {
       const link = doc.createElement('a');
       link.className = `bento__mode bento__mode--${mode}`;
-      link.href = `${base}#${mode}`;
+      link.href = href;
       if (tile.style.backgroundImage) link.style.backgroundImage = tile.style.backgroundImage;
       const label = doc.createElement('span');
-      label.textContent = MODE_LABELS[mode] || mode;
+      label.textContent = text;
       link.appendChild(label);
       split.appendChild(link);
     });

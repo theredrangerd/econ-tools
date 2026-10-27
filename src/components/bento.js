@@ -50,6 +50,6 @@ export function renderBento(container, items, options = {}) {
     const levelPill = item.level ? `<span class="level-pill">${item.level}</span>` : '';
     tile.innerHTML = `${badge}${levelPill}<h3>${item.name}</h3>`;
     container.appendChild(tile);
-    if (item.modes) enableTileSplit(tile, item.modes);
+    if (item.modes?.length) enableTileSplit(tile, item.modes);
   });
 }

@@ -6,7 +6,10 @@ describe('enableTileSplit', () => {
   beforeEach(() => {
     document.body.innerHTML = '<div id="g"><a class="bento__tile bento__tile--subsidy" href="/s.html">Subsidy</a></div>';
     tile = document.querySelector('a.bento__tile');
-    enableTileSplit(tile, ['explain', 'play']);
+    enableTileSplit(tile, [
+      { mode: 'explain', label: 'Explain', href: '/s.html#explain' },
+      { mode: 'play', label: 'Play', href: '/s.html#play' },
+    ]);
   });
   const click = (el = tile) => {
     const e = new MouseEvent('click', { bubbles: true, cancelable: true });
@@ -21,6 +24,7 @@ describe('enableTileSplit', () => {
     expect(split).toHaveLength(1);
     const links = split[0].querySelectorAll('a.bento__mode');
     expect([...links].map((a) => a.getAttribute('href'))).toEqual(['/s.html#explain', '/s.html#play']);
+    expect([...links].map((a) => a.textContent)).toEqual(['Explain', 'Play']);
     expect(split[0].classList.contains('bento__tile--subsidy')).toBe(true);
     expect(tile.hidden).toBe(true);
     expect(document.activeElement).toBe(links[0]);

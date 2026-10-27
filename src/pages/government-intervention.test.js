@@ -28,6 +28,9 @@ describe('initGovernmentInterventionPage', () => {
     click(document.querySelector('a[href$="/indirect-tax.html"]'));
     expect(document.querySelector('.bento__split')).toBeNull();
     click(document.querySelector('a[href$="/subsidy.html"]'));
-    expect(document.querySelectorAll('.bento__split a.bento__mode')).toHaveLength(2);
+    const links = document.querySelectorAll('.bento__split a.bento__mode');
+    expect(links).toHaveLength(2);
+    expect(links[0].textContent).toBe('Explain');
+    expect(links[0].getAttribute('href').endsWith('subsidy.html#explain')).toBe(true);
   });
 });
