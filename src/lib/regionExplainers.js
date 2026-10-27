@@ -51,7 +51,15 @@ export const REGION_INFO = {
   },
   'subsidy-cost': {
     title: 'Government Spending',
-    text: 'The total cost to the government of paying the subsidy — the subsidy per unit multiplied by the quantity traded.',
+    text: 'The government pays the subsidy on every unit sold. That money ends up in three places: lower prices for consumers (marginal CS), higher prices for producers (marginal PS), and a welfare loss nobody gets.',
+  },
+  'marginal-cs': {
+    title: 'Marginal Consumer Surplus',
+    text: 'The extra consumer surplus the subsidy creates: consumers now pay Pc instead of Pe, on every unit they buy, including the extra units the subsidy makes worth buying.',
+  },
+  'marginal-ps': {
+    title: 'Marginal Producer Surplus',
+    text: 'The extra producer surplus the subsidy creates: producers now receive Pp instead of Pe, on every unit they sell, including the extra units the subsidy makes worth producing.',
   },
 };
 
@@ -68,6 +76,8 @@ export const REGION_BADGES = {
   'tax-revenue': 'Tax rev',
   'subsidy-overlap': 'CS ∩ PS',
   'subsidy-cost': 'Gov',
+  'marginal-cs': 'mCS',
+  'marginal-ps': 'mPS',
 };
 
 function getContextNote(key, result) {
@@ -95,6 +105,11 @@ function getContextNote(key, result) {
     if (key === 'ps') {
       return `At free-market equilibrium (Pe = ${fmtPrice(result.Pstar)}), producer surplus is maximized without price suppression.`;
     }
+  } else if (result.mode === 'subsidy') {
+    if (key === 'subsidy-cost') {
+      const amount = result.Pp - result.Pc;
+      return `The government pays ${fmtMoney(amount)} on each of the ${fmtQty(result.Q)} loaves sold, ${fmtMoney(result.govCost)} in all. That money ends up in three places: lower prices for consumers (marginal CS), higher prices for producers (marginal PS), and a welfare loss nobody gets.`;
+    }
   }
   return null;
 }
@@ -108,6 +123,8 @@ function getStatValue(key, result) {
   if (key === 'shortage' && result.gap != null) return `${fmtQty(result.gap)} units`;
   if (key === 'tax-revenue' && result.govRevenue != null) return fmtMoney(result.govRevenue);
   if (key === 'subsidy-cost' && result.govCost != null) return fmtMoney(result.govCost);
+  if (key === 'marginal-cs' && result.marginalCS != null) return fmtMoney(result.marginalCS);
+  if (key === 'marginal-ps' && result.marginalPS != null) return fmtMoney(result.marginalPS);
   return null;
 }
 

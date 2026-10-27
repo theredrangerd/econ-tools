@@ -83,3 +83,39 @@ describe('explainer context notes', () => {
     }
   });
 });
+
+describe('subsidy explainers', () => {
+  const base = { demand: 140, supply: 20, slopeD: 1, slopeS: 1 };
+
+  function popoverFor(key, detail = 'full') {
+    document.body.innerHTML = '';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'market-chart');
+    document.body.appendChild(svg);
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'subsidy', amount: 20 } }), { showSurplusLabels: true, detail });
+    attachRegionExplainers(svg);
+    svg.querySelector(`[data-region="${key}"]`).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    return document.querySelector('.region-popover');
+  }
+
+  it('defines marginal CS and PS regions', () => {
+    for (const key of ['marginal-cs', 'marginal-ps']) {
+      expect(REGION_INFO[key].title).toBeTruthy();
+      expect(REGION_INFO[key].text).toBeTruthy();
+    }
+  });
+
+  it('shows the marginal CS value', () => {
+    const pop = popoverFor('marginal-cs', 'ib');
+    expect(pop.querySelector('.region-popover__stat .v').textContent).toBe('$650');
+    expect(pop.querySelector('.region-popover__pill').textContent).toBe('mCS');
+  });
+
+  it('explains government spending with the live amount, quantity and total', () => {
+    const text = popoverFor('subsidy-cost').textContent;
+    expect(text).toContain('$20');
+    expect(text).toContain('70.0');
+    expect(text).toContain('$1,400');
+    expect(text).toContain('three places');
+  });
+});
