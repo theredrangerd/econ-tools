@@ -502,7 +502,11 @@ function drawWedgeLines(svg, result) {
     const xQ = sx(result.Q);
     if (layerOn.has('prices')) {
       svg.appendChild(tag(el('line', { x1: xQ, y1: yc, x2: M.left + plotW, y2: yc, stroke: 'var(--demand)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'), 'prices'));
-      svg.appendChild(tag(el('line', { x1: xQ, y1: yp, x2: M.left + plotW, y2: yp, stroke: 'var(--supply)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'), 'prices'));
+      // A subsidy's Pp line would run off past S1 and read as a stray mark; the box's
+      // top edge and the Pp axis symbol already mark that price.
+      if (result.mode !== 'subsidy') {
+        svg.appendChild(tag(el('line', { x1: xQ, y1: yp, x2: M.left + plotW, y2: yp, stroke: 'var(--supply)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'), 'prices'));
+      }
     }
     // Outline drawn last so it renders on top of the reference lines above at their
     // shared corners (x=Q), keeping the box border crisp instead of getting erased. Grouped

@@ -95,6 +95,14 @@ describe('renderMarketChart', () => {
     expect(svg.querySelector('polygon.wedge-outline')).not.toBeNull();
   });
 
+  it('draws only the consumer-price reference line for a subsidy', () => {
+    const result = computeMarket({ ...base, intervention: { type: 'subsidy', amount: 20 } });
+    renderMarketChart(svg, result);
+    const lines = svg.querySelectorAll('line.wedge-line');
+    expect(lines).toHaveLength(1);
+    expect(lines[0].getAttribute('stroke')).toBe('var(--demand)');
+  });
+
   it('draws a single reference line for a binding price floor', () => {
     const result = computeMarket({ ...base, intervention: { type: 'floor', price: 110 } });
     renderMarketChart(svg, result);
