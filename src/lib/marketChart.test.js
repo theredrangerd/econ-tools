@@ -604,8 +604,10 @@ describe('IB perfect subsidy', () => {
   it('names every area at areaLabels full', () => {
     renderMarketChart(svg, r(), { detail: 'ib', areaLabels: 'full' });
     expect(names()).toEqual(expect.arrayContaining(['CS', 'PS']));
-    // The welfare-loss triangle is small, so it may use its short form (WL).
-    expect(names().some((n) => n === 'welfare loss' || n === 'WL')).toBe(true);
+    // The subsidy says deadweight loss (DWL), never welfare loss; the triangle is small, so
+    // it may use the short form.
+    expect(names().some((n) => n === 'deadweight loss' || n === 'DWL')).toBe(true);
+    expect(names()).not.toEqual(expect.arrayContaining(['WL']));
     expect(names().some((n) => /marginal CS|mCS/.test(n))).toBe(true);
   });
   it('gives the free-market triangles their own regions, not the post-subsidy CS/PS', () => {

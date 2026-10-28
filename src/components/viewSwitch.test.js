@@ -22,7 +22,7 @@ describe('mountViewSwitch', () => {
   it('has the five labelled chips', () => {
     const { bar } = setup('explorer');
     expect([...bar.querySelectorAll('.focus-chip')].map((c) => c.textContent)).toEqual(
-      ['Consumer surplus', 'Producer surplus', 'Overlap', 'Government spending', 'Welfare loss']);
+      ['Consumer surplus', 'Producer surplus', 'Overlap', 'Government spending', 'Deadweight loss']);
     expect(bar.textContent).toContain('Pick something to highlight:');
   });
 

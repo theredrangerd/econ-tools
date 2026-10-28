@@ -4,7 +4,7 @@ const FOCUSES = [
   ['ps', 'Producer surplus'],
   ['overlap', 'Overlap'],
   ['gov', 'Government spending'],
-  ['dwl', 'Welfare loss'],
+  ['dwl', 'Deadweight loss'],
 ];
 
 // IB perfect | Explorer segmented control, plus the focus bar (inserted right after the

@@ -16,7 +16,7 @@ import { SUBSIDY_STEPS } from './subsidyExplainSteps.js';
 export const SUBSIDY_AREA_LABELS = 'full'; // 'full' | 'half' | 'none' — Ms. Patel request 3; flip after she confirms.
 
 // Explorer focuses that only exist once the subsidy is on, and what the note calls them.
-const SUBSIDY_ONLY_FOCUS = { overlap: 'the overlap', gov: 'government spending', dwl: 'the welfare loss' };
+const SUBSIDY_ONLY_FOCUS = { overlap: 'the overlap', gov: 'government spending', dwl: 'the deadweight loss' };
 
 export function initSubsidyPage(doc, win = window) {
   const { backHref, backLabel, siblings } = getFamilyNav('subsidy');
@@ -108,7 +108,7 @@ export function initSubsidyPage(doc, win = window) {
     let note = '';
     if (result.noTrade) note = NO_TRADE_NOTE;
     else if (!subsidyActive && SUBSIDY_ONLY_FOCUS[focus]) note = `Turn the subsidy on to see ${SUBSIDY_ONLY_FOCUS[focus]}.`;
-    else if (subsidyActive) note = `<strong>${fmtMoney(result.DWL)} of welfare is lost.</strong> The subsidy pushes output past the efficient quantity — the last few units cost more to produce than buyers value them at.`;
+    else if (subsidyActive) note = `<strong>Deadweight loss (DWL): ${fmtMoney(result.DWL)}.</strong> The subsidy pushes output past the efficient quantity — the last few units cost more to produce than buyers value them at.`;
     doc.querySelector('#market-note').innerHTML = note;
   }
 

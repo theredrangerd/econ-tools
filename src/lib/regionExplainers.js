@@ -118,7 +118,7 @@ function getContextNote(key, result) {
   } else if (result.mode === 'subsidy') {
     if (key === 'subsidy-cost') {
       const amount = result.Pp - result.Pc;
-      return `The government pays ${fmtMoney(amount)} on each of the ${fmtQty(result.Q)} loaves sold, ${fmtMoney(result.govCost)} in all. That money ends up in three places: lower prices for consumers (marginal CS), higher prices for producers (marginal PS), and a welfare loss nobody gets.`;
+      return `The government pays ${fmtMoney(amount)} on each of the ${fmtQty(result.Q)} loaves sold, ${fmtMoney(result.govCost)} in all. That money ends up in three places: lower prices for consumers (marginal CS), higher prices for producers (marginal PS), and a deadweight loss (DWL) nobody gets.`;
     }
   }
   return null;

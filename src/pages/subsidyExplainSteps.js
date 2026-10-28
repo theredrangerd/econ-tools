@@ -67,7 +67,7 @@ export const SUBSIDY_STEPS = [
     slider: true, subsidy: true, layers: L9, enter: ['wedgeBox'], captions: s1s2,
   },
   {
-    id: 'welfare', headline: () => 'Welfare loss',
+    id: 'deadweight loss', headline: () => 'Deadweight loss',
     text: () => '…this triangle. Those last loaves cost more to make (S1) than buyers value them (D), so society loses this much.',
     slider: true, subsidy: true, layers: L10, enter: ['dwl'], captions: s1s2,
   },

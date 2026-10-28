@@ -859,7 +859,7 @@ function drawAreaNames(layer, result, areaLabels = 'full') {
       [['PS'], layerOn.has('psTriangle') ? result.psTrianglePoly : (result.psOnlyPoly || result.psPoly)],
     );
   }
-  if (names === 'full') surplus.push([['welfare loss', 'WL'], result.dwlPoly]);
+  if (names === 'full') surplus.push([isSubsidy ? ['deadweight loss', 'DWL'] : ['welfare loss', 'WL'], result.dwlPoly]);
   if (isSubsidy) {
     if (layerOn.has('marginalCs')) surplus.push([['marginal CS', 'mCS'], result.marginalCsPoly]);
     if (layerOn.has('marginalPs')) surplus.push([['marginal PS', 'mPS'], result.marginalPsPoly]);

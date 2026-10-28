@@ -8,7 +8,7 @@ describe('SUBSIDY_STEPS', () => {
   it('has the 11 steps in order', () => {
     expect(SUBSIDY_STEPS.map((s) => s.id)).toEqual([
       'demand', 'supply', 'subsidy', 'equilibrium', 'prices', 'producer',
-      'consumer', 'overlap', 'government', 'welfare', 'wrap']);
+      'consumer', 'overlap', 'government', 'deadweight loss', 'wrap']);
   });
   it('never drops supply (S1 never moves) before the IB wrap-up', () => {
     SUBSIDY_STEPS.slice(1, 10).forEach((s) => expect(s.layers).toContain('supply'));
