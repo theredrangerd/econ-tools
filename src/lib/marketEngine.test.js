@@ -227,3 +227,41 @@ describe('computeMarket — steep (inelastic) supply that crosses the quantity a
     expect(r.DWL).toBeCloseTo(3100);
   });
 });
+
+describe('subsidy marginal surplus', () => {
+  const sub = (amount, m = { demand: 140, supply: 20, slopeD: 1, slopeS: 1 }) =>
+    computeMarket({ ...m, intervention: { type: 'subsidy', amount } });
+
+  it('returns the free-market CS and PS triangles', () => {
+    const r = sub(20);
+    expect(r.csTrianglePoly).toEqual([[0, 140], [60, 80], [60, 80], [0, 80]]);
+    expect(r.psTrianglePoly.length).toBeGreaterThanOrEqual(3);
+  });
+  it('measures the free-market CS and PS triangle areas', () => {
+    const r = sub(20);
+    expect(r.csTriangleArea).toBeCloseTo(1800);
+    expect(r.psTriangleArea).toBeCloseTo(1800);
+  });
+  it('measures marginal CS and PS under the curves, not the wedge rectangles', () => {
+    const r = sub(20);
+    expect(r.marginalCS).toBeCloseTo(650);
+    expect(r.marginalPS).toBeCloseTo(650);
+    expect(r.DWL).toBeCloseTo(100);
+    expect(r.overlapArea).toBeGreaterThan(0);
+  });
+  it.each([
+    [{ demand: 140, supply: 20, slopeD: 1, slopeS: 1 }],
+    [{ demand: 160, supply: 0, slopeD: 4 / 3, slopeS: 4 / 3 }],
+    [{ demand: 120, supply: -40, slopeD: 0.5, slopeS: 3 }],
+  ])('marginal CS + marginal PS + DWL = government spending (%o)', (m) => {
+    const r = sub(15, m);
+    expect(r.marginalCS + r.marginalPS + r.DWL).toBeCloseTo(r.govCost, 6);
+  });
+  it('collapses cleanly at a $0 subsidy', () => {
+    const r = sub(0);
+    expect(r.marginalCS).toBeCloseTo(0);
+    expect(r.marginalPS).toBeCloseTo(0);
+    expect(r.overlapArea).toBeCloseTo(0);
+    [...r.marginalCsPoly, ...r.marginalPsPoly].flat().forEach((v) => expect(Number.isFinite(v)).toBe(true));
+  });
+});

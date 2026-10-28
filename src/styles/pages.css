@@ -532,6 +532,57 @@ body.theme-government-intervention {
 }
 .detail-seg__opt input:checked + span { background: var(--accent-fill); color: var(--accent); font-weight: 600; }
 .detail-seg__opt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* Explain|Play and IB perfect|Explorer switches: same look as .detail-seg */
+.seg {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.seg__opt { position: relative; display: flex; cursor: pointer; }
+.seg__opt + .seg__opt { border-left: 1px solid var(--hairline); }
+.seg__opt input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg__opt span {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  text-align: center;
+  font-size: 12.5px;
+  line-height: 1.2;
+  color: var(--ink-secondary);
+}
+.seg__opt input:checked + span { background: var(--accent-fill); color: var(--accent); font-weight: 600; }
+.seg__opt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.focus-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  min-width: 0;
+}
+.focus-bar[hidden] { display: none; }
+.focus-bar__prompt { font-size: 12.5px; color: var(--ink-secondary); }
+.focus-chip {
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.2;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+.focus-chip:hover { border-color: var(--accent); color: var(--ink); }
+.focus-chip[aria-pressed="true"] { background: var(--accent-fill); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.focus-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
 .detail-popover__hint { margin: 10px 0 0; font-size: 12.5px; color: var(--ink-secondary); }
 
 svg.market-chart { width: 100%; height: auto; display: block; }
@@ -742,6 +793,7 @@ input[type="range"]::-moz-range-thumb {
 .market-chart .tick-label { fill: var(--ink-secondary); font-size: 13px; font-variant-numeric: tabular-nums; }
 .market-chart .curve-label { font-size: 14px; font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
 .market-chart .axis-symbol { fill: var(--ink); font-weight: 600; }
+.market-chart .eq-label { font-size: 15px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
 .market-chart .axis-symbol--ref { paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
 /* Halo in the chart background colour so guide lines passing behind a label don't cut through it. */
 .market-chart .line-label { font-size: 13px; font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
@@ -787,6 +839,15 @@ input[type="range"]::-moz-range-thumb {
   stroke-width: 3;
   filter: brightness(1.35);
 }
+
+/* Entry animations for named chart layers (marketChart.js `enter` / `grow` options): set
+   only on the render that brings a layer in, so later slider re-renders don't replay them.
+   A fill group's grow sits on its shapes, apart from the group's own hover-scale transform. */
+.market-chart .layer-enter { animation: layer-enter 400ms ease-out both; }
+.market-chart .layer-grow { transform-box: fill-box; transform-origin: left center; animation: layer-grow 400ms ease-out 400ms both; }
+@keyframes layer-enter { from { opacity: 0; } }
+@keyframes layer-grow { from { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .market-chart .layer-enter, .market-chart .layer-grow { animation: none; } }
 /* The government's rectangle is outline-only, so a thicker stroke alone barely registers:
    grow the whole box a little as well, so it's clear which area the chip/click refers to. */
 .market-chart .region--line[data-region="subsidy-cost"],
@@ -931,12 +992,14 @@ input[type="range"]::-moz-range-thumb {
   color: var(--ink-secondary);
   border: 1px solid var(--hairline-2);
 }
-.region-popover__pill--cs {
+.region-popover__pill--cs,
+.region-popover__pill--cs-original {
   background: var(--demand-fill);
   color: var(--demand);
   border-color: var(--demand);
 }
-.region-popover__pill--ps {
+.region-popover__pill--ps,
+.region-popover__pill--ps-original {
   background: var(--supply-fill);
   color: var(--supply);
   border-color: var(--supply);
@@ -1124,4 +1187,107 @@ input[type="range"]::-moz-range-thumb {
   background: var(--accent-fill);
   color: var(--accent);
   font-weight: 700;
+}
+
+/* Explain mode step card (subsidy page) */
+.explain-card { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border-left: 3px solid var(--accent, var(--demand)); }
+.explain-card__count { margin: 0; font-size: 12px; color: var(--ink-secondary); letter-spacing: .04em; text-transform: uppercase; }
+.explain-card h3 { margin: 0; font-size: 18px; }
+.explain-card__text { margin: 0; line-height: 1.5; }
+.explain-card__slider[hidden] { display: none; }
+.explain-slider { width: 100%; }
+.explain-card__nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.explain-card__dots { display: flex; gap: 6px; }
+.explain-dot { width: 10px; height: 10px; padding: 0; border-radius: 50%; border: 1px solid var(--ink-secondary); background: transparent; cursor: pointer; transition: background .2s; }
+.explain-dot[aria-current="step"] { background: var(--accent, var(--demand)); border-color: var(--accent, var(--demand)); }
+.explain-btn { font: inherit; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--ink-secondary); background: transparent; color: inherit; cursor: pointer; transition: background .2s; }
+.explain-btn:disabled { opacity: .4; cursor: default; }
+.explain-btn--primary { background: var(--accent, var(--demand)); border-color: var(--accent, var(--demand)); color: #fff; }
+@media (prefers-reduced-motion: reduce) {
+  .explain-dot, .explain-btn { transition: none; }
+}
+
+/* Subsidy page: Explain is one column (chart + step card); Play hides the step card. */
+body[data-mode] .chart-head { flex-wrap: wrap; }
+.legend .item[hidden] { display: none; }
+body[data-mode="explain"] .layout { grid-template-columns: minmax(0, 1fr); }
+/* Sized from the viewport height so the chart card + step card fit one screen (subsidy.js
+   scrolls the chart card to the top on each step), like a slideshow. The chart redraws to its
+   rendered width at 3:2 (marketChart sizeChart) for charts 560px and wider; narrower ones get
+   relatively taller, so their height stays ~350-380px, and shrinking the column below that
+   buys almost nothing while the step text wraps onto more lines. --explain-chrome-h is tuned in
+   the browser: at 1200x666 it gives a ~600px column where the tallest step needs 654px, 12px of
+   slack, and keeps about that slack on taller screens. Below ~666px tall the pair can't share
+   one screen at any width; the 362px floor keeps the chart at least ~320px wide. */
+body[data-mode="explain"] {
+  --explain-chrome-h: 264px;
+}
+body[data-mode="explain"] .explain-card { padding-block: 12px; gap: 8px; }
+body[data-mode="explain"] .main-col {
+  width: 100%;
+  max-width: max(362px, min(760px, calc((100svh - var(--explain-chrome-h)) * 1.5)));
+  margin-inline: auto;
+}
+/* The pill only tracks Play's toggle, so in Explain it would contradict the step. */
+body[data-mode="explain"] #status-pill,
+body[data-mode="explain"] .sidebar,
+body[data-mode="explain"] #outcome-panel,
+body[data-mode="explain"] .legend,
+body[data-mode="explain"] .view-switch,
+body[data-mode="explain"] .focus-bar,
+body[data-mode="explain"] .tour-replay { display: none; }
+body[data-mode="play"] #explain-card { display: none; }
+
+/* Split tile: the Subsidy tile becomes an Explain / Play pair in the same grid footprint. */
+.bento__tile[hidden] { display: none; }
+.bento__split {
+  grid-column: span 2;
+  grid-row: span 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  min-width: 0;
+}
+.bento__mode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid var(--dwl-line);
+  background-color: color-mix(in srgb, var(--surface) 88%, var(--dwl-fill));
+  background-size: cover;
+  background-position: center 62%;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--ink);
+  text-decoration: none;
+  animation: bento-split-in 300ms ease-out both;
+}
+.bento__mode::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--surface) 62%, transparent);
+  z-index: 0;
+}
+.bento__mode:hover::before,
+.bento__mode:focus-visible::before {
+  background: color-mix(in srgb, var(--dwl-fill) 85%, transparent);
+}
+.bento__mode:focus-visible { outline: 2px solid var(--dwl-line); outline-offset: 2px; }
+.bento__mode > * { position: relative; z-index: 1; }
+.bento__mode { isolation: isolate; }
+@keyframes bento-split-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bento__mode { animation: none; }
+}
+@media (max-width: 720px) {
+  .bento__split { grid-column: span 2; }
 }

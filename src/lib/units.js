@@ -37,7 +37,7 @@ const UNITS = [
           { slug: 'price-ceiling', name: 'Price ceiling', level: 'SL', status: 'built', tags: ['price ceiling', 'rent control', 'shortage', 'deadweight loss'] },
           { slug: 'price-floor', name: 'Price floor', level: 'SL', status: 'built', tags: ['price floor', 'minimum wage', 'surplus', 'deadweight loss'] },
           { slug: 'indirect-tax', name: 'Indirect tax', level: 'SL', status: 'built', tags: ['indirect tax', 'specific tax', 'ad valorem tax', 'tax incidence', 'tax revenue'] },
-          { slug: 'subsidy', name: 'Subsidy', level: 'SL', status: 'built', tags: ['subsidy', 'government spending'] },
+          { slug: 'subsidy', name: 'Subsidy', level: 'SL', status: 'built', modes: ['explain', 'play'], tags: ['subsidy', 'government spending'] },
         ],
       },
       {
@@ -108,4 +108,12 @@ export function familyHref(unit, family, base = import.meta.env.BASE_URL) {
 export function diagramHref(unit, family, diagram, base = import.meta.env.BASE_URL) {
   if (diagram.status === 'built') return `${base}units/${unit.slug}/${family.slug}/${diagram.slug}.html`;
   return `${base}units/wip.html?unit=${diagram.slug}`;
+}
+
+const MODE_LABELS = { explain: 'Explain', play: 'Play' };
+
+export function diagramModeLinks(unit, family, diagram, base = import.meta.env.BASE_URL) {
+  if (diagram.status !== 'built' || !diagram.modes) return [];
+  const href = diagramHref(unit, family, diagram, base);
+  return diagram.modes.map((mode) => ({ mode, label: MODE_LABELS[mode], href: `${href}#${mode}` }));
 }

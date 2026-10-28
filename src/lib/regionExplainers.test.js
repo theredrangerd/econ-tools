@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { REGION_INFO, attachRegionExplainers } from './regionExplainers.js';
 import { computeMarket } from './marketEngine.js';
 import { renderMarketChart } from './marketChart.js';
+import { DEFAULT_MARKET } from './pageControls.js';
 
 describe('REGION_INFO wording', () => {
   it('does not equate too little trade with a shortage (a tax or floor causes no shortage)', () => {
@@ -80,6 +81,65 @@ describe('explainer context notes', () => {
     for (const t of texts) {
       expect(t).not.toContain('$$');
       expect(t).not.toContain('P_e');
+    }
+  });
+});
+
+describe('subsidy explainers', () => {
+  const base = { demand: 140, supply: 20, slopeD: 1, slopeS: 1 };
+
+  function popoverFor(key, detail = 'full') {
+    document.body.innerHTML = '';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'market-chart');
+    document.body.appendChild(svg);
+    renderMarketChart(svg, computeMarket({ ...base, intervention: { type: 'subsidy', amount: 20 } }), { showSurplusLabels: true, detail });
+    attachRegionExplainers(svg);
+    svg.querySelector(`[data-region="${key}"]`).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    return document.querySelector('.region-popover');
+  }
+
+  it('defines marginal CS and PS regions', () => {
+    for (const key of ['marginal-cs', 'marginal-ps']) {
+      expect(REGION_INFO[key].title).toBeTruthy();
+      expect(REGION_INFO[key].text).toBeTruthy();
+    }
+  });
+
+  it('shows the marginal CS value', () => {
+    const pop = popoverFor('marginal-cs', 'ib');
+    expect(pop.querySelector('.region-popover__stat .v').textContent).toBe('$650');
+    expect(pop.querySelector('.region-popover__pill').textContent).toBe('mCS');
+  });
+
+  it('explains government spending with the live amount, quantity and total', () => {
+    const text = popoverFor('subsidy-cost').textContent;
+    expect(text).toContain('$20');
+    expect(text).toContain('70.0');
+    expect(text).toContain('$1,400');
+    expect(text).toContain('three places');
+    expect(text.match(/three places/g)).toHaveLength(1);
+  });
+
+  it('keeps the static government-spending text to the definition', () => {
+    expect(REGION_INFO['subsidy-cost'].text).toBe('The total the government pays: the subsidy per unit multiplied by the quantity sold.');
+  });
+
+  it('explains the IB perfect triangles as the surplus before the subsidy, valued at Pe', () => {
+    document.body.innerHTML = '';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'market-chart');
+    document.body.appendChild(svg);
+    renderMarketChart(svg, computeMarket({ ...DEFAULT_MARKET, intervention: { type: 'subsidy', amount: 20 } }), { detail: 'ib' });
+    attachRegionExplainers(svg);
+    expect(svg.querySelector('[data-region="cs"]')).toBeNull();
+    for (const [key, pill, title] of [['cs-original', 'CS', 'Consumer Surplus (before the subsidy)'], ['ps-original', 'PS', 'Producer Surplus (before the subsidy)']]) {
+      svg.querySelector(`[data-region="${key}"]`).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      const pop = document.querySelector('.region-popover');
+      expect(pop.querySelector('h4').textContent).toBe(title);
+      expect(pop.querySelector('.region-popover__pill').textContent).toBe(pill);
+      expect(pop.querySelector('.region-popover__stat .v').textContent).toBe('$2,400');
+      expect(pop.textContent).toContain('Pe');
     }
   });
 });

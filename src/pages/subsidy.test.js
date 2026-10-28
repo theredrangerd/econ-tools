@@ -1,11 +1,17 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { initSubsidyPage } from './subsidy.js';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { initSubsidyPage, SUBSIDY_AREA_LABELS } from './subsidy.js';
 
 function buildDom() {
   document.body.innerHTML = `
     <div id="mini-header"></div>
-    <svg id="chart" class="market-chart"></svg>
-    <div class="chart-head"><span id="status-pill"></span></div>
+    <section class="chart-card">
+      <div class="chart-head"><span id="status-pill"></span></div>
+      <svg id="chart" class="market-chart"></svg>
+    </section>
+    <div class="legend">
+      ${['demand', 'supply', 'cs', 'ps', 'marginal-cs', 'marginal-ps', 'overlap', 'gov', 'dwl'].map((k) => `<span class="item" data-legend="${k}"></span>`).join('')}
+    </div>
+    <section class="card explain-card" id="explain-card" hidden></section>
     <input id="demand-slider" type="range" min="-50" max="50" step="1" value="0">
     <span id="demand-val"></span>
     <input id="supply-slider" type="range" min="-50" max="50" step="1" value="0">
@@ -127,5 +133,196 @@ describe('initSubsidyPage', () => {
     expect(links.length).toBeGreaterThan(0);
     expect([...links].some((a) => a.textContent === 'Subsidy')).toBe(false);
     expect([...links].some((a) => a.textContent === 'Indirect tax')).toBe(true);
+  });
+});
+
+// A stand-in window whose URL the test controls; history.replaceState rewrites it and
+// fire('hashchange') plays a hand-edited hash.
+function fakeWin(url) {
+  const listeners = {};
+  const win = {
+    location: {},
+    history: { replaceState(_s, _t, next) { setUrl(next); } },
+    addEventListener(type, fn) { (listeners[type] ||= []).push(fn); },
+    removeEventListener(type, fn) { listeners[type] = (listeners[type] || []).filter((f) => f !== fn); },
+    fire(type) { (listeners[type] || []).forEach((fn) => fn()); },
+  };
+  function setUrl(next) {
+    const u = new URL(next, 'http://test.local/units/microeconomics/government-intervention/subsidy.html');
+    Object.assign(win.location, { pathname: u.pathname, search: u.search, hash: u.hash });
+  }
+  setUrl(url);
+  return win;
+}
+
+const $ = (sel) => document.querySelector(sel);
+const button = (text) => [...document.querySelectorAll('button')].find((b) => b.textContent === text);
+const toggleOn = () => { $('#subsidy-toggle').checked = true; $('#subsidy-toggle').dispatchEvent(new Event('change')); };
+
+describe('initSubsidyPage — Explain and Play', () => {
+  beforeEach(() => { buildDom(); });
+
+  it('does not start the tour in Explain, then starts it on the first switch to Play', () => {
+    localStorage.clear();
+    try {
+      initSubsidyPage(document, fakeWin('subsidy.html#explain'));
+      expect(document.querySelector('.tour-bubble')).toBeNull();
+      $('.mode-switch input[value="play"]').click();
+      expect(document.querySelector('.tour-bubble')).not.toBeNull();
+    } finally {
+      document.querySelectorAll('.tour-bubble, .tour-backdrop, .tour-spotlight').forEach((n) => n.remove());
+      localStorage.clear();
+    }
+  });
+
+  it('exports the area-label setting', () => {
+    expect(SUBSIDY_AREA_LABELS).toBe('full');
+  });
+
+  it('lands a bare URL in Play on IB perfect, with the view switch and no detail gear', () => {
+    initSubsidyPage(document, fakeWin('subsidy.html'));
+    expect(document.body.dataset.mode).toBe('play');
+    expect($('.detail-gear')).toBeNull();
+    expect($('.view-switch')).not.toBeNull();
+    expect($('.mode-switch')).not.toBeNull();
+    expect($('#chart').dataset.detail).toBe('ib');
+    expect($('#chart [data-region="subsidy-overlap"]')).toBeNull();
+  });
+
+  it('opens #explain on step 1, drawing only demand', () => {
+    initSubsidyPage(document, fakeWin('subsidy.html#explain'));
+    expect(document.body.dataset.mode).toBe('explain');
+    expect($('#explain-card .explain-card__count').textContent).toBe('Step 1 of 11');
+    expect($('#chart line.demand-curve')).not.toBeNull();
+    expect($('#chart line.supply-curve')).toBeNull();
+  });
+
+  it('opens a shared Explorer link on its focus: only the CS fill is drawn', () => {
+    initSubsidyPage(document, fakeWin('subsidy.html?view=explorer&focus=cs#play'));
+    const fills = [...document.querySelectorAll('#chart .region--fill')];
+    expect(fills.length).toBeGreaterThan(0);
+    fills.forEach((f) => expect(f.dataset.region).toBe('cs'));
+  });
+
+  it('shows only demand, supply and the focused item in the legend; IB perfect hides only the overlap', () => {
+    initSubsidyPage(document, fakeWin('subsidy.html?focus=ps#play'));
+    const shown = () => [...document.querySelectorAll('.legend [data-legend]')].filter((i) => !i.hidden).map((i) => i.dataset.legend);
+    expect(shown()).toEqual(['demand', 'supply', 'ps']);
+    $('.view-switch input[value="ib"]').click();
+    expect(shown()).toEqual(['demand', 'supply', 'cs', 'ps', 'marginal-cs', 'marginal-ps', 'gov', 'dwl']);
+  });
+
+  it('keeps the view in the URL when the student switches it', () => {
+    const win = fakeWin('subsidy.html#play');
+    initSubsidyPage(document, win);
+    $('.view-switch input[value="explorer"]').click();
+    $('.focus-chip[data-focus="dwl"]').click();
+    expect(win.location.search).toBe('?view=explorer&focus=dwl');
+  });
+
+  it('says to turn the subsidy on when the Explorer focus has nothing to show', () => {
+    initSubsidyPage(document, fakeWin('subsidy.html?view=explorer&focus=gov#play'));
+    expect($('#market-note').textContent).toContain('Turn the subsidy on');
+    expect($('#market-note').textContent).toContain('government spending');
+    toggleOn();
+    expect($('#market-note').textContent).not.toContain('Turn the subsidy on');
+  });
+
+  it('draws the step animation only on the step change, not on a slider tick (step 3)', () => {
+    initSubsidyPage(document, fakeWin('subsidy.html#explain'));
+    button('Next').click();
+    button('Next').click();
+    expect($('#explain-card .explain-card__count').textContent).toBe('Step 3 of 11');
+    expect($('#chart .layer-enter')).not.toBeNull();
+    const slider = $('.explain-slider');
+    slider.value = '30';
+    slider.dispatchEvent(new Event('input'));
+    expect($('#chart .layer-enter')).toBeNull();
+  });
+
+  it('shares one subsidy amount between the Explain slider and the Play slider', () => {
+    initSubsidyPage(document, fakeWin('subsidy.html#explain'));
+    $('.explain-card .explain-dot:nth-child(3)').click();
+    const slider = $('.explain-slider');
+    slider.value = '30';
+    slider.dispatchEvent(new Event('input'));
+    expect($('#subsidy-slider').value).toBe('30');
+    $('#subsidy-slider').value = '25';
+    $('#subsidy-slider').dispatchEvent(new Event('input'));
+    expect(slider.value).toBe('25');
+  });
+
+  it('follows a hand-edited hash, and entering Explain always restarts at step 1', () => {
+    const win = fakeWin('subsidy.html#explain');
+    initSubsidyPage(document, win);
+    button('Next').click();
+    win.location.hash = '#play';
+    win.fire('hashchange');
+    expect(document.body.dataset.mode).toBe('play');
+    expect($('.mode-switch input[value="play"]').checked).toBe(true);
+    $('.mode-switch input[value="explain"]').click();
+    expect(document.body.dataset.mode).toBe('explain');
+    expect(win.location.hash).toBe('#explain');
+    expect($('#explain-card .explain-card__count').textContent).toBe('Step 1 of 11');
+  });
+
+  it('Try it in Play → on step 11 switches to Play with the subsidy animated on', () => {
+    const win = fakeWin('subsidy.html#explain');
+    initSubsidyPage(document, win);
+    document.querySelectorAll('.explain-card .explain-dot')[10].click();
+    button('Try it in Play →').click();
+    expect(document.body.dataset.mode).toBe('play');
+    expect(win.location.hash).toBe('#play');
+    expect($('#subsidy-toggle').checked).toBe(true);
+    expect($('#stat-cost').textContent).toBe('$1,350');
+  });
+
+  it('draws the IB perfect diagram on the wrap-up step', () => {
+    initSubsidyPage(document, fakeWin('subsidy.html#explain'));
+    document.querySelectorAll('.explain-card .explain-dot')[10].click();
+    expect($('#chart').dataset.detail).toBe('ib');
+    expect($('#chart line.supply-curve')).not.toBeNull();
+    expect($('#chart [data-region="dwl"]')).not.toBeNull();
+  });
+
+  describe('keeping the step card on screen', () => {
+    const setup = (cardBottom) => {
+      initSubsidyPage(document, fakeWin('subsidy.html#play'));
+      const chartCard = $('.chart-card');
+      chartCard.scrollIntoView = vi.fn();
+      $('#explain-card').getBoundingClientRect = () => ({ top: cardBottom - 200, bottom: cardBottom, left: 0, right: 0, width: 0, height: 200 });
+      return chartCard;
+    };
+
+    it('scrolls the chart card to the top when a step change leaves the step card below the viewport', () => {
+      const chartCard = setup(window.innerHeight + 50);
+      $('.mode-switch input[value="explain"]').click();
+      expect(chartCard.scrollIntoView).toHaveBeenCalledWith(expect.objectContaining({ block: 'start' }));
+      chartCard.scrollIntoView.mockClear();
+      button('Next').click();
+      expect(chartCard.scrollIntoView).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not scroll when the step card already fits, nor on a slider tick', () => {
+      const chartCard = setup(window.innerHeight - 10);
+      $('.mode-switch input[value="explain"]').click();
+      button('Next').click();
+      expect(chartCard.scrollIntoView).not.toHaveBeenCalled();
+      $('#explain-card').getBoundingClientRect = () => ({ bottom: window.innerHeight + 50 });
+      button('Next').click();
+      chartCard.scrollIntoView.mockClear();
+      const slider = $('.explain-slider');
+      slider.value = '30';
+      slider.dispatchEvent(new Event('input'));
+      expect(chartCard.scrollIntoView).not.toHaveBeenCalled();
+    });
+  });
+
+  it('fills the marginal CS / PS tiles from the engine, $0 with the subsidy off', () => {
+    initSubsidyPage(document, fakeWin('subsidy.html'));
+    expect($('#stat-incidence-consumer').textContent).toBe('$0');
+    toggleOn();
+    expect($('#stat-incidence-consumer').textContent).toBe('$638');
+    expect($('#stat-incidence-producer').textContent).toBe('$638');
   });
 });

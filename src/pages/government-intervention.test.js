@@ -22,4 +22,15 @@ describe('initGovernmentInterventionPage', () => {
     expect(link.querySelector('.level-pill').textContent).toBe('SL');
     expect(link.querySelector('.bento__badge')).toBeNull();
   });
+
+  it('splits the Subsidy tile into Explain and Play, but not Indirect tax', () => {
+    const click = (el) => el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    click(document.querySelector('a[href$="/indirect-tax.html"]'));
+    expect(document.querySelector('.bento__split')).toBeNull();
+    click(document.querySelector('a[href$="/subsidy.html"]'));
+    const links = document.querySelectorAll('.bento__split a.bento__mode');
+    expect(links).toHaveLength(2);
+    expect(links[0].textContent).toBe('Explain');
+    expect(links[0].getAttribute('href').endsWith('subsidy.html#explain')).toBe(true);
+  });
 });

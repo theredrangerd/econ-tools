@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getUnits, unitHref, familyHref, diagramHref } from './units.js';
+import { getUnits, unitHref, familyHref, diagramHref, diagramModeLinks } from './units.js';
 
 describe('getUnits', () => {
   it('returns all four IB syllabus units with their fixed tiers', () => {
@@ -123,5 +123,22 @@ describe('diagramHref', () => {
       { slug: 'agricultural-markets', status: 'coming-soon' }
     );
     expect(href).toBe('/units/wip.html?unit=agricultural-markets');
+  });
+});
+
+describe('diagramModeLinks', () => {
+  const unit = getUnits().find((u) => u.slug === 'microeconomics');
+  const family = unit.families.find((f) => f.slug === 'government-intervention');
+  const find = (slug) => family.diagrams.find((d) => d.slug === slug);
+
+  it('gives the subsidy page Explain and Play links', () => {
+    const links = diagramModeLinks(unit, family, find('subsidy'));
+    expect(links.map((l) => l.mode)).toEqual(['explain', 'play']);
+    expect(links[0].href.endsWith('/subsidy.html#explain')).toBe(true);
+    expect(links[1].href.endsWith('/subsidy.html#play')).toBe(true);
+  });
+
+  it('returns nothing for a diagram without modes', () => {
+    expect(diagramModeLinks(unit, family, find('price-ceiling'))).toEqual([]);
   });
 });

@@ -51,6 +51,12 @@ export function readCurveParams({ demandSlider, supplySlider, slopeDSlider, slop
   };
 }
 
+// The market at all-zero sliders (the page's starting curves); Explain mode always uses it.
+const ZERO_SLIDER = { value: '0' };
+export const DEFAULT_MARKET = Object.freeze(readCurveParams({
+  demandSlider: ZERO_SLIDER, supplySlider: ZERO_SLIDER, slopeDSlider: ZERO_SLIDER, slopeSSlider: ZERO_SLIDER,
+}).market);
+
 // Stops each input at the last value where `isValid()` still holds, instead of letting it
 // reach a state the chart can't draw. Must be wired before the input's render listener so
 // render only ever sees a valid value.

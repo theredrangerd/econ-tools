@@ -24,16 +24,19 @@
           </div>
           <svg id="chart" class="market-chart" viewBox="0 0 780 520" role="img" aria-label="Subsidy diagram"></svg>
           <div class="legend">
-            <span class="item"><span class="line" style="background:var(--demand)"></span>Demand</span>
-            <span class="item"><span class="line" style="background:var(--supply)"></span>Supply</span>
-            <span class="item"><span class="swatch" style="background:var(--demand-fill); border:1px solid var(--demand)"></span>Consumer surplus</span>
-            <span class="item"><span class="swatch" style="background:var(--supply-fill); border:1px solid var(--supply)"></span>Producer surplus</span>
-            <span class="item"><span class="swatch" style="background:repeating-linear-gradient(45deg, color-mix(in srgb, var(--demand) 38%, var(--surface)) 0 3px, color-mix(in srgb, var(--supply) 38%, var(--surface)) 3px 6px); border:1px solid var(--ink-muted)"></span>Overlap (counted in both CS and PS)</span>
-            <span class="item"><span class="swatch" style="background:transparent; border:1px dashed var(--gov)"></span>Government cost (total)</span>
-            <span class="item"><span class="swatch" style="background:var(--dwl-fill); border:1px solid var(--dwl-line)"></span>Deadweight loss</span>
+            <span class="item" data-legend="demand"><span class="line" style="background:var(--demand)"></span>Demand</span>
+            <span class="item" data-legend="supply"><span class="line" style="background:var(--supply)"></span>Supply</span>
+            <span class="item" data-legend="cs"><span class="swatch" style="background:var(--demand-fill); border:1px solid var(--demand)"></span>Consumer surplus</span>
+            <span class="item" data-legend="ps"><span class="swatch" style="background:var(--supply-fill); border:1px solid var(--supply)"></span>Producer surplus</span>
+            <span class="item" data-legend="marginal-cs"><span class="swatch" style="background:var(--demand-alt-fill); border:1px solid var(--demand)"></span>Marginal consumer surplus</span>
+            <span class="item" data-legend="marginal-ps"><span class="swatch" style="background:var(--supply-alt-fill); border:1px solid var(--supply)"></span>Marginal producer surplus</span>
+            <span class="item" data-legend="overlap"><span class="swatch" style="background:repeating-linear-gradient(45deg, color-mix(in srgb, var(--demand) 38%, var(--surface)) 0 3px, color-mix(in srgb, var(--supply) 38%, var(--surface)) 3px 6px); border:1px solid var(--ink-muted)"></span>Overlap (counted in both CS and PS)</span>
+            <span class="item" data-legend="gov"><span class="swatch" style="background:transparent; border:1px dashed var(--gov)"></span>Government spending</span>
+            <span class="item" data-legend="dwl"><span class="swatch" style="background:var(--dwl-fill); border:1px solid var(--dwl-line)"></span>Deadweight loss</span>
           </div>
         </section>
-        <section class="card panel">
+        <section class="card explain-card" id="explain-card" hidden></section>
+        <section class="card panel" id="outcome-panel">
           <h2>Market outcome</h2>
           <div class="stats-grid">
             <div class="stat"><div class="k">Price consumers pay</div><div class="v" id="stat-price-consumer">$80.00</div></div>
@@ -42,8 +45,8 @@
             <div class="stat cs"><div class="k">Consumer surplus</div><div class="v" id="stat-cs">$2,400</div></div>
             <div class="stat ps"><div class="k">Producer surplus</div><div class="v" id="stat-ps">$2,400</div></div>
             <div class="stat gov"><div class="k">Government cost</div><div class="v" id="stat-cost">$0</div></div>
-            <div class="stat cs-alt"><div class="k">Consumer benefit</div><div class="v" id="stat-incidence-consumer">$0</div></div>
-            <div class="stat ps-alt"><div class="k">Producer benefit</div><div class="v" id="stat-incidence-producer">$0</div></div>
+            <div class="stat cs-alt"><div class="k">Marginal consumer surplus</div><div class="v" id="stat-incidence-consumer">$0</div></div>
+            <div class="stat ps-alt"><div class="k">Marginal producer surplus</div><div class="v" id="stat-incidence-producer">$0</div></div>
             <div class="stat dwl wide"><div class="k">Deadweight loss</div><div class="v" id="stat-dwl">$0</div></div>
           </div>
           <div class="note" id="market-note"></div>

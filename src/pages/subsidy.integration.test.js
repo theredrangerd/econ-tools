@@ -37,6 +37,25 @@ describe('initSubsidyPage against the real page markup', () => {
     expect(document.querySelector('#family-nav')).toBeNull();
   });
 
+  it('names the dashed box "Government spending" in the legend', () => {
+    expect(document.querySelector('.legend [data-legend="gov"]').textContent.trim()).toBe('Government spending');
+  });
+
+  it('has the Explain card, the outcome panel id and every legend key', () => {
+    expect(document.querySelector('#explain-card')).not.toBeNull();
+    expect(document.querySelector('#outcome-panel')).not.toBeNull();
+    const keys = [...document.querySelectorAll('.legend [data-legend]')].map((i) => i.dataset.legend);
+    expect(keys).toEqual(expect.arrayContaining(['demand', 'supply', 'cs', 'ps', 'overlap', 'gov', 'dwl', 'marginal-cs', 'marginal-ps']));
+    expect(document.querySelector('[data-legend="marginal-cs"]').textContent).toBe('Marginal consumer surplus');
+    expect(document.querySelector('[data-legend="marginal-ps"]').textContent).toBe('Marginal producer surplus');
+  });
+
+  it('labels the incidence tiles as marginal consumer / producer surplus', () => {
+    const label = (id) => document.querySelector(id).closest('.stat').querySelector('.k').textContent;
+    expect(label('#stat-incidence-consumer')).toBe('Marginal consumer surplus');
+    expect(label('#stat-incidence-producer')).toBe('Marginal producer surplus');
+  });
+
   it('renders three real-world example links that open in a new tab safely', () => {
     const links = document.querySelectorAll('.examples-list a');
     expect(links).toHaveLength(3);

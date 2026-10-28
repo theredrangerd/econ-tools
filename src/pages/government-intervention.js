@@ -1,6 +1,6 @@
 import { renderMiniHeader, renderHero } from '../components/chrome.js';
 import { renderBento } from '../components/bento.js';
-import { getUnits, unitHref, diagramHref } from '../lib/units.js';
+import { getUnits, unitHref, diagramHref, diagramModeLinks } from '../lib/units.js';
 import { FEEDBACK_FORM_URL } from '../lib/feedback.js';
 
 export function initGovernmentInterventionPage(doc) {
@@ -23,6 +23,7 @@ export function initGovernmentInterventionPage(doc) {
     name: diagram.name,
     status: diagram.status,
     level: diagram.level,
+    modes: diagramModeLinks(unit, family, diagram),
     tier: 'medium',
     href: diagramHref(unit, family, diagram),
   }));

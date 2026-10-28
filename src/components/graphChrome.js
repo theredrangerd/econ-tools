@@ -5,18 +5,22 @@ import { startTour, mountReplayButton } from './tour.js';
 // The shared extras every graph page gets: the detail-settings gear on the chart card, the
 // bottom-left replay button, and the first-visit walkthrough. Each page supplies its own
 // tour steps (built for the current detail level) and re-renders on a detail change.
-export function initGraphChrome(doc, { chartHead, steps, onDetailChange }) {
-  let detail = getDetailLevel();
+// A page with its own view switch passes detailSettings: false: no gear, and the chart is
+// always drawn at the IB level.
+export function initGraphChrome(doc, { chartHead, steps, onDetailChange, detailSettings = true }) {
+  let detail = detailSettings ? getDetailLevel() : 'ib';
   let tour = null;
 
-  mountDetailSettings(chartHead, {
-    level: detail,
-    onChange(level) {
-      setDetailLevel(level);
-      detail = level;
-      onDetailChange(level);
-    },
-  });
+  if (detailSettings) {
+    mountDetailSettings(chartHead, {
+      level: detail,
+      onChange(level) {
+        setDetailLevel(level);
+        detail = level;
+        onDetailChange(level);
+      },
+    });
+  }
 
   const chrome = {
     getDetail: () => detail,
@@ -41,7 +45,7 @@ export function maybeAutoStartTour(chrome, win = window) {
 // The standard walkthrough for an intervention page (price ceiling, floor, tax, subsidy).
 // The "tap a shaded area" step only appears on pages whose regions are clickable (they stay
 // clickable at every detail level).
-export function interventionTourSteps({ policyName, sliderNoun, clickableRegions }) {
+export function interventionTourSteps({ policyName, sliderNoun, clickableRegions, viewSwitch = false }) {
   return [
     {
       target: '.toggle-row--primary',
@@ -59,10 +63,16 @@ export function interventionTourSteps({ policyName, sliderNoun, clickableRegions
       title: 'Tap a shaded area',
       text: 'to see what it means and how big it is.',
     }] : []),
-    {
-      target: '.detail-gear',
-      title: 'Change how much you see.',
-      text: 'This gear switches between a fully annotated diagram and IB perfect, the version to replicate on exams.',
-    },
+    viewSwitch
+      ? {
+        target: '.view-switch',
+        title: 'Switch views.',
+        text: 'IB perfect is the diagram to draw in an exam; Explorer lets you highlight one area at a time.',
+      }
+      : {
+        target: '.detail-gear',
+        title: 'Change how much you see.',
+        text: 'This gear switches between a fully annotated diagram and IB perfect, the version to replicate on exams.',
+      },
   ];
 }
