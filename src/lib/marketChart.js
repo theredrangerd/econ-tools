@@ -500,7 +500,12 @@ function drawWedgeLines(svg, result) {
     // burden/benefit, which is the shaded band between each line and Pe.
     const yc = sy(result.Pc), yp = sy(result.Pp);
     const xQ = sx(result.Q);
-    if (layerOn.has('prices')) {
+    if (layerOn.has('prices') && !layerOn.has('wedgeBox')) {
+      // No box (Explorer foci, early Explain steps): nothing else ties the Pc/Pp axis
+      // symbols to the diagram, so each price runs from the axis to where it meets Q.
+      svg.appendChild(tag(el('line', { x1: M.left, y1: yc, x2: xQ, y2: yc, stroke: 'var(--demand)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'), 'prices'));
+      svg.appendChild(tag(el('line', { x1: M.left, y1: yp, x2: xQ, y2: yp, stroke: 'var(--supply)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'), 'prices'));
+    } else if (layerOn.has('prices')) {
       svg.appendChild(tag(el('line', { x1: xQ, y1: yc, x2: M.left + plotW, y2: yc, stroke: 'var(--demand)', 'stroke-width': 1.6, 'stroke-dasharray': '6,3' }, 'wedge-line'), 'prices'));
       // A subsidy's Pp line would run off past S1 and read as a stray mark; the box's
       // top edge and the Pp axis symbol already mark that price.

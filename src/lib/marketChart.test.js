@@ -103,6 +103,16 @@ describe('renderMarketChart', () => {
     expect(lines[0].getAttribute('stroke')).toBe('var(--demand)');
   });
 
+  it('runs both price lines from the axis to Q when the subsidy box is not drawn', () => {
+    const result = computeMarket({ ...base, intervention: { type: 'subsidy', amount: 20 } });
+    renderMarketChart(svg, result, { focus: 'cs' });
+    const lines = [...svg.querySelectorAll('line.wedge-line')];
+    expect(lines.map((l) => l.getAttribute('stroke'))).toEqual(['var(--demand)', 'var(--supply)']);
+    const x2s = lines.map((l) => +l.getAttribute('x2'));
+    expect(x2s[0]).toBe(x2s[1]);
+    lines.forEach((l) => expect(+l.getAttribute('x1')).toBeLessThan(+l.getAttribute('x2')));
+  });
+
   it('draws a single reference line for a binding price floor', () => {
     const result = computeMarket({ ...base, intervention: { type: 'floor', price: 110 } });
     renderMarketChart(svg, result);
