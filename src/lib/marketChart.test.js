@@ -545,8 +545,9 @@ describe('renderMarketChart', () => {
     it('ties axis symbols to their layers', () => {
       renderMarketChart(svg, subsidy(), { detail: 'clean', layers: ['demand', 'supply', 'supply2', 'eq1', 'eq2'] });
       const subs = [...svg.querySelectorAll('.axis-symbol')].map((t) => t.textContent);
-      expect(subs).toEqual(expect.arrayContaining(['Pe', 'Qe', 'Q1']));
+      expect(subs).toEqual(expect.arrayContaining(['Pe', 'Qe', 'Qsubsidy']));
       expect(subs).not.toContain('Pc');
+      expect(subs).not.toContain('Q1');
     });
     it('marks entering and growing layers only on the render that asks', () => {
       renderMarketChart(svg, subsidy(), { detail: 'clean', layers: ['demand', 'supply', 'supply2'], enter: ['supply2'] });

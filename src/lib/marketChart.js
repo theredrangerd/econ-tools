@@ -268,7 +268,8 @@ function axisSymbols(result) {
     x.push({ base: 'Q', sub: 's', v: result.qs, layer: 'control' }, { base: 'Q', sub: 'd', v: result.qd, layer: 'control' });
   } else if (hasOpenWedge(result)) {
     y.push({ base: 'P', sub: 'c', v: result.Pc, layer: 'prices' }, { base: 'P', sub: 'p', v: result.Pp, layer: 'prices' });
-    x.push({ base: 'Q', sub: '1', v: result.Q, layer: 'eq2' });
+    // A subsidy's traded quantity is Q_subsidy (teacher's request); a tax keeps Q1.
+    x.push({ base: 'Q', sub: result.mode === 'subsidy' ? 'subsidy' : '1', v: result.Q, layer: 'eq2' });
   }
   const place = (syms, pos, gap) => {
     const withPos = syms.map((s) => ({ ...s, pos: pos(s.v) }));
@@ -334,8 +335,13 @@ function drawAxisSymbols(svg, layer, result) {
       layer.appendChild(tag(el('line', { x1: M.left - 8, y1: s.labelY, x2: M.left, y2: s.pos }, 'axis-leader'), s.layer));
     }
   }
+  // A word subscript (Q_subsidy) would straddle its line and run into Qe, so it keeps
+  // its Q on the line (half a Q glyph ≈ 0.35em) and lets the word trail right instead.
   for (const s of order(x)) {
-    layer.appendChild(tag(subscriptLabel(s.base, s.sub, { x: s.pos, y: M.top + plotH + TICK_Y, 'text-anchor': 'middle', ...size(s) }, cls(s)), s.layer));
+    const pin = s.sub.length > 2
+      ? { x: s.pos - 0.35 * SYMBOL_PX * s.scale, 'text-anchor': 'start' }
+      : { x: s.pos, 'text-anchor': 'middle' };
+    layer.appendChild(tag(subscriptLabel(s.base, s.sub, { ...pin, y: M.top + plotH + TICK_Y, ...size(s) }, cls(s)), s.layer));
   }
   // Hide any numeric tick that a symbol now sits on top of. On y the symbol isn't
   // symmetric about its line: the subscript (e.g. "max") hangs ~0.5em further below, so a

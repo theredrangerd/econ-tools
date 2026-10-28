@@ -38,7 +38,7 @@ export const SUBSIDY_STEPS = [
   },
   {
     id: 'equilibrium', headline: () => 'A new equilibrium',
-    text: ({ result }) => `More loaves are sold, Q₁ (${fmtQty(result.Q)}) instead of Qe, because customers pay less.`,
+    text: ({ result }) => `More loaves are sold, Q<sub>subsidy</sub> (${fmtQty(result.Q)}) instead of Qe, because customers pay less.`,
     slider: true, subsidy: true, layers: L4, enter: ['eq2'], captions: withBracket,
   },
   {
@@ -63,7 +63,7 @@ export const SUBSIDY_STEPS = [
   },
   {
     id: 'government', headline: () => 'Government spending',
-    text: ({ amount, result }) => `The government pays ${fmtMoney(amount)} × Q₁ in total (${fmtMoney(result.govCost)}). That’s this whole box: the consumers’ gain, the producers’ gain, plus one more piece…`,
+    text: ({ amount, result }) => `The government pays ${fmtMoney(amount)} × Q<sub>subsidy</sub> in total (${fmtMoney(result.govCost)}). That’s this whole box: the consumers’ gain, the producers’ gain, plus one more piece…`,
     slider: true, subsidy: true, layers: L9, enter: ['wedgeBox'], captions: s1s2,
   },
   {
