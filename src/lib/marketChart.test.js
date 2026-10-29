@@ -95,6 +95,24 @@ describe('renderMarketChart', () => {
     expect(svg.querySelector('polygon.wedge-outline')).not.toBeNull();
   });
 
+  it('draws only the consumer-price reference line for a subsidy', () => {
+    const result = computeMarket({ ...base, intervention: { type: 'subsidy', amount: 20 } });
+    renderMarketChart(svg, result);
+    const lines = svg.querySelectorAll('line.wedge-line');
+    expect(lines).toHaveLength(1);
+    expect(lines[0].getAttribute('stroke')).toBe('var(--demand)');
+  });
+
+  it('runs both price lines from the axis to Q when the subsidy box is not drawn', () => {
+    const result = computeMarket({ ...base, intervention: { type: 'subsidy', amount: 20 } });
+    renderMarketChart(svg, result, { focus: 'cs' });
+    const lines = [...svg.querySelectorAll('line.wedge-line')];
+    expect(lines.map((l) => l.getAttribute('stroke'))).toEqual(['var(--demand)', 'var(--supply)']);
+    const x2s = lines.map((l) => +l.getAttribute('x2'));
+    expect(x2s[0]).toBe(x2s[1]);
+    lines.forEach((l) => expect(+l.getAttribute('x1')).toBeLessThan(+l.getAttribute('x2')));
+  });
+
   it('draws a single reference line for a binding price floor', () => {
     const result = computeMarket({ ...base, intervention: { type: 'floor', price: 110 } });
     renderMarketChart(svg, result);
@@ -586,8 +604,10 @@ describe('IB perfect subsidy', () => {
   it('names every area at areaLabels full', () => {
     renderMarketChart(svg, r(), { detail: 'ib', areaLabels: 'full' });
     expect(names()).toEqual(expect.arrayContaining(['CS', 'PS']));
-    // The welfare-loss triangle is small, so it may use its short form (WL).
-    expect(names().some((n) => n === 'welfare loss' || n === 'WL')).toBe(true);
+    // The subsidy says deadweight loss (DWL), never welfare loss; the triangle is small, so
+    // it may use the short form.
+    expect(names().some((n) => n === 'deadweight loss' || n === 'DWL')).toBe(true);
+    expect(names()).not.toEqual(expect.arrayContaining(['WL']));
     expect(names().some((n) => /marginal CS|mCS/.test(n))).toBe(true);
   });
   it('gives the free-market triangles their own regions, not the post-subsidy CS/PS', () => {
